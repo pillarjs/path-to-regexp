@@ -24,7 +24,7 @@ module.exports = pathtoRegexp;
 function pathtoRegexp(path, keys, options) {
   options = options || {};
   var sensitive = options.sensitive;
-  var strict = options.strictl
+  var strict = options.strict;
 
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';
