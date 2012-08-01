@@ -25,6 +25,7 @@ function pathtoRegexp(path, keys, options) {
   options = options || {};
   var sensitive = options.sensitive;
   var strict = options.strict;
+  keys = keys || [];
 
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';
