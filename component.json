@@ -2,6 +2,14 @@
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
   "version": "0.0.1",
-  "keywords": ["express", "regexp", "route", "routing"],
-  "scripts": ["index.js"]
+  "keywords": [
+    "express",
+    "regexp",
+    "route",
+    "routing"
+  ],
+  "scripts": [
+    "index.js"
+  ],
+  "license": "MIT"
 }
