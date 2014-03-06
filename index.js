@@ -24,6 +24,7 @@ function pathtoRegexp(path, keys, options) {
   options = options || {};
   var sensitive = options.sensitive;
   var strict = options.strict;
+  var end = options.end !== false;
   keys = keys || [];
 
   if (path instanceof RegExp) return path;
@@ -46,5 +47,5 @@ function pathtoRegexp(path, keys, options) {
     .replace(/([\/.])/g, '\\$1')
     .replace(/\*/g, '(.*)');
 
-  return new RegExp('^' + path + '$', sensitive ? '' : 'i');
+  return new RegExp('^' + path + (end ? '$' : ''), sensitive ? '' : 'i');
 };

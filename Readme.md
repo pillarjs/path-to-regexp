@@ -15,6 +15,7 @@ var pathToRegexp = require('path-to-regexp');
  - **options**
    - **options.sensitive** Defaults to false, set this to true to make routes case sensitive
    - **options.strict** Defaults to false, set this to true to make the trailing slash matter.
+   - **options.end** Defaults to true, set this to false to only match the prefix of the URL.
 
 ```javascript
 var keys = [];
