@@ -40,8 +40,8 @@ function pathtoRegexp(path, keys, options) {
         + (optional ? '' : slash)
         + '(?:'
         + (optional ? slash : '')
-        + (format || '') + (capture || (format && '([^/.]+)' || '([^/]+)')) + ')'
-        + (optional || '')
+        + (format || '') + (capture || (format ? '([^/.]+)' : '([^/]+)')) + ')'
+        + (optional || '');
     })
     .replace(/([\/.])/g, '\\$1')
     .replace(/\*/g, '(.*)');
