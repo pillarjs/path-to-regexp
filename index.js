@@ -40,7 +40,7 @@ function pathtoRegexp(path, keys, options) {
         + (optional ? '' : slash)
         + '(?:'
         + (optional ? slash : '')
-        + (format || '') + (capture || (format && '([^/.]+?)' || '([^/]+?)')) + ')'
+        + (format || '') + (capture || (format && '([^/.]+)' || '([^/]+)')) + ')'
         + (optional || '')
         + (star ? '(/*)?' : '');
     })
