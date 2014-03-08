@@ -33,16 +33,15 @@ function pathtoRegexp(path, keys, options) {
   path = path
     .concat(strict ? '' : '/?')
     .replace(/\/\(/g, '(?:/')
-    .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?(\*)?/g, function(_, slash, format, key, capture, optional, star){
+    .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, function (_, slash, format, key, capture, optional) {
       keys.push({ name: key, optional: !! optional });
       slash = slash || '';
       return ''
         + (optional ? '' : slash)
         + '(?:'
         + (optional ? slash : '')
-        + (format || '') + (capture || (format && '([^/.]+?)' || '([^/]+?)')) + ')'
-        + (optional || '')
-        + (star ? '(/*)?' : '');
+        + (format || '') + (capture || (format ? '([^/.]+)' : '([^/]+)')) + ')'
+        + (optional || '');
     })
     .replace(/([\/.])/g, '\\$1')
     .replace(/\*/g, '(.*)');

@@ -2,6 +2,9 @@
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
   "version": "0.1.0",
+  "scripts": {
+    "test": "istanbul cover _mocha -- -R spec"
+  },
   "keywords": [
     "express",
     "regexp"
@@ -14,5 +17,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/component/path-to-regexp.git"
+  },
+  "dependencies": {
+    "mocha": "^1.17.1",
+    "istanbul": "^0.2.6"
   }
 }
