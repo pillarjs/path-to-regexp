@@ -32,19 +32,25 @@ function pathtoRegexp(path, keys, options) {
 
   path = path
     .concat(strict ? '' : '/?')
-    .replace(/\/\(/g, '(?:/')
-    .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, function (_, slash, format, key, capture, optional) {
-      keys.push({ name: key, optional: !! optional });
-      slash = slash || '';
+    .replace(/\/\(/g, '/(?:')
+    .replace(/([\/\.])/g, '\\$1')
+    .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
+      slash    = slash    || '';
+      format   = format   || '';
+      capture  = capture  || '([^/' + format + ']+?)';
+      optional = optional || '';
+
+      keys.push({ name: key, optional: !!optional });
+
       return ''
         + (optional ? '' : slash)
         + '(?:'
-        + (optional ? slash : '')
-        + (format || '') + (capture || (format ? '([^/.]+)' : '([^/]+)')) + ')'
-        + (optional || '');
+        + format + (optional ? slash : '') + capture
+        + (star ? '((?:[\\/' + format + '].+?)?)' : '')
+        + ')'
+        + optional;
     })
-    .replace(/([\/.])/g, '\\$1')
     .replace(/\*/g, '(.*)');
 
-  return new RegExp('^' + path + (end ? '$' : ''), sensitive ? '' : 'i');
+  return new RegExp('^' + path + (end ? '$' : '(?=\/|$)'), sensitive ? '' : 'i');
 };
