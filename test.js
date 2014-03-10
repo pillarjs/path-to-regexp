@@ -1,11 +1,11 @@
 var pathToRegExp = require('./');
-var assert       = require('assert');
+var assert = require('assert');
 
 describe('path-to-regexp', function () {
   describe('strings', function () {
     it('should match simple paths', function () {
       var params = [];
-      var m      = pathToRegExp('/test', params).exec('/test');
+      var m = pathToRegExp('/test', params).exec('/test');
 
       assert.equal(params.length, 0);
 
@@ -15,7 +15,7 @@ describe('path-to-regexp', function () {
 
     it('should match express format params', function () {
       var params = [];
-      var m      = pathToRegExp('/:test', params).exec('/pathname');
+      var m = pathToRegExp('/:test', params).exec('/pathname');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -28,7 +28,7 @@ describe('path-to-regexp', function () {
 
     it('should do strict matches', function () {
       var params = [];
-      var re     = pathToRegExp('/:test', params, { strict: true });
+      var re = pathToRegExp('/:test', params, { strict: true });
       var m;
 
       assert.equal(params.length, 1);
@@ -48,7 +48,7 @@ describe('path-to-regexp', function () {
 
     it('should allow optional express format params', function () {
       var params = [];
-      var re     = pathToRegExp('/:test?', params);
+      var re = pathToRegExp('/:test?', params);
       var m;
 
       assert.equal(params.length, 1);
@@ -70,7 +70,7 @@ describe('path-to-regexp', function () {
 
     it('should allow express format param regexps', function () {
       var params = [];
-      var m      = pathToRegExp('/:page(\\d+)', params).exec('/56');
+      var m = pathToRegExp('/:page(\\d+)', params).exec('/56');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'page');
@@ -83,7 +83,7 @@ describe('path-to-regexp', function () {
 
     it('should match without a prefixed slash', function () {
       var params = [];
-      var m      = pathToRegExp(':test', params).exec('string');
+      var m = pathToRegExp(':test', params).exec('string');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -96,7 +96,7 @@ describe('path-to-regexp', function () {
 
     it('should not match format parts', function () {
       var params = [];
-      var m      = pathToRegExp('/:test.json', params).exec('/route.json');
+      var m = pathToRegExp('/:test.json', params).exec('/route.json');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -109,7 +109,7 @@ describe('path-to-regexp', function () {
 
     it('should match format parts', function () {
       var params = [];
-      var re     = pathToRegExp('/:test.:format', params);
+      var re = pathToRegExp('/:test.:format', params);
       var m;
 
       assert.equal(params.length, 2);
@@ -132,7 +132,7 @@ describe('path-to-regexp', function () {
 
     it('should match route parts with a trailing format', function () {
       var params = [];
-      var m      = pathToRegExp('/:test.json', params).exec('/route.json');
+      var m = pathToRegExp('/:test.json', params).exec('/route.json');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -145,7 +145,7 @@ describe('path-to-regexp', function () {
 
     it('should match optional trailing routes', function () {
       var params = [];
-      var m      = pathToRegExp('/test*', params).exec('/test/route');
+      var m = pathToRegExp('/test*', params).exec('/test/route');
 
       assert.equal(params.length, 0);
 
@@ -156,7 +156,7 @@ describe('path-to-regexp', function () {
 
     it('should match optional trailing routes after a param', function () {
       var params = [];
-      var re     = pathToRegExp('/:test*', params);
+      var re = pathToRegExp('/:test*', params);
       var m;
 
       assert.equal(params.length, 1);
@@ -178,9 +178,9 @@ describe('path-to-regexp', function () {
       assert.equal(m[2], '');
     });
 
-    it('should match optional trailing routes before formats', function () {
+    it('should match optional trailing routes before a format', function () {
       var params = [];
-      var re     = pathToRegExp('/test*.json', params);
+      var re = pathToRegExp('/test*.json', params);
       var m;
 
       assert.equal(params.length, 0);
@@ -204,9 +204,9 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], '/route');
     });
 
-    it('should match optional trailing routes before format', function () {
+    it('should match optional trailing routes after a param and before a format', function () {
       var params = [];
-      var re     = pathToRegExp('/:test*.json', params);
+      var re = pathToRegExp('/:test*.json', params);
       var m;
 
       assert.equal(params.length, 1);
@@ -232,9 +232,9 @@ describe('path-to-regexp', function () {
       assert.ok(!m);
     });
 
-    it('should match optional trailing routes before format', function () {
+    it('should match optional trailing routes between a normal param and a format param', function () {
       var params = [];
-      var re     = pathToRegExp('/:test*.:format', params);
+      var re = pathToRegExp('/:test*.:format', params);
       var m;
 
       assert.equal(params.length, 2);
@@ -268,9 +268,9 @@ describe('path-to-regexp', function () {
       assert.ok(!m);
     });
 
-    it('should match optional trailing routes before optional format', function () {
+    it('should match optional trailing routes after a param and before an optional format param', function () {
       var params = [];
-      var re     = pathToRegExp('/:test*.:format?', params);
+      var re = pathToRegExp('/:test*.:format?', params);
       var m;
 
       assert.equal(params.length, 2);
@@ -310,7 +310,7 @@ describe('path-to-regexp', function () {
 
     it('should match optional trailing routes inside optional express param', function () {
       var params = [];
-      var re     = pathToRegExp('/:test*?', params);
+      var re = pathToRegExp('/:test*?', params);
       var m;
 
       assert.equal(params.length, 1);
@@ -361,7 +361,7 @@ describe('path-to-regexp', function () {
 
     it('should do non-ending matches', function () {
       var params = [];
-      var m      = pathToRegExp('/:test', params, { end: false }).exec('/test/route');
+      var m = pathToRegExp('/:test', params, { end: false }).exec('/test/route');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -374,7 +374,7 @@ describe('path-to-regexp', function () {
 
     it('should match trailing slashes in non-ending non-strict mode', function () {
       var params = [];
-      var re     = pathToRegExp('/:test', params, { end: false });
+      var re = pathToRegExp('/:test', params, { end: false });
       var m;
 
       assert.equal(params.length, 1);
@@ -390,7 +390,7 @@ describe('path-to-regexp', function () {
 
     it('should not match trailing slashes in non-ending strict mode', function () {
       var params = [];
-      var re     = pathToRegExp('/:test', params, { end: false, strict: true });
+      var re = pathToRegExp('/:test', params, { end: false, strict: true });
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -405,7 +405,7 @@ describe('path-to-regexp', function () {
 
     it('should match text after an express param', function () {
       var params = [];
-      var re     = pathToRegExp('/(:test)route', params);
+      var re = pathToRegExp('/(:test)route', params);
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -428,7 +428,7 @@ describe('path-to-regexp', function () {
 
     it('should match text after an optional express param', function () {
       var params = [];
-      var re     = pathToRegExp('/(:test?)route', params);
+      var re = pathToRegExp('/(:test?)route', params);
       var m;
 
       assert.equal(params.length, 1);
@@ -454,7 +454,7 @@ describe('path-to-regexp', function () {
 
     it('should match optional formats', function () {
       var params = [];
-      var re     = pathToRegExp('/:test.:format?', params);
+      var re = pathToRegExp('/:test.:format?', params);
       var m;
 
       assert.equal(params.length, 2);
@@ -480,7 +480,7 @@ describe('path-to-regexp', function () {
 
     it('should match full paths with format by default', function () {
       var params = [];
-      var m      = pathToRegExp('/:test', params).exec('/test.json');
+      var m = pathToRegExp('/:test', params).exec('/test.json');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');

@@ -35,9 +35,9 @@ function pathtoRegexp(path, keys, options) {
     .replace(/\/\(/g, '/(?:')
     .replace(/([\/\.])/g, '\\$1')
     .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
-      slash    = slash    || '';
-      format   = format   || '';
-      capture  = capture  || '([^/' + format + ']+?)';
+      slash = slash || '';
+      format = format || '';
+      capture = capture || '([^/' + format + ']+?)';
       optional = optional || '';
 
       keys.push({ name: key, optional: !!optional });
