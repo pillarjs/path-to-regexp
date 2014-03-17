@@ -403,53 +403,18 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'test');
     });
 
-    it('should match text after an express param', function () {
+    it('should allow matching regexps after a slash', function () {
       var params = [];
-      var re = pathToRegExp('/(:test)route', params);
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/route');
-
-      assert.ok(!m);
-
-      m = re.exec('/testroute');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/testroute');
-      assert.equal(m[1], 'test');
-
-      m = re.exec('testroute');
-
-      assert.ok(!m);
-    });
-
-    it('should match text after an optional express param', function () {
-      var params = [];
-      var re = pathToRegExp('/(:test?)route', params);
+      var re = pathToRegExp('/(\\d+)', params);
       var m;
 
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, true);
+      assert.equal(params.length, 0);
 
-      m = re.exec('/route');
+      m = re.exec('/123');
 
       assert.equal(m.length, 2);
-      assert.equal(m[0], '/route');
-      assert.equal(m[1], undefined);
-
-      m = re.exec('/testroute');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/testroute');
-      assert.equal(m[1], 'test');
-
-      m = re.exec('route');
-
-      assert.ok(!m);
+      assert.equal(m[0], '/123');
+      assert.equal(m[1], '123');
     });
 
     it('should match optional formats', function () {
