@@ -32,7 +32,6 @@ function pathtoRegexp(path, keys, options) {
 
   path = path
     .concat(strict ? '' : '/?')
-    .replace(/\/\(/g, '/(?:')
     .replace(/([\/\.])/g, '\\$1')
     .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
       slash = slash || '';
