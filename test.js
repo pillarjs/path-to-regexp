@@ -46,6 +46,30 @@ describe('path-to-regexp', function () {
       assert.ok(!m);
     });
 
+    it('should do strict matches with trailing slashes', function () {
+      var params = [];
+      var re = pathToRegExp('/:test/', params, { strict: true });
+      var m;
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+
+      m = re.exec('/route');
+
+      assert.ok(!m);
+
+      m = re.exec('/route/');
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/route/');
+      assert.equal(m[1], 'route');
+
+      m = re.exec('/route//');
+
+      assert.ok(!m);
+    });
+
     it('should allow optional express format params', function () {
       var params = [];
       var re = pathToRegExp('/:test?', params);
@@ -388,19 +412,47 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'test');
     });
 
+    it('should match trailing slashing in non-ending strict mode', function () {
+      var params = [];
+      var re = pathToRegExp('/route/', params, { end: false, strict: true });
+
+      assert.equal(params.length, 0);
+
+      m = re.exec('/route/');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+
+      m = re.exec('/route/test');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+
+      m = re.exec('/route');
+
+      assert.ok(!m);
+
+      m = re.exec('/route//');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+    });
+
     it('should not match trailing slashes in non-ending strict mode', function () {
       var params = [];
-      var re = pathToRegExp('/:test', params, { end: false, strict: true });
+      var re = pathToRegExp('/route', params, { end: false, strict: true });
 
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
+      assert.equal(params.length, 0);
 
-      m = re.exec('/test/');
+      m = re.exec('/route');
 
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test');
-      assert.equal(m[1], 'test');
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route');
+
+      m = re.exec('/route/');
+
+      assert.ok(m.length, 1);
+      assert.equal(m[0], '/route');
     });
 
     it('should match text after an express param', function () {

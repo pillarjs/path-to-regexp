@@ -22,16 +22,15 @@ module.exports = pathtoRegexp;
 
 function pathtoRegexp(path, keys, options) {
   options = options || {};
-  var sensitive = options.sensitive;
   var strict = options.strict;
   var end = options.end !== false;
+  var flags = options.sensitive ? '' : 'i';
   keys = keys || [];
 
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';
 
-  path = path
-    .concat(strict ? '' : '/?')
+  path = ('^' + path + (strict ? '' : '/?'))
     .replace(/\/\(/g, '/(?:')
     .replace(/([\/\.])/g, '\\$1')
     .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
@@ -52,5 +51,8 @@ function pathtoRegexp(path, keys, options) {
     })
     .replace(/\*/g, '(.*)');
 
-  return new RegExp('^' + path + (end ? '$' : '(?=\/|$)'), sensitive ? '' : 'i');
+  // If the path is non-ending, match until the end or a slash.
+  path += (end ? '$' : (path[path.length - 1] === '/' ? '' : '(?=\\/|$)'));
+
+  return new RegExp(path, flags);
 };
