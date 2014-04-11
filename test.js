@@ -554,9 +554,35 @@ describe('path-to-regexp', function () {
     it('should join arrays parts', function () {
       var re = pathToRegExp(['/test', '/route']);
 
-      assert.ok(re.exec('/test'));
-      assert.ok(re.exec('/route'));
-      assert.ok(!re.exec('/else'));
+      assert.ok(re.test('/test'));
+      assert.ok(re.test('/route'));
+      assert.ok(!re.test('/else'));
+    });
+
+    it('should match parts properly', function () {
+      var params = [];
+      var re = pathToRegExp(['/:test', '/test/:route'], params);
+      var m;
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 'route');
+      assert.equal(params[1].optional, false);
+
+      m = re.exec('/route');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/route');
+      assert.equal(m[1], 'route');
+      assert.equal(m[2], undefined);
+
+      m = re.exec('/test/path');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/test/path');
+      assert.equal(m[1], undefined);
+      assert.equal(m[2], 'path');
     });
   });
 });

@@ -27,8 +27,20 @@ function pathtoRegexp(path, keys, options) {
   var flags = options.sensitive ? '' : 'i';
   keys = keys || [];
 
-  if (path instanceof RegExp) return path;
-  if (path instanceof Array) path = '(' + path.join('|') + ')';
+  if (path instanceof RegExp) {
+    return path;
+  }
+
+  if (Array.isArray(path)) {
+    // Map array parts into regexps and return their source. We also pass
+    // the same keys and options instance into every generation to get
+    // consistent matching groups before we join the sources together.
+    path = path.map(function (value) {
+      return pathtoRegexp(value, keys, options).source;
+    });
+
+    return new RegExp('(?:' + path.join('|') + ')', flags);
+  }
 
   path = ('^' + path + (strict ? '' : '/?'))
     .replace(/\/\(/g, '/(?:')
@@ -36,7 +48,7 @@ function pathtoRegexp(path, keys, options) {
     .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
       slash = slash || '';
       format = format || '';
-      capture = capture || '([^/' + format + ']+?)';
+      capture = capture || '([^\\/' + format + ']+?)';
       optional = optional || '';
 
       keys.push({ name: key, optional: !!optional });
