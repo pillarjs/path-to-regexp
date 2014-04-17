@@ -19,7 +19,7 @@
     "url": "https://github.com/component/path-to-regexp.git"
   },
   "devDependencies": {
-    "mocha": "^1.17.1",
-    "istanbul": "^0.2.6"
+    "istanbul": "~0.2.6",
+    "mocha": "~1.18.2"
   }
 }
