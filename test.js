@@ -1,13 +1,29 @@
 var pathToRegExp = require('./');
 var assert = require('assert');
 
+/**
+ * Test matching the regexp and output an array for deep equal.
+ *
+ * @param  {RegExp} regexp
+ * @param  {String} string
+ * @return {Array}
+ */
+var match = function (regexp, string) {
+  var match = regexp.exec(string);
+
+  return match && Array.prototype.slice.call(match);
+};
+
 describe('path-to-regexp', function () {
   describe('strings', function () {
     it('should match simple paths', function () {
       var params = [];
-      var m = pathToRegExp('/test', params).exec('/test');
+      var re = pathToRegExp('/test', params);
+      var m;
 
       assert.equal(params.length, 0);
+
+      m = re.exec('/test');
 
       assert.equal(m.length, 1);
       assert.equal(m[0], '/test');
@@ -15,11 +31,14 @@ describe('path-to-regexp', function () {
 
     it('should match express format params', function () {
       var params = [];
-      var m = pathToRegExp('/:test', params).exec('/pathname');
+      var re = pathToRegExp('/:test', params);
+      var m;
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
+
+      m = re.exec('/pathname');
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/pathname');
@@ -70,11 +89,14 @@ describe('path-to-regexp', function () {
 
     it('should allow express format param regexps', function () {
       var params = [];
-      var m = pathToRegExp('/:page(\\d+)', params).exec('/56');
+      var re = pathToRegExp('/:page(\\d+)', params);
+      var m;
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'page');
       assert.equal(params[0].optional, false);
+
+      m = re.exec('/56');
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/56');
@@ -147,7 +169,8 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/test*', params).exec('/test/route');
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0], undefined);
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/test/route');
@@ -183,7 +206,8 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/test*.json', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0], undefined);
 
       m = re.exec('/test.json');
 
@@ -408,7 +432,8 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/(\\d+)', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0], undefined);
 
       m = re.exec('/123');
 
@@ -454,6 +479,60 @@ describe('path-to-regexp', function () {
       assert.equal(m.length, 2);
       assert.equal(m[0], '/test.json');
       assert.equal(m[1], 'test.json');
+    });
+
+    it('should correctly add custom matching groups to the params array', function () {
+      var params = [];
+      var re = pathToRegExp('/:test/(.+)/(?:route)', params);
+
+      assert.deepEqual(params, [{ name: 'test', optional: false }, undefined]);
+
+      assert.deepEqual(match(re, '/test'), null);
+      assert.deepEqual(match(re, '/test/route'), null);
+      assert.deepEqual(match(re, '/test/path/route'), ['/test/path/route', 'test', 'path']);
+    });
+
+    it('should escape regexp special characters outside of matching groups', function () {
+      var params = [];
+      var re = pathToRegExp('/!(.*)$.json', params);
+
+      assert.deepEqual(params, [undefined]);
+
+      assert.deepEqual(match(re, '/test.json'), null);
+      assert.deepEqual(match(re, '/!$.json'), ['/!$.json', '']);
+      assert.deepEqual(match(re, '/!test$.json'), ['/!test$.json', 'test']);
+      assert.deepEqual(match(re, '/!test/path$.json'), ['/!test/path$.json', 'test/path']);
+    });
+
+    it('should correctly detect nested custom matching groups and add to the params array', function () {
+      var params = [];
+      var re = pathToRegExp('/(\\d+([a-z]+))', params);
+
+      assert.deepEqual(params, [undefined, undefined]);
+
+      assert.deepEqual(match(re, '/123'), null);
+      assert.deepEqual(match(re, '/123abc'), ['/123abc', '123abc', 'abc']);
+    });
+
+    it('should ignore escaped parentheses from matching groups', function () {
+      var params = [];
+      var re = pathToRegExp('/(abc\\(123\\))', params);
+
+      assert.deepEqual(params, [undefined]);
+
+      assert.deepEqual(match(re, '/abc'), null);
+      assert.deepEqual(match(re, '/abc123'), null);
+      assert.deepEqual(match(re, '/abc(123)'), ['/abc(123)', 'abc(123)']);
+    });
+
+    it('should allow path to regexp characters to be escaped', function () {
+      var params = [];
+      var re = pathToRegExp('/\\*', params);
+
+      assert.deepEqual(params, []);
+
+      assert.deepEqual(match(re, '/*'), ['/*']);
+      assert.deepEqual(match(re, '/test'), null);
     });
   });
 
