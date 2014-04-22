@@ -1,7 +1,9 @@
-
 # Path-to-RegExp
 
   Turn an Express-style path string such as `/user/:name` into a regular expression.
+
+[![Build Status](https://img.shields.io/travis/component/path-to-regexp/master.svg)](https://travis-ci.org/component/path-to-regexp)
+[![NPM version](https://img.shields.io/npm/v/path-to-regexp.svg)](https://www.npmjs.org/package/path-to-regexp)
 
 ## Usage
 
