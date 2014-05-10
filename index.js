@@ -5,19 +5,17 @@
 module.exports = pathtoRegexp;
 
 /**
- * Normalize the given path string,
- * returning a regular expression.
+ * Normalize the given path string, returning a regular expression.
  *
- * An empty array should be passed,
- * which will contain the placeholder
- * key names. For example "/user/:id" will
- * then contain ["id"].
+ * An empty array should be passed, which will contain the placeholder key
+ * names. For example "/user/:id" will then contain:
  *
- * @param  {String|RegExp|Array} path
- * @param  {Array} keys
- * @param  {Object} options
+ * [{ name: "id", optional: false }]
+ *
+ * @param  {(String|RegExp|Array)} path
+ * @param  {Array}                 keys
+ * @param  {Object}                options
  * @return {RegExp}
- * @api private
  */
 
 function pathtoRegexp (path, keys, options) {
