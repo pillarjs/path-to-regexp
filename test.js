@@ -172,7 +172,9 @@ describe('path-to-regexp', function () {
       var re = pathToRegexp('/test*', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       m = re.exec('/test/route');
 
@@ -216,7 +218,9 @@ describe('path-to-regexp', function () {
       var re = pathToRegexp('/test*.json', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       m = re.exec('/test.json');
 
@@ -503,7 +507,9 @@ describe('path-to-regexp', function () {
       var re = pathToRegexp('/(\\d+)', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       m = re.exec('/123');
 
@@ -549,6 +555,22 @@ describe('path-to-regexp', function () {
       assert.equal(m.length, 2);
       assert.equal(m[0], '/test.json');
       assert.equal(m[1], 'test.json');
+    });
+
+    it('should allow naming of *', function () {
+      var params = [];
+      var re = pathToRegexp('/api/:resource(*)', params);
+      var m;
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'resource');
+      assert.equal(params[0].optional, false);
+
+      m = re.exec('/api/users/0.json');
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/api/users/0.json');
+      assert.equal(m[1], 'users/0.json');
     });
   });
 
