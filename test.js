@@ -26,6 +26,15 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'pathname');
     });
 
+    it('should escape special characters', function () {
+      var params = [];
+      var re = pathToRegexp('/foo[5]/bar', params);
+
+      assert.equal(params.length, 0);
+
+      assert.equal(re.toString(), '/^\\/foo\\[5\\]\\/bar\\/?$/i');
+    });
+
     it('should do strict matches', function () {
       var params = [];
       var re = pathToRegexp('/:test', params, { strict: true });

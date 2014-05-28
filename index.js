@@ -16,7 +16,7 @@ var PATH_REGEXP = new RegExp([
   // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined, undefined]
   '([\\/\\.])?(?:\:(\\w+)(?:\\((.*)\\))?|\\((.*)\\))(\\*)?(\\?)?',
   // Match regexp special characters that should always be escaped.
-  '([=!:$|\\.\\/])',
+  '([=!:$|\\.\\/\\]\\[])',
   // Finally, enable automatic greedy matching.
   '(\\*)'
 ].join('|'), 'g');
