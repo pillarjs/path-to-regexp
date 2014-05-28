@@ -1,618 +1,209 @@
-var pathToRegexp = require('./');
+var util = require('util');
 var assert = require('assert');
+var pathToRegexp = require('./');
+
+/**
+ * Execute a regular expression and return a flat array for comparison.
+ *
+ * @param  {RegExp} re
+ * @param  {String} str
+ * @return {Array}
+ */
+var exec = function (re, str) {
+  var match = re.exec(str);
+
+  return match && Array.prototype.slice.call(match);
+};
+
+/**
+ * An array of test cases with expected inputs and outputs. The format of each
+ * array item is:
+ *
+ * ["path", "expected params", "route", "expected output", "options"]
+ *
+ * @type {Array}
+ */
+var TESTS = [
+  // Simple paths.
+  ['/test', [], '/test', ['/test']],
+  ['/test', [], '/route', null],
+  ['/test', [], '/test/route', null],
+  ['/test', [], '/test/', ['/test/']],
+
+  // Case-sensitive paths.
+  ['/test', [], '/test', ['/test'], { sensitive: true }],
+  ['/test', [], '/TEST', null, { sensitive: true }],
+  ['/TEST', [], '/test', null, { sensitive: true }],
+
+  // Strict mode.
+  ['/test', [], '/test', ['/test'], { strict: true }],
+  ['/test', [], '/test/', null, { strict: true }],
+  ['/test/', [], '/test', null, { strict: true }],
+  ['/test/', [], '/test/', ['/test/'], { strict: true }],
+  ['/test/', [], '/test//', null, { strict: true }],
+
+  // Non-ending mode.
+  ['/test', [], '/test', ['/test'], { end: false }],
+  ['/test', [], '/test/route', ['/test'], { end: false }],
+
+  // Combine modes.
+  ['/test', [], '/test', ['/test'], { end: false, strict: true }],
+  ['/test', [], '/test/', ['/test'], { end: false, strict: true }],
+  ['/test', [], '/test/route', ['/test'], { end: false, strict: true }],
+  ['/test/', [], '/test', null, { end: false, strict: true }],
+  ['/test/', [], '/test/', ['/test/'], { end: false, strict: true }],
+  ['/test/', [], '/test//', ['/test/'], { end: false, strict: true }],
+  ['/test/', [], '/test/route', ['/test/'], { end: false, strict: true }],
+  ['/test.json', [], '/test.json', ['/test.json'], { end: false, strict: true }],
+  ['/test.json', [], '/test.json.hbs', null, { end: false, strict: true }],
+
+  // Arrays of simple paths.
+  [['/one', '/two'], [], '/one', ['/one']],
+  [['/one', '/two'], [], '/two', ['/two']],
+  [['/one', '/two'], [], '/three', null],
+  [['/one', '/two'], [], '/one/two', null],
+
+  // Non-ending simple path.
+  ['/test', [], '/test/route', ['/test'], { end: false }],
+
+  // Single named parameter
+  ['/:test', ['test'], '/route', ['/route', 'route']],
+  ['/:test', ['test'], '/another', ['/another', 'another']],
+  ['/:test', ['test'], '/something/else', null],
+  ['/:test', ['test'], '/route.json', ['/route.json', 'route.json']],
+  ['/:test', ['test'], '/route', ['/route', 'route'], { strict: true }],
+  ['/:test', ['test'], '/route/', null, { strict: true }],
+  ['/:test/', ['test'], '/route/', ['/route/', 'route'], { strict: true }],
+  ['/:test/', ['test'], '/route//', null, { strict: true }],,
+  ['/:test', ['test'], '/route.json', ['/route.json', 'route.json'], { end: false }],
+
+  // Optional named parameter.
+  ['/:test?', ['test'], '/route', ['/route', 'route']],
+  ['/:test?', ['test'], '/route/nested', null],
+  ['/:test?', ['test'], '/', ['/', undefined]],
+  ['/:test?', ['test'], '/route', ['/route', 'route'], { strict: true }],
+  ['/:test?', ['test'], '/', null, { strict: true }], // Questionable behaviour.
+  ['/:test?/', ['test'], '/', ['/', undefined], { strict: true }],
+  ['/:test?/', ['test'], '//', null, { strict: true }],
+
+  // Custom named parameters.
+  ['/:test(\\d+)', ['test'], '/123', ['/123', '123']],
+  ['/:test(\\d+)', ['test'], '/abc', null],
+  ['/:test(\\d+)', ['test'], '/123/abc', null],
+  ['/:test(\\d+)', ['test'], '/123/abc', ['/123', '123'], { end: false }],
+  ['/:test(.*)', ['test'], '/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']],
+  ['/:route([a-z]+)', ['route'], '/abcde', ['/abcde', 'abcde']],
+  ['/:route([a-z]+)', ['route'], '/12345', null],
+  ['/:route(this|that)', ['route'], '/this', ['/this', 'this']],
+  ['/:route(this|that)', ['route'], '/that', ['/that', 'that']],
+
+  // Prefixed slashes could be omitted.
+  ['test', [], 'test', ['test']],
+  [':test', ['test'], 'route', ['route', 'route']],
+  [':test', ['test'], '/route', null],
+  [':test', ['test'], 'route/', ['route/', 'route']],
+  [':test', ['test'], 'route/', null, { strict: true }],
+  [':test', ['test'], 'route/', ['route', 'route'], { end: false }],
+
+  // Formats.
+  ['/test.json', [], '/test.json', ['/test.json']],
+  ['/test.json', [], '/route.json', null],
+  ['/:test.json', ['test'], '/route.json', ['/route.json', 'route']],
+  ['/:test.json', ['test'], '/route.json.json', ['/route.json.json', 'route.json']],
+  ['/:test.json', ['test'], '/route.json', ['/route.json', 'route'], { end: false }],
+  ['/:test.json', ['test'], '/route.json.json', ['/route.json.json', 'route.json'], { end: false }],
+
+  // Format params.
+  ['/test.:format', ['format'], '/test.html', ['/test.html', 'html']],
+  ['/test.:format', ['format'], '/test.hbs.html', null],
+  ['/test.:format.:format', ['format', 'format'], '/test.hbs.html', ['/test.hbs.html', 'hbs', 'html']],
+  ['/test.:format', ['format'], '/test.hbs.html', null, { end: false }],
+  ['/test.:format.', ['format'], '/test.hbs.html', null, { end: false }],
+  // Format and path params.
+  ['/:test.:format', ['test', 'format'], '/route.html', ['/route.html', 'route', 'html']],
+  ['/:test.:format', ['test', 'format'], '/route', null],
+  ['/:test.:format', ['test', 'format'], '/route', null],
+  ['/:test.:format?', ['test', 'format'], '/route', ['/route', 'route', undefined]],
+  ['/:test.:format?', ['test', 'format'], '/route.json', ['/route.json', 'route', 'json']],
+  ['/:test.:format?', ['test', 'format'], '/route', ['/route', 'route', undefined], { end: false }],
+  ['/:test.:format?', ['test', 'format'], '/route.json', ['/route.json', 'route', 'json'], { end: false }],
+  ['/:test.:format?', ['test', 'format'], '/route.json.html', ['/route.json.html', 'route.json', 'html'], { end: false }],
+  ['/test.:format(.*)z', ['format'], '/test.abc', null, { end: false }],
+  ['/test.:format(.*)z', ['format'], '/test.abcz', ['/test.abcz', 'abc'], { end: false }],
+
+  // Unnamed params.
+  ['/(\\d+)', ['0'], '/123', ['/123', '123']],
+  ['/(\\d+)', ['0'], '/abc', null],
+  ['/(\\d+)', ['0'], '/123/abc', null],
+  ['/(\\d+)', ['0'], '/123/abc', ['/123', '123'], { end: false }],
+  ['/(\\d+)', ['0'], '/abc', null, { end: false }],
+  ['/(\\d+)?', ['0'], '/', ['/', undefined]],
+  ['/(\\d+)?', ['0'], '/123', ['/123', '123']],
+  ['/(.*)', ['0'], '/route', ['/route', 'route']],
+  ['/(.*)', ['0'], '/route/nested', ['/route/nested', 'route/nested']],
+
+  // Regexps.
+  [/.*/, [], '/match/anything', ['/match/anything']],
+  [/(.*)/, ['0'], '/match/anything', ['/match/anything', '/match/anything']],
+  [/\/(\d+)/, ['0'], '/123', ['/123', '123']],
+
+  // Mixed arrays.
+  [['/test', /\/(\d+)/], ['0'], '/test', ['/test', undefined]],
+  [['/:test(\\d+)', /(.*)/], ['test', '0'], '/123', ['/123', '123', undefined]],
+  [['/:test(\\d+)', /(.*)/], ['test', '0'], '/abc', ['/abc', undefined, '/abc']],
+
+  // Correct names and indexes.
+  [['/:test', '/route/:test'], ['test', 'test'], '/test', ['/test', 'test', undefined]],
+  [['/:test', '/route/:test'], ['test', 'test'], '/route/test', ['/route/test', undefined, 'test']],
+  [[/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/], ['0', '0'], '/test', ['/test', 'test', undefined]],
+  [[/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/], ['0', '0'], '/route/test', ['/route/test', undefined, 'test']],
+
+  // Ignore non-matching groups in regexps.
+  [/(?:.*)/, [], '/anything/you/want', ['/anything/you/want']],
+
+  // Respect escaped characters.
+  ['/\\(testing\\)', [], '/testing', null],
+  ['/\\(testing\\)', [], '/(testing)', ['/(testing)']],
+
+  // Regexp special characters should be ignored outside matching groups.
+  ['/.+*?=^!:${}[]|', [], '/.+*?=^!:${}[]|', ['/.+*?=^!:${}[]|']]
+];
 
 describe('path-to-regexp', function () {
-  describe('strings', function () {
-    it('should match simple paths', function () {
-      var params = [];
-      var m = pathToRegexp('/test', params).exec('/test');
+  it('should not break when keys aren\'t provided', function () {
+    var re = pathToRegexp('/:foo/:bar');
 
-      assert.equal(params.length, 0);
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/test');
-    });
-
-    it('should match named params', function () {
-      var params = [];
-      var m = pathToRegexp('/:test', params).exec('/pathname');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/pathname');
-      assert.equal(m[1], 'pathname');
-    });
-
-    it('should do strict matches', function () {
-      var params = [];
-      var re = pathToRegexp('/:test', params, { strict: true });
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/route');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/route');
-      assert.equal(m[1], 'route');
-
-      m = re.exec('/route/');
-
-      assert.ok(!m);
-    });
-
-    it('should do strict matches with trailing slashes', function () {
-      var params = [];
-      var re = pathToRegexp('/:test/', params, { strict: true });
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/route');
-
-      assert.ok(!m);
-
-      m = re.exec('/route/');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/route/');
-      assert.equal(m[1], 'route');
-
-      m = re.exec('/route//');
-
-      assert.ok(!m);
-    });
-
-    it('should allow optional named params', function () {
-      var params = [];
-      var re = pathToRegexp('/:test?', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, true);
-
-      m = re.exec('/route');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/route');
-      assert.equal(m[1], 'route');
-
-      m = re.exec('/');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/');
-      assert.equal(m[1], undefined);
-    });
-
-    it('should allow params to have custom matching groups', function () {
-      var params = [];
-      var m = pathToRegexp('/:page(\\d+)', params).exec('/56');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'page');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/56');
-      assert.equal(m[1], '56');
-    });
-
-    it('should match without a prefixed slash', function () {
-      var params = [];
-      var m = pathToRegexp(':test', params).exec('string');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], 'string');
-      assert.equal(m[1], 'string');
-    });
-
-    it('should not match the format', function () {
-      var params = [];
-      var m = pathToRegexp('/:test.json', params).exec('/route.json');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/route.json');
-      assert.equal(m[1], 'route');
-    });
-
-    it('should match format params', function () {
-      var params = [];
-      var re = pathToRegexp('/:test.:format', params);
-      var m;
-
-      assert.equal(params.length, 2);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
-      assert.equal(params[1].optional, false);
-
-      m = re.exec('/route.json');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/route.json');
-      assert.equal(m[1], 'route');
-      assert.equal(m[2], 'json');
-
-      m = re.exec('/route');
-
-      assert.ok(!m);
-    });
-
-    it('should match a param with a trailing format', function () {
-      var params = [];
-      var m = pathToRegexp('/:test.json', params).exec('/route.json');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/route.json');
-      assert.equal(m[1], 'route');
-    });
-
-    it('should do greedy matches', function () {
-      var params = [];
-      var re = pathToRegexp('/test*', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 0);
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/test/route');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test/route');
-      assert.equal(m[1], '/route');
-
-      m = re.exec('/test');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test');
-      assert.equal(m[1], '');
-    });
-
-    it('should do greedy param matches', function () {
-      var params = [];
-      var re = pathToRegexp('/:test*', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/test/route');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/test/route');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '/route');
-
-      m = re.exec('/testing');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/testing');
-      assert.equal(m[1], 'testing');
-      assert.equal(m[2], '');
-    });
-
-    it('should do greedy matches with a trailing format', function () {
-      var params = [];
-      var re = pathToRegexp('/test*.json', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 0);
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/test.json');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test.json');
-      assert.equal(m[1], '');
-
-      m = re.exec('/testing.json');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/testing.json');
-      assert.equal(m[1], 'ing');
-
-      m = re.exec('/test/route.json');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test/route.json');
-      assert.equal(m[1], '/route');
-    });
-
-    it('should do greedy param matches with a trailing format', function () {
-      var params = [];
-      var re = pathToRegexp('/:test*.json', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/testing.json');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/testing.json');
-      assert.equal(m[1], 'testing');
-      assert.equal(m[2], '');
-
-      m = re.exec('/test/route.json');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/test/route.json');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '/route');
-
-      m = re.exec('.json');
-
-      assert.ok(!m);
-    });
-
-    it('should do greedy param matches with a trailing format param', function () {
-      var params = [];
-      var re = pathToRegexp('/:test*.:format', params);
-      var m;
-
-      assert.equal(params.length, 2);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
-      assert.equal(params[1].optional, false);
-
-      m = re.exec('/testing.json');
-
-      assert.equal(m.length, 4);
-      assert.equal(m[0], '/testing.json');
-      assert.equal(m[1], 'testing');
-      assert.equal(m[2], '');
-      assert.equal(m[3], 'json');
-
-      m = re.exec('/test/route.json');
-
-      assert.equal(m.length, 4);
-      assert.equal(m[0], '/test/route.json');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '/route');
-      assert.equal(m[3], 'json');
-
-      m = re.exec('/test');
-
-      assert.ok(!m);
-
-      m = re.exec('.json');
-
-      assert.ok(!m);
-    });
-
-    it('should do greedy param matches with an optional trailing format param', function () {
-      var params = [];
-      var re = pathToRegexp('/:test*.:format?', params);
-      var m;
-
-      assert.equal(params.length, 2);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
-      assert.equal(params[1].optional, true);
-
-      m = re.exec('/testing.json');
-
-      assert.equal(m.length, 4);
-      assert.equal(m[0], '/testing.json');
-      assert.equal(m[1], 'testing');
-      assert.equal(m[2], '');
-      assert.equal(m[3], 'json');
-
-      m = re.exec('/test/route.json');
-
-      assert.equal(m.length, 4);
-      assert.equal(m[0], '/test/route.json');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '/route');
-      assert.equal(m[3], 'json');
-
-      m = re.exec('/test');
-
-      assert.equal(m.length, 4);
-      assert.equal(m[0], '/test');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '');
-      assert.equal(m[3], undefined);
-
-      m = re.exec('.json');
-
-      assert.ok(!m);
-    });
-
-    it('should do greedy, optional param matching', function () {
-      var params = [];
-      var re = pathToRegexp('/:test*?', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, true);
-
-      m = re.exec('/test/route');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/test/route');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '/route');
-
-      m = re.exec('/test');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/test');
-      assert.equal(m[1], 'test');
-      assert.equal(m[2], '');
-
-      m = re.exec('/');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/');
-      assert.equal(m[1], undefined);
-      assert.equal(m[2], undefined);
-    });
-
-    it('should do greedy, optional param matching with a custom matching group', function () {
-      var params = [];
-      var re = pathToRegexp('/:test(\\d+)*?', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, true);
-
-      m = re.exec('/123');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/123');
-      assert.equal(m[1], '123');
-      assert.equal(m[2], '');
-
-      m = re.exec('/123/foo/bar');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/123/foo/bar');
-      assert.equal(m[1], '123');
-      assert.equal(m[2], '/foo/bar');
-
-      m = re.exec('/foo/bar');
-
-      assert.ok(!m);
-    });
-
-    it('should do case insensitive matches', function () {
-      var m = pathToRegexp('/test').exec('/TEST');
-
-      assert.equal(m[0], '/TEST');
-    });
-
-    it('should do case sensitive matches', function () {
-      var re = pathToRegexp('/test', null, { sensitive: true });
-      var m;
-
-      m = re.exec('/test');
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/test');
-
-      m = re.exec('/TEST');
-
-      assert.ok(!m);
-    });
-
-    it('should do non-ending matches', function () {
-      var params = [];
-      var m = pathToRegexp('/:test', params, { end: false }).exec('/test/route');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test');
-      assert.equal(m[1], 'test');
-    });
-
-    it('should work with trailing slashes in non-ending mode', function () {
-      var params = [];
-      var re = pathToRegexp('/:test', params, { end: false });
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/foo/bar');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/foo');
-      assert.equal(m[1], 'foo');
-
-      m = re.exec('/foo/');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/foo/');
-      assert.equal(m[1], 'foo');
-    });
-
-    it('should match trailing slashing in non-ending strict mode', function () {
-      var params = [];
-      var re = pathToRegexp('/route/', params, { end: false, strict: true });
-
-      assert.equal(params.length, 0);
-
-      m = re.exec('/route/');
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/route/');
-
-      m = re.exec('/route/test');
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/route/');
-
-      m = re.exec('/route');
-
-      assert.ok(!m);
-
-      m = re.exec('/route//');
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/route/');
-    });
-
-    it('should not match trailing slashes in non-ending strict mode', function () {
-      var params = [];
-      var re = pathToRegexp('/route', params, { end: false, strict: true });
-
-      assert.equal(params.length, 0);
-
-      m = re.exec('/route');
-
-      assert.equal(m.length, 1);
-      assert.equal(m[0], '/route');
-
-      m = re.exec('/route/');
-
-      assert.ok(m.length, 1);
-      assert.equal(m[0], '/route');
-    });
-
-    it('should allow matching regexps after a slash', function () {
-      var params = [];
-      var re = pathToRegexp('/(\\d+)', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 0);
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/123');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/123');
-      assert.equal(m[1], '123');
-    });
-
-    it('should match optional format params', function () {
-      var params = [];
-      var re = pathToRegexp('/:test.:format?', params);
-      var m;
-
-      assert.equal(params.length, 2);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
-      assert.equal(params[1].optional, true);
-
-      m = re.exec('/route');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/route');
-      assert.equal(m[1], 'route');
-      assert.equal(m[2], undefined);
-
-      m = re.exec('/route.json');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/route.json');
-      assert.equal(m[1], 'route');
-      assert.equal(m[2], 'json');
-    });
-
-    it('should match full paths when not prefixed with a period', function () {
-      var params = [];
-      var m = pathToRegexp('/:test', params).exec('/test.json');
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/test.json');
-      assert.equal(m[1], 'test.json');
-    });
-
-    it('should allow naming of *', function () {
-      var params = [];
-      var re = pathToRegexp('/api/:resource(*)', params);
-      var m;
-
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'resource');
-      assert.equal(params[0].optional, false);
-
-      m = re.exec('/api/users/0.json');
-
-      assert.equal(m.length, 2);
-      assert.equal(m[0], '/api/users/0.json');
-      assert.equal(m[1], 'users/0.json');
-    });
+    assert.deepEqual(exec(re, '/test/route'), ['/test/route', 'test', 'route']);
   });
 
-  describe('regexps', function () {
-    it('should return the regexp', function () {
-      assert.deepEqual(pathToRegexp(/.*/), /.*/);
-    });
-  });
+  TESTS.forEach(function (test) {
+    var description = '';
+    var options     = test[4] || {};
 
-  describe('arrays', function () {
-    it('should join arrays parts', function () {
-      var re = pathToRegexp(['/test', '/route']);
+    // Generate a base description using the test values.
+    description += 'should ' + (test[3] ? '' : 'not ') + 'match ';
+    description += util.inspect(test[2]) + ' against ' + util.inspect(test[0]);
 
-      assert.ok(re.test('/test'));
-      assert.ok(re.test('/route'));
-      assert.ok(!re.test('/else'));
-    });
+    // If additional options have been defined, we should render the options
+    // in the test descriptions.
+    if (Object.keys(options).length) {
+      var optionsDescription = Object.keys(options).map(function (key) {
+        return (options[key] === false ? 'non-' : '') + key;
+      }).join(', ');
 
-    it('should match parts properly', function () {
+      description += ' in ' + optionsDescription + ' mode';
+    }
+
+    // Execute the test and check each parameter is as expected.
+    it(description, function () {
       var params = [];
-      var re = pathToRegexp(['/:test', '/test/:route'], params);
-      var m;
+      var re     = pathToRegexp(test[0], params, test[4]);
 
-      assert.equal(params.length, 2);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'route');
-      assert.equal(params[1].optional, false);
+      // Check the params are as expected.
+      assert.deepEqual(params, test[1]);
 
-      m = re.exec('/route');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/route');
-      assert.equal(m[1], 'route');
-      assert.equal(m[2], undefined);
-
-      m = re.exec('/test/path');
-
-      assert.equal(m.length, 3);
-      assert.equal(m[0], '/test/path');
-      assert.equal(m[1], undefined);
-      assert.equal(m[2], 'path');
+      // Run the regexp and check the result is expected.
+      assert.deepEqual(exec(re, test[2]), test[3]);
     });
   });
 });

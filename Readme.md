@@ -17,45 +17,52 @@ var pathToRegexp = require('path-to-regexp');
 - **keys** An array to be populated with the keys present in the url.
 - **options**
   - **options.sensitive** When set to `true` the route will be case sensitive.
-  - **options.strict** When set to `true` a trailing slash will affect the url matching.
-  - **options.end** When set to `false` the url will match only the prefix.
+  - **options.strict** When set to `true` a slash is allowed to be trailing the path.
+  - **options.end** When set to `false` the path will match at the beginning.
 
 ```javascript
 var keys = [];
 var re = pathToRegexp('/foo/:bar', keys);
-// re = /^\/foo\/(?:([^\/]+?))\/?$/i
-// keys = [{ name: 'bar', optional: false }]
+// re = /^\/foo\/([^\/]+?)\/?$/i
+// keys = ['bar']
 ```
 
-### Named parameters
+### Parameters
 
-Paths have the ability to define named parameters that populate the keys array. Named parameters are defined by prefixing a colon to a parameter name (`:foo`) and optionally suffixing a number of different modifiers. A named parameter will match any text until the next slash.
+The path has the ability to define parameters and automatically populate the keys array.
 
-```javascript
+#### Named Parameters
+
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, this parameter will match up to the next path segment.
+
+```js
 var re = pathToRegexp('/:foo/:bar');
+// keys = ['foo', 'bar']
 
 re.exec('/test/route');
 //=> ['/test/route', 'test', 'route']
 ```
 
-#### Optional Matches
+#### Optional Parameters
 
-Named parameters can be suffixed with a question mark to indicate an optional match.
+Optional parameters can be denoted by suffixing a question mark. This will also make any prefixed path segment optional (`/` or `.`).
 
-```javascript
-var re = pathToRegExp('/:foo?');
+```js
+var re = pathToRegexp('/:foo/:bar?');
+// keys = ['foo', 'bar']
 
-re.exec('/');
-//=> ['/', undefined]
+re.exec('/test');
+//=> ['/test', 'test', undefined]
+
+re.exec('/test/route');
+//=> ['/test', 'test', 'route']
 ```
 
-Please note: Optional matches can be combined with the greedy match to only have it take effect with the parameter exists. E.g. `/:foo*?`.
+#### Custom Matches
 
-#### Custom Matching Groups
+All parameters can be provided a custom matching regexp and override the default. Please note: Backslashes need to be escaped in strings.
 
-Named parameters can be provided a custom matching group and override the default. Please note: Backslashes will need to be escaped.
-
-```javascript
+```js
 var re = pathToRegexp('/:foo(\\d+)');
 
 re.exec('/123');
@@ -65,29 +72,16 @@ re.exec('/abc');
 //=> null
 ```
 
-#### Prefixes
+#### Unnamed Parameters
 
-By default a named parameter will match any character up until the next slash, but if the parameter is prefixed with a period it will only match to the next period.
+It is possible to write an unnamed parameter that is only a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
-```javascript
-var re = pathToRegexp('/test.:foo');
+```js
+var re = pathToRegexp('/:foo/(.*)', keys);
+// keys = ['foo', '0']
 
-re.exec('/test.json');
-//=> ['/test.json', 'json']
-
-re.exec('/test.html.json');
-//=> null
-```
-
-### Greedy Matching
-
-The path uses an asterisk to greedily match any trailing characters. This can be placed anywhere in the route, including after a named parameter.
-
-```javascript
-var re = pathToRegexp('/foo*');
-
-re.exec('/foo/bar.json');
-//=> ['/foo/bar', '/bar.json']
+re.exec('/test/route');
+//=> ['/test/route', 'test', 'route']
 ```
 
 ## Live Demo
