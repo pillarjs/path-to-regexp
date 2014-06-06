@@ -25,10 +25,13 @@ var exec = function (re, str) {
  */
 var TESTS = [
   // Simple paths.
+  ['/', [], '/', ['/']],
   ['/test', [], '/test', ['/test']],
   ['/test', [], '/route', null],
   ['/test', [], '/test/route', null],
   ['/test', [], '/test/', ['/test/']],
+  ['/test/', [], '/test/', ['/test/']],
+  ['/test/', [], '/test//', null],
 
   // Case-sensitive paths.
   ['/test', [], '/test', ['/test'], { sensitive: true }],
@@ -84,7 +87,28 @@ var TESTS = [
   ['/:test?', ['test'], '/route', ['/route', 'route'], { strict: true }],
   ['/:test?', ['test'], '/', null, { strict: true }], // Questionable behaviour.
   ['/:test?/', ['test'], '/', ['/', undefined], { strict: true }],
+  ['/:test?/', ['test'], '//', null],
   ['/:test?/', ['test'], '//', null, { strict: true }],
+
+  // Repeated once or more times parameters.
+  ['/:test+', ['test'], '/', null],
+  ['/:test+', ['test'], '/route', ['/route', 'route']],
+  ['/:test+', ['test'], '/some/basic/route', ['/some/basic/route', 'some/basic/route']],
+  ['/:test(\\d+)+', ['test'], '/abc/456/789', null],
+  ['/:test(\\d+)+', ['test'], '/123/456/789', ['/123/456/789', '123/456/789']],
+  ['/route.:ext(json|xml)+', ['ext'], '/route.json', ['/route.json', 'json']],
+  ['/route.:ext(json|xml)+', ['ext'], '/route.xml.json', ['/route.xml.json', 'xml.json']],
+  ['/route.:ext(json|xml)+', ['ext'], '/route.html', null],
+
+  // Repeated zero or more times parameters.
+  ['/:test*', ['test'], '/', ['/', undefined]],
+  ['/:test*', ['test'], '//', null],
+  ['/:test*', ['test'], '/route', ['/route', 'route']],
+  ['/:test*', ['test'], '/some/basic/route', ['/some/basic/route', 'some/basic/route']],
+  ['/route.:ext([a-z]+)*', ['ext'], '/route', ['/route', undefined]],
+  ['/route.:ext([a-z]+)*', ['ext'], '/route.json', ['/route.json', 'json']],
+  ['/route.:ext([a-z]+)*', ['ext'], '/route.xml.json', ['/route.xml.json', 'xml.json']],
+  ['/route.:ext([a-z]+)*', ['ext'], '/route.123', null],
 
   // Custom named parameters.
   ['/:test(\\d+)', ['test'], '/123', ['/123', '123']],

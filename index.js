@@ -13,7 +13,7 @@ var PATH_REGEXP = new RegExp([
   //
   // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
   // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
-  '([\\/.])?(?:\\:(\\w+)(?:\\((.+)\\))?|\\((.+)\\))([?])?',
+  '([\\/.])?(?:\\:(\\w+)(?:\\((.+)\\))?|\\((.+)\\))([+*?])?',
   // Match regexp special characters that should always be escaped.
   '([.+*?=^!:${}()[\\]|\\/])'
 ].join('|'), 'g');
@@ -24,8 +24,8 @@ var PATH_REGEXP = new RegExp([
  * @param  {String} group
  * @return {String}
  */
-function wrapGroup (group) {
-  return '(' + group.replace(/([=!:$\/()])/g, '\\$1') + ')';
+function escapeGroup (group) {
+  return group.replace(/([=!:$\/()])/g, '\\$1');
 }
 
 /**
@@ -72,7 +72,7 @@ function pathtoRegexp (path, keys, options) {
   }
 
   // Alter the path string into a usable regexp.
-  path = path.replace(PATH_REGEXP, function (match, escaped, prefix, key, capture, group, optional, escape) {
+  path = path.replace(PATH_REGEXP, function (match, escaped, prefix, key, capture, group, suffix, escape) {
     // Avoiding re-escaping escaped characters.
     if (escaped) {
       return escaped;
@@ -88,33 +88,44 @@ function pathtoRegexp (path, keys, options) {
     // Special behaviour for format params.
     var format = prefix === '.' ? '\\.' : '';
 
-    // Escape the prefix and ensure both optional matches are empty strings.
+    // Escape the prefix character.
     prefix = prefix ? '\\' + prefix : '';
-    optional = optional || '';
 
     // Match using the custom capturing group, or fallback to capturing
     // everything up to the next slash (or next period if the param was
     // prefixed with a period).
-    var regexp = wrapGroup(capture || group || '[^\\/' + format + ']+?');
+    capture = escapeGroup(capture || group || '[^\\/' + format + ']+?');
 
-    if (optional) {
-      return '(?:' + prefix + regexp + ')' + optional;
+    // More complex regexp is required for suffix support.
+    if (suffix) {
+      if (suffix === '+') {
+        return prefix + '(' + capture + '(?:' + prefix + capture + ')*)'
+      }
+
+      if (suffix === '*') {
+        return '(?:' + prefix + '(' + capture + '(?:' + prefix + capture + ')*|' + capture + '))?';
+      }
+
+      return '(?:' + prefix + '(' + capture + '))?';
     }
 
-    return prefix + regexp;
+    // Basic parameter support.
+    return prefix + '(' + capture + ')';
   });
 
-  // If we are doing a non-ending match, we need to prompt the matching groups
-  // to match as much as possible. To do this, we add a positive lookahead for
-  // the next path fragment or the end. However, if the regexp already ends
-  // in a path fragment, we'll run into problems.
-  if (!end && path[path.length - 1] !== '/') {
-    path += '(?=\\/|$)';
-  }
+  if (path[path.length - 1] !== '/') {
+    // If we are doing a non-ending match, we need to prompt the matching groups
+    // to match as much as possible. To do this, we add a positive lookahead for
+    // the next path fragment or the end. However, if the regexp already ends
+    // in a path fragment, we'll run into problems.
+    if (!end) {
+      path += '(?=\\/|$)';
+    }
 
-  // Allow trailing slashes to be matched in non-strict, ending mode.
-  if (end && !strict) {
-    path += '\\/?';
+    // Allow trailing slashes to be matched in non-strict, ending mode.
+    if (end && !strict) {
+      path += '\\/?';
+    }
   }
 
   return new RegExp('^' + path + (end ? '$' : ''), flags);
