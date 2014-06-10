@@ -53,7 +53,14 @@ function pathtoRegexp (path, keys, options) {
     var groups = path.source.match(/\((?!\?)/g) || [];
 
     // Map all the matches to their numeric keys and push into the keys.
-    keys.push.apply(keys, groups.map(function (m, i) { return i; }));
+    keys.push.apply(keys, groups.map(function (match, index) {
+      return {
+        name:      index,
+        delimiter: null,
+        optional:  false,
+        repeat:    false
+      };
+    }));
 
     // Return the source back to the user.
     return path;
@@ -83,10 +90,12 @@ function pathtoRegexp (path, keys, options) {
       return '\\' + escape;
     }
 
-    keys.push(key || index++);
-
-    // Special behaviour for format params.
-    var format = prefix === '.' ? '\\.' : '';
+    keys.push({
+      name:      key || index++,
+      delimiter: prefix || '/',
+      optional:  suffix === '?' || suffix === '*',
+      repeat:    suffix === '+' || suffix === '*'
+    });
 
     // Escape the prefix character.
     prefix = prefix ? '\\' + prefix : '';
@@ -94,7 +103,7 @@ function pathtoRegexp (path, keys, options) {
     // Match using the custom capturing group, or fallback to capturing
     // everything up to the next slash (or next period if the param was
     // prefixed with a period).
-    capture = escapeGroup(capture || group || '[^\\/' + format + ']+?');
+    capture = escapeGroup(capture || group || '[^' + (prefix || '\\/') + ']+?');
 
     // More complex regexp is required for suffix support.
     if (suffix) {
