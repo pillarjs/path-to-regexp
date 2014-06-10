@@ -24,7 +24,7 @@ var pathToRegexp = require('path-to-regexp');
 var keys = [];
 var re = pathToRegexp('/foo/:bar', keys);
 // re = /^\/foo\/([^\/]+?)\/?$/i
-// keys = ['bar']
+// keys = [{ name: 'bar', delimiter: '/', repeat: false, optional: false }]
 ```
 
 ### Parameters
@@ -37,13 +37,13 @@ Named parameters are defined by prefixing a colon to the parameter name (`:foo`)
 
 ```js
 var re = pathToRegexp('/:foo/:bar', keys);
-// keys = ['foo', 'bar']
+// keys = [{ name: 'foo', ... }, { name: 'bar', ... }]
 
 re.exec('/test/route');
 //=> ['/test/route', 'test', 'route']
 ```
 
-#### Parameter Suffixes
+#### Suffixed Parameters
 
 ##### Optional
 
@@ -51,7 +51,7 @@ Parameters can be suffixed with a question mark (`?`) to make the entire paramet
 
 ```js
 var re = pathToRegexp('/:foo/:bar?', keys);
-// keys = ['foo', 'bar']
+// keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
 re.exec('/test');
 //=> ['/test', 'test', undefined]
@@ -66,7 +66,7 @@ Parameters can be suffixed with an asterisk (`*`) to denote a zero or more param
 
 ```js
 var re = pathToRegexp('/:foo*', keys);
-// keys = ['foo']
+// keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
 re.exec('/');
 //=> ['/', undefined]
@@ -81,7 +81,7 @@ Parameters can be suffixed with a plus sign (`+`) to denote a one or more parame
 
 ```js
 var re = pathToRegexp('/:foo+', keys);
-// keys = ['foo']
+// keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
 re.exec('/');
 //=> null
@@ -90,13 +90,13 @@ re.exec('/bar/baz');
 //=> ['/bar/baz', 'bar/baz']
 ```
 
-#### Custom Matches
+#### Custom Match Parameters
 
 All parameters can be provided a custom matching regexp and override the default. Please note: Backslashes need to be escaped in strings.
 
 ```js
 var re = pathToRegexp('/:foo(\\d+)', keys);
-// keys = ['foo']
+// keys = [{ name: 'foo', ... }]
 
 re.exec('/123');
 //=> ['/123', '123']
@@ -111,11 +111,20 @@ It is possible to write an unnamed parameter that is only a matching group. It w
 
 ```js
 var re = pathToRegexp('/:foo/(.*)', keys);
-// keys = ['foo', '0']
+// keys = [{ name: 'foo', ... }, { name: '0', ... }]
 
 re.exec('/test/route');
 //=> ['/test/route', 'test', 'route']
 ```
+
+## Compatibility with Express 3.x
+
+Path-To-RegExp breaks compatibility with Express 3.x in a few ways:
+
+* RegExp special characters can now be used in the regular path. E.g. `/user[(\\d+)]`
+* All RegExp special characters can now be used inside the custom match. E.g. `/:user(.*)`
+* No more support for asterisk matching - use an explicit parameter instead. E.g. `/(.*)`
+* Parameters can have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
 
 ## Live Demo
 
