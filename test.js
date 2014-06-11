@@ -764,6 +764,19 @@ var TESTS = [
     [],
     '/.+*?=^!:${}[]|',
     ['/.+*?=^!:${}[]|']
+  ],
+
+  /**
+   * Regressions.
+   */
+  [
+    '/:remote([\\w-.]+)/:user([\\w-]+)',
+    [
+      { name: 'remote', delimiter: '/', optional: false, repeat: false },
+      { name: 'user', delimiter: '/', optional: false, repeat: false }
+    ],
+    '/endpoint/user',
+    ['/endpoint/user', 'endpoint', 'user']
   ]
 ];
 

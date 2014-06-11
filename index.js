@@ -13,7 +13,7 @@ var PATH_REGEXP = new RegExp([
   //
   // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
   // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
-  '([\\/.])?(?:\\:(\\w+)(?:\\((.+)\\))?|\\((.+)\\))([+*?])?',
+  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?',
   // Match regexp special characters that should always be escaped.
   '([.+*?=^!:${}()[\\]|\\/])'
 ].join('|'), 'g');
