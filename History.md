@@ -1,3 +1,8 @@
+0.2.1 / 2014-06-11
+==================
+
+  * Fixed a major capturing group regexp regression
+
 0.2.0 / 2014-06-09
 ==================
 
