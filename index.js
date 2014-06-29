@@ -90,11 +90,14 @@ function pathtoRegexp (path, keys, options) {
       return '\\' + escape;
     }
 
+    var repeat   = suffix === '+' || suffix === '*';
+    var optional = suffix === '?' || suffix === '*';
+
     keys.push({
       name:      key || index++,
       delimiter: prefix || '/',
-      optional:  suffix === '?' || suffix === '*',
-      repeat:    suffix === '+' || suffix === '*'
+      optional:  optional,
+      repeat:    repeat
     });
 
     // Escape the prefix character.
@@ -105,16 +108,13 @@ function pathtoRegexp (path, keys, options) {
     // prefixed with a period).
     capture = escapeGroup(capture || group || '[^' + (prefix || '\\/') + ']+?');
 
-    // More complex regexp is required for suffix support.
-    if (suffix) {
-      if (suffix === '+') {
-        return prefix + '(' + capture + '(?:' + prefix + capture + ')*)'
-      }
+    // Allow parameters to be repeated more than once.
+    if (repeat) {
+      capture = capture + '(?:' + prefix + capture + ')*';
+    }
 
-      if (suffix === '*') {
-        return '(?:' + prefix + '(' + capture + '(?:' + prefix + capture + ')*|' + capture + '))?';
-      }
-
+    // Allow a parameter to be optional.
+    if (optional) {
       return '(?:' + prefix + '(' + capture + '))?';
     }
 
