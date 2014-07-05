@@ -42,7 +42,7 @@ function pathtoRegexp(path, keys, options) {
     return new RegExp('(?:' + path.join('|') + ')', flags);
   }
 
-  path = ('^' + path + (strict ? '' : '/?'))
+  path = ('^' + path + (strict ? '' : path[path.length - 1] === '/' ? '?' : '/?'))
     .replace(/\/\(/g, '/(?:')
     .replace(/([\/\.])/g, '\\$1')
     .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {

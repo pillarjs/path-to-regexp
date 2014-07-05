@@ -412,6 +412,34 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'test');
     });
 
+    it('should match trailing slashes in non-ending non-strict mode', function () {
+      var params = [];
+      var re = pathToRegExp('/route/', params, { end: false });
+      var m;
+
+      assert.equal(params.length, 0);
+
+      m = re.exec('/route/');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+
+      m = re.exec('/route/test');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route');
+
+      m = re.exec('/route');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route');
+
+      m = re.exec('/route//');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+    });
+
     it('should match trailing slashing in non-ending strict mode', function () {
       var params = [];
       var re = pathToRegExp('/route/', params, { end: false, strict: true });
