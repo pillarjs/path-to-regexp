@@ -1,3 +1,9 @@
+0.2.2 / 2014-07-06
+==================
+
+  * A passed in trailing slash in non-strict mode will become optional
+  * In non-end mode, the optional trailing slash will only match at the end
+
 0.2.1 / 2014-06-11
 ==================
 
