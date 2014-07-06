@@ -32,6 +32,7 @@ var TESTS = [
   ['/test', [], '/route', null],
   ['/test', [], '/test/route', null],
   ['/test', [], '/test/', ['/test/']],
+  ['/test/', [], '/test', ['/test']],
   ['/test/', [], '/test/', ['/test/']],
   ['/test/', [], '/test//', null],
 
@@ -55,7 +56,25 @@ var TESTS = [
    * Non-ending mode.
    */
   ['/test', [], '/test', ['/test'], { end: false }],
+  ['/test', [], '/test/', ['/test/'], { end: false }],
   ['/test', [], '/test/route', ['/test'], { end: false }],
+  ['/test/', [], '/test/route', ['/test'], { end: false }],
+  ['/test/', [], '/test//', ['/test'], { end: false }],
+  ['/test/', [], '/test//route', ['/test'], { end: false }],
+  [
+    '/:test',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route',
+    ['/route', 'route'],
+    { end: false }
+  ],
+  [
+    '/:test/',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route',
+    ['/route', 'route'],
+    { end: false }
+  ],
 
   /**
    * Combine modes.
@@ -69,6 +88,34 @@ var TESTS = [
   ['/test/', [], '/test/route', ['/test/'], { end: false, strict: true }],
   ['/test.json', [], '/test.json', ['/test.json'], { end: false, strict: true }],
   ['/test.json', [], '/test.json.hbs', null, { end: false, strict: true }],
+  [
+    '/:test',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route',
+    ['/route', 'route'],
+    { end: false, strict: true }
+  ],
+  [
+    '/:test',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route/',
+    ['/route', 'route'],
+    { end: false, strict: true }
+  ],
+  [
+    '/:test/',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route/',
+    ['/route/', 'route'],
+    { end: false, strict: true }
+  ],
+  [
+    '/:test/',
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    '/route',
+    null,
+    { end: false, strict: true }
+  ],
 
   /**
    * Arrays of simple paths.
@@ -398,7 +445,7 @@ var TESTS = [
     ':test',
     [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
     'route/',
-    ['route', 'route'],
+    ['route/', 'route'],
     { end: false }
   ],
 
