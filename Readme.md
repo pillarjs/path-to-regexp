@@ -117,7 +117,7 @@ re.exec('/test/route');
 //=> ['/test/route', 'test', 'route']
 ```
 
-## Compatibility with Express 3.x
+## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express 3.x in a few ways:
 
