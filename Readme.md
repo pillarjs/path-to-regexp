@@ -6,6 +6,11 @@ Turn an Express-style path string such as `/user/:name` into a regular expressio
 [![Build status][travis-image]][travis-url]
 [![Test coverage][coveralls-image]][coveralls-url]
 
+## Installation
+
+```
+npm install path-to-regexp --save
+```
 
 ## Usage
 
