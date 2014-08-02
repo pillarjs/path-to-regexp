@@ -119,12 +119,13 @@ re.exec('/test/route');
 
 ## Compatibility with Express <= 4.x
 
-Path-To-RegExp breaks compatibility with Express 3.x in a few ways:
+Path-To-RegExp breaks compatibility with Express <= 4.x in a few ways:
 
 * RegExp special characters can now be used in the regular path. E.g. `/user[(\\d+)]`
 * All RegExp special characters can now be used inside the custom match. E.g. `/:user(.*)`
 * No more support for asterisk matching - use an explicit parameter instead. E.g. `/(.*)`
 * Parameters can have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
+* Strings aren't interpreted as literal regexp strings - no more non-capturing groups, lookaheads, lookbehinds or nested matching groups (but you can still pass a regexp manually)
 
 ## Live Demo
 
