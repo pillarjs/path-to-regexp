@@ -863,7 +863,8 @@ describe('path-to-regexp', function () {
       var params = [];
       var re     = pathToRegexp(test[0], params, test[4]);
 
-      // Check the params are as expected.
+      // Check the keys are as expected.
+      assert.equal(re.keys, params);
       assert.deepEqual(params, test[1]);
 
       // Run the regexp and check the result is expected.

@@ -3,6 +3,11 @@
  */
 module.exports = pathtoRegexp;
 
+/**
+ * The main path matching regexp utility.
+ *
+ * @type {RegExp}
+ */
 var PATH_REGEXP = new RegExp([
   // Match already escaped characters that would otherwise incorrectly appear
   // in future matches. This allows the user to escape special characters that
@@ -27,6 +32,19 @@ var PATH_REGEXP = new RegExp([
 function escapeGroup (group) {
   return group.replace(/([=!:$\/()])/g, '\\$1');
 }
+
+/**
+ * Attach the keys as a property of the regexp.
+ *
+ * @param  {RegExp} re
+ * @param  {Array}  keys
+ * @return {RegExp}
+ */
+var attachKeys = function (re, keys) {
+  re.keys = keys;
+
+  return re;
+};
 
 /**
  * Normalize the given path string, returning a regular expression.
@@ -63,7 +81,7 @@ function pathtoRegexp (path, keys, options) {
     }));
 
     // Return the source back to the user.
-    return path;
+    return attachKeys(path, keys);
   }
 
   if (Array.isArray(path)) {
@@ -75,7 +93,7 @@ function pathtoRegexp (path, keys, options) {
     });
 
     // Generate a new regexp instance by joining all the parts together.
-    return new RegExp('(?:' + path.join('|') + ')', flags);
+    return attachKeys(new RegExp('(?:' + path.join('|') + ')', flags), keys);
   }
 
   // Alter the path string into a usable regexp.
@@ -140,5 +158,5 @@ function pathtoRegexp (path, keys, options) {
     path += strict && endsWithSlash ? '' : '(?=\\/|$)';
   }
 
-  return new RegExp('^' + path + (end ? '$' : ''), flags);
+  return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
 };
