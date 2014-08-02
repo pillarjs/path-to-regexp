@@ -2,8 +2,10 @@
 
 Turn an Express-style path string such as `/user/:name` into a regular expression.
 
-[![Build Status](https://img.shields.io/travis/component/path-to-regexp/master.svg)](https://travis-ci.org/component/path-to-regexp)
-[![NPM version](https://img.shields.io/npm/v/path-to-regexp.svg)](https://www.npmjs.org/package/path-to-regexp)
+[![NPM version][npm-image]][npm-url]
+[![Build status][travis-image]][travis-url]
+[![Test coverage][coveralls-image]][coveralls-url]
+
 
 ## Usage
 
@@ -134,3 +136,10 @@ You can see a live demo of this library in use at [express-route-tester](http://
 ## License
 
 MIT
+
+[npm-image]: https://img.shields.io/npm/v/path-to-regexp.svg?style=flat
+[npm-url]: https://npmjs.org/package/path-to-regexp
+[travis-image]: https://img.shields.io/travis/component/path-to-regexp.svg?style=flat
+[travis-url]: https://travis-ci.org/component/path-to-regexp
+[coveralls-image]: https://img.shields.io/coveralls/component/path-to-regexp.svg?style=flat
+[coveralls-url]: https://coveralls.io/r/component/path-to-regexp?branch=master
