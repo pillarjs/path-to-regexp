@@ -814,8 +814,17 @@ var TESTS = [
   ],
 
   /**
-   * Regressions.
+   * Real world examples.
    */
+  [
+    '/:foo/:bar',
+    [
+      { name: 'foo', delimiter: '/', optional: false, repeat: false },
+      { name: 'bar', delimiter: '/', optional: false, repeat: false }
+    ],
+    '/match/route',
+    ['/match/route', 'match', 'route']
+  ],
   [
     '/:remote([\\w-.]+)/:user([\\w-]+)',
     [
@@ -831,12 +840,6 @@ var TESTS = [
  * Dynamically generate the entire test suite.
  */
 describe('path-to-regexp', function () {
-  it('should not break when keys aren\'t provided', function () {
-    var re = pathToRegexp('/:foo/:bar');
-
-    assert.deepEqual(exec(re, '/test/route'), ['/test/route', 'test', 'route']);
-  });
-
   TESTS.forEach(function (test) {
     var description = '';
     var options     = test[4] || {};
