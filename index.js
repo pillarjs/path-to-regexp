@@ -58,6 +58,11 @@ var attachKeys = function (re, keys) {
  * @return {RegExp}
  */
 function pathtoRegexp (path, keys, options) {
+  if (keys && !Array.isArray(keys)) {
+    options = keys;
+    keys = null;
+  }
+
   keys = keys || [];
   options = options || {};
 
