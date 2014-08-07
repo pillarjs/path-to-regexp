@@ -1,3 +1,15 @@
+0.2.5 / 2014-08-07
+==================
+
+  * Allow keys parameter to be omitted
+
+0.2.4 / 2014-08-02
+==================
+
+  * Code coverage badge
+  * Updated readme
+  * Attach keys to the generated regexp
+
 0.2.3 / 2014-07-09
 ==================
 
