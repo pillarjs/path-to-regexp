@@ -23,9 +23,9 @@ var pathToRegexp = require('path-to-regexp');
 - **path** A string in the express format, an array of strings, or a regular expression.
 - **keys** An array to be populated with the keys present in the url.
 - **options**
-  - **options.sensitive** When set to `true` the route will be case sensitive.
-  - **options.strict** When set to `true` a slash is allowed to be trailing the path.
-  - **options.end** When set to `false` the path will match at the beginning.
+  - **sensitive** When `true` the route will be case sensitive. (default: `false`)
+  - **strict** When `false` the trailing slash is optional. (default: `false`)
+  - **end** When `false` the path will match at the beginning. (default: `true`)
 
 ```javascript
 var keys = [];
