@@ -5,6 +5,9 @@ Turn an Express-style path string such as `/user/:name` into a regular expressio
 [![NPM version][npm-image]][npm-url]
 [![Build status][travis-image]][travis-url]
 [![Test coverage][coveralls-image]][coveralls-url]
+[![Dependency Status][david-image]][david-url]
+[![License][license-image]][license-url]
+[![Downloads][downloads-image]][downloads-url]
 
 ## Installation
 
@@ -144,7 +147,13 @@ MIT
 
 [npm-image]: https://img.shields.io/npm/v/path-to-regexp.svg?style=flat
 [npm-url]: https://npmjs.org/package/path-to-regexp
-[travis-image]: https://img.shields.io/travis/component/path-to-regexp.svg?style=flat
-[travis-url]: https://travis-ci.org/component/path-to-regexp
-[coveralls-image]: https://img.shields.io/coveralls/component/path-to-regexp.svg?style=flat
-[coveralls-url]: https://coveralls.io/r/component/path-to-regexp?branch=master
+[travis-image]: https://img.shields.io/travis/pillarjs/path-to-regexp.svg?style=flat
+[travis-url]: https://travis-ci.org/pillarjs/path-to-regexp
+[coveralls-image]: https://img.shields.io/coveralls/pillarjs/path-to-regexp.svg?style=flat
+[coveralls-url]: https://coveralls.io/r/pillarjs/path-to-regexp?branch=master
+[david-image]: http://img.shields.io/david/pillarjs/path-to-regexp.svg?style=flat
+[david-url]: https://david-dm.org/pillarjs/path-to-regexp
+[license-image]: http://img.shields.io/npm/l/path-to-regexp.svg?style=flat
+[license-url]: LICENSE.md
+[downloads-image]: http://img.shields.io/npm/dm/path-to-regexp.svg?style=flat
+[downloads-url]: https://npmjs.org/package/path-to-regexp
