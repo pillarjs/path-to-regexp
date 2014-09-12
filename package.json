@@ -19,7 +19,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/component/path-to-regexp.git"
+    "url": "https://github.com/pillarjs/path-to-regexp.git"
   },
   "devDependencies": {
     "istanbul": "~0.3.0",
