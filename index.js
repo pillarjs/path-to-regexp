@@ -40,7 +40,7 @@ function escapeGroup (group) {
  * @param  {Array}  keys
  * @return {RegExp}
  */
-var attachKeys = function (re, keys) {
+function attachKeys (re, keys) {
   re.keys = keys;
 
   return re;
