@@ -73,17 +73,19 @@ function pathtoRegexp (path, keys, options) {
 
   if (path instanceof RegExp) {
     // Match all capturing groups of a regexp.
-    var groups = path.source.match(/\((?!\?)/g) || [];
+    var groups = path.source.match(/\((?!\?)/g);
 
-    // Map all the matches to their numeric keys and push into the keys.
-    keys.push.apply(keys, groups.map(function (match, index) {
-      return {
-        name:      index,
-        delimiter: null,
-        optional:  false,
-        repeat:    false
-      };
-    }));
+    // Map all the matches to their numeric indexes and push into the keys.
+    if (groups) {
+      for (var i = 0; i < groups.length; i++) {
+        keys.push({
+          name:      i,
+          delimiter: null,
+          optional:  false,
+          repeat:    false
+        });
+      }
+    }
 
     // Return the source back to the user.
     return attachKeys(path, keys);
