@@ -1,3 +1,5 @@
+var isArray = require('isarray');
+
 /**
  * Expose `pathtoRegexp`.
  */
@@ -58,7 +60,7 @@ function attachKeys (re, keys) {
  * @return {RegExp}
  */
 function pathtoRegexp (path, keys, options) {
-  if (!Array.isArray(keys)) {
+  if (!isArray(keys)) {
     options = keys;
     keys = null;
   }
@@ -94,7 +96,7 @@ function pathtoRegexp (path, keys, options) {
   // Map array parts into regexps and return their source. We also pass
   // the same keys and options instance into every generation to get
   // consistent matching groups before we join the sources together.
-  if (Array.isArray(path)) {
+  if (isArray(path)) {
     var parts = [];
 
     for (var i = 0; i < path.length; i++) {

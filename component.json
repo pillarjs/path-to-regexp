@@ -11,5 +11,8 @@
   "scripts": [
     "index.js"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "juliangruber/isarray": "0.0.1"
+  }
 }
