@@ -47,16 +47,6 @@ function attachKeys (re, keys) {
 }
 
 /**
- * Check if the value is a regexp.
- *
- * @param  {RegExp}  value
- * @return {Boolean}
- */
-function isRegExp (value) {
-  return value instanceof RegExp;
-}
-
-/**
  * Get the flags for a regexp from the options.
  *
  * @param  {Object} options
@@ -179,7 +169,7 @@ function pathToRegexp (path, keys, options) {
     options = {};
   }
 
-  if (isRegExp(path)) {
+  if (path instanceof RegExp) {
     return regexpToRegexp(path, keys, options);
   }
 
