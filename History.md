@@ -1,3 +1,9 @@
+1.0.3 / 2015-01-17
+==================
+
+  * Optimised function runtime
+  * Added `files` to `package.json`
+
 1.0.2 / 2014-12-17
 ==================
 
