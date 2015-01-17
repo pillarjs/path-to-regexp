@@ -1,7 +1,7 @@
 {
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "files": [
     "index.js",
     "LICENSE"
