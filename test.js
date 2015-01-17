@@ -850,6 +850,16 @@ describe('path-to-regexp', function () {
       assert.deepEqual(re.keys, params);
       assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123']);
     });
+
+    it('should work with keys as null', function () {
+      var re = pathToRegexp('/user/:id', null, { end: false });
+      var params = [
+        { name: 'id', delimiter: '/', optional: false, repeat: false }
+      ];
+
+      assert.deepEqual(re.keys, params);
+      assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123']);
+    });
   });
 
   describe('rules', function () {
