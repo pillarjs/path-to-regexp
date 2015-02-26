@@ -30,6 +30,7 @@
     "mocha": "~1.21.4"
   },
   "dependencies": {
+    "depd": "~1.0.0",
     "isarray": "0.0.1"
   }
 }
