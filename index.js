@@ -1,4 +1,5 @@
 var isArray = require('isarray');
+var deprecate = require('depd')('path-to-regexp');
 
 /**
  * Expose `pathToRegexp`.
@@ -175,6 +176,10 @@ function pathToRegexp (path, keys, options) {
 
   if (isArray(path)) {
     return arrayToRegexp(path, keys, options);
+  }
+
+  if (path.indexOf(' ') !== -1) {
+    deprecate('White-space characters are not supported by URL paths, you must encode them as %20.');
   }
 
   var strict = options.strict;
