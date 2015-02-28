@@ -7,7 +7,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec"
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec",
+    "lint": "standard",
+    "test": "npm run lint && npm run test-cov"
   },
   "keywords": [
     "express",
@@ -27,9 +29,11 @@
   },
   "devDependencies": {
     "istanbul": "~0.3.0",
-    "mocha": "~1.21.4"
+    "mocha": "~2.1.0",
+    "pre-commit": "~1.0.5"
   },
   "dependencies": {
-    "isarray": "0.0.1"
+    "isarray": "0.0.1",
+    "standard": "~2.10.0"
   }
 }

@@ -1,6 +1,8 @@
-var util = require('util');
-var assert = require('assert');
-var pathToRegexp = require('./');
+/* global describe, it */
+
+var util = require('util')
+var assert = require('assert')
+var pathToRegexp = require('./')
 
 /**
  * Execute a regular expression and return a flat array for comparison.
@@ -9,11 +11,11 @@ var pathToRegexp = require('./');
  * @param  {String} str
  * @return {Array}
  */
-var exec = function (re, str) {
-  var match = re.exec(str);
+function exec (re, str) {
+  var match = re.exec(str)
 
-  return match && Array.prototype.slice.call(match);
-};
+  return match && Array.prototype.slice.call(match)
+}
 
 /**
  * An array of test cases with expected inputs and outputs. The format of each
@@ -834,7 +836,7 @@ var TESTS = [
     '/endpoint/user',
     ['/endpoint/user', 'endpoint', 'user']
   ]
-];
+]
 
 /**
  * Dynamically generate the entire test suite.
@@ -842,57 +844,57 @@ var TESTS = [
 describe('path-to-regexp', function () {
   describe('arguments', function () {
     it('should work without second keys', function () {
-      var re = pathToRegexp('/user/:id', { end: false });
+      var re = pathToRegexp('/user/:id', { end: false })
       var params = [
         { name: 'id', delimiter: '/', optional: false, repeat: false }
-      ];
+      ]
 
-      assert.deepEqual(re.keys, params);
-      assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123']);
-    });
+      assert.deepEqual(re.keys, params)
+      assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123'])
+    })
 
     it('should work with keys as null', function () {
-      var re = pathToRegexp('/user/:id', null, { end: false });
+      var re = pathToRegexp('/user/:id', null, { end: false })
       var params = [
         { name: 'id', delimiter: '/', optional: false, repeat: false }
-      ];
+      ]
 
-      assert.deepEqual(re.keys, params);
-      assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123']);
-    });
-  });
+      assert.deepEqual(re.keys, params)
+      assert.deepEqual(exec(re, '/user/123/show'), ['/user/123', '123'])
+    })
+  })
 
   describe('rules', function () {
     TESTS.forEach(function (test) {
-      var description = '';
-      var options     = test[4] || {};
+      var description = ''
+      var options = test[4] || {}
 
       // Generate a base description using the test values.
-      description += 'should ' + (test[3] ? '' : 'not ') + 'match ';
-      description += util.inspect(test[2]) + ' against ' + util.inspect(test[0]);
+      description += 'should ' + (test[3] ? '' : 'not ') + 'match '
+      description += util.inspect(test[2]) + ' against ' + util.inspect(test[0])
 
       // If additional options have been defined, we should render the options
       // in the test descriptions.
       if (Object.keys(options).length) {
         var optionsDescription = Object.keys(options).map(function (key) {
-          return (options[key] === false ? 'non-' : '') + key;
-        }).join(', ');
+          return (options[key] === false ? 'non-' : '') + key
+        }).join(', ')
 
-        description += ' in ' + optionsDescription + ' mode';
+        description += ' in ' + optionsDescription + ' mode'
       }
 
       // Execute the test and check each parameter is as expected.
       it(description, function () {
-        var params = [];
-        var re     = pathToRegexp(test[0], params, test[4]);
+        var params = []
+        var re = pathToRegexp(test[0], params, test[4])
 
         // Check the keys are as expected.
-        assert.equal(re.keys, params);
-        assert.deepEqual(params, test[1]);
+        assert.equal(re.keys, params)
+        assert.deepEqual(params, test[1])
 
         // Run the regexp and check the result is expected.
-        assert.deepEqual(exec(re, test[2]), test[3]);
-      });
-    });
-  });
-});
+        assert.deepEqual(exec(re, test[2]), test[3])
+      })
+    })
+  })
+})
