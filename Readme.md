@@ -18,9 +18,9 @@ npm install path-to-regexp --save
 ## Usage
 
 ```javascript
-var pathToRegexp = require('path-to-regexp');
+var pathToRegexp = require('path-to-regexp')
 
-// pathToRegexp(path, keys, options);
+// pathToRegexp(path, keys, options)
 ```
 
 - **path** A string in the express format, an array of strings, or a regular expression.
@@ -31,8 +31,8 @@ var pathToRegexp = require('path-to-regexp');
   - **end** When `false` the path will match at the beginning. (default: `true`)
 
 ```javascript
-var keys = [];
-var re = pathToRegexp('/foo/:bar', keys);
+var keys = []
+var re = pathToRegexp('/foo/:bar', keys)
 // re = /^\/foo\/([^\/]+?)\/?$/i
 // keys = [{ name: 'bar', delimiter: '/', repeat: false, optional: false }]
 ```
@@ -46,10 +46,10 @@ The path has the ability to define parameters and automatically populate the key
 Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, this parameter will match up to the next path segment.
 
 ```js
-var re = pathToRegexp('/:foo/:bar', keys);
+var re = pathToRegexp('/:foo/:bar', keys)
 // keys = [{ name: 'foo', ... }, { name: 'bar', ... }]
 
-re.exec('/test/route');
+re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
@@ -60,13 +60,13 @@ re.exec('/test/route');
 Parameters can be suffixed with a question mark (`?`) to make the entire parameter optional. This will also make any prefixed path delimiter optional (`/` or `.`).
 
 ```js
-var re = pathToRegexp('/:foo/:bar?', keys);
+var re = pathToRegexp('/:foo/:bar?', keys)
 // keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
-re.exec('/test');
+re.exec('/test')
 //=> ['/test', 'test', undefined]
 
-re.exec('/test/route');
+re.exec('/test/route')
 //=> ['/test', 'test', 'route']
 ```
 
@@ -75,13 +75,13 @@ re.exec('/test/route');
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter match. The prefixed path delimiter is also taken into account for the match.
 
 ```js
-var re = pathToRegexp('/:foo*', keys);
+var re = pathToRegexp('/:foo*', keys)
 // keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
-re.exec('/');
+re.exec('/')
 //=> ['/', undefined]
 
-re.exec('/bar/baz');
+re.exec('/bar/baz')
 //=> ['/bar/baz', 'bar/baz']
 ```
 
@@ -90,13 +90,13 @@ re.exec('/bar/baz');
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameters match. The prefixed path delimiter is included in the match.
 
 ```js
-var re = pathToRegexp('/:foo+', keys);
+var re = pathToRegexp('/:foo+', keys)
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
-re.exec('/');
+re.exec('/')
 //=> null
 
-re.exec('/bar/baz');
+re.exec('/bar/baz')
 //=> ['/bar/baz', 'bar/baz']
 ```
 
@@ -105,13 +105,13 @@ re.exec('/bar/baz');
 All parameters can be provided a custom matching regexp and override the default. Please note: Backslashes need to be escaped in strings.
 
 ```js
-var re = pathToRegexp('/:foo(\\d+)', keys);
+var re = pathToRegexp('/:foo(\\d+)', keys)
 // keys = [{ name: 'foo', ... }]
 
-re.exec('/123');
+re.exec('/123')
 //=> ['/123', '123']
 
-re.exec('/abc');
+re.exec('/abc')
 //=> null
 ```
 
@@ -120,10 +120,10 @@ re.exec('/abc');
 It is possible to write an unnamed parameter that is only a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
 ```js
-var re = pathToRegexp('/:foo/(.*)', keys);
+var re = pathToRegexp('/:foo/(.*)', keys)
 // keys = [{ name: 'foo', ... }, { name: '0', ... }]
 
-re.exec('/test/route');
+re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
