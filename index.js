@@ -19,7 +19,7 @@ var PATH_REGEXP = new RegExp([
   //
   // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
   // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
-  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?',
+  '([\\/.])?((?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?)',
   // Match regexp special characters that are always escaped.
   '([.+*?=^!:${}()[\\]|\\/])'
 ].join('|'), 'g')
@@ -110,7 +110,7 @@ function arrayToRegexp (path, keys, options) {
 function replacePath (path, keys) {
   var index = 0
 
-  function replace (_, escaped, prefix, key, capture, group, suffix, escape) {
+  function replace (_, escaped, prefix, all, key, capture, group, suffix, escape, i) {
     if (escaped) {
       return escaped
     }
@@ -126,7 +126,9 @@ function replacePath (path, keys) {
       name: key || index++,
       delimiter: prefix || '/',
       optional: optional,
-      repeat: repeat
+      repeat: repeat,
+      offset: i + (prefix ? prefix.length : 0),
+      length: all.length
     })
 
     prefix = prefix ? ('\\' + prefix) : ''

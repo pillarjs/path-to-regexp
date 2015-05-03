@@ -65,14 +65,14 @@ var TESTS = [
   ['/test/', [], '/test//route', ['/test'], { end: false }],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     ['/route', 'route'],
     { end: false }
   ],
   [
     '/:test/',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     ['/route', 'route'],
     { end: false }
@@ -92,28 +92,28 @@ var TESTS = [
   ['/test.json', [], '/test.json.hbs', null, { end: false, strict: true }],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     ['/route', 'route'],
     { end: false, strict: true }
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route/',
     ['/route', 'route'],
     { end: false, strict: true }
   ],
   [
     '/:test/',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route/',
     ['/route/', 'route'],
     { end: false, strict: true }
   ],
   [
     '/:test/',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     null,
     { end: false, strict: true }
@@ -137,58 +137,58 @@ var TESTS = [
    */
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     ['/route', 'route']
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/another',
     ['/another', 'another']
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/something/else',
     null
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json',
     ['/route.json', 'route.json']
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route',
     ['/route', 'route'],
     { strict: true }],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route/',
     null,
     { strict: true }
   ],
   [
     '/:test/',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route/',
     ['/route/', 'route'],
     { strict: true }
   ],
   [
     '/:test/',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route//',
     null,
     { strict: true }
   ],
   [
     '/:test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json',
     ['/route.json', 'route.json'],
     { end: false }
@@ -199,52 +199,52 @@ var TESTS = [
    */
   [
     '/:test?',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/route',
     ['/route', 'route']
   ],
   [
     '/:test?',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/route/nested',
     null
   ],
   [
     '/:test?',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/',
     ['/', undefined]
   ],
   [
     '/:test?',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/route',
     ['/route', 'route'],
     { strict: true }
   ],
   [
     '/:test?',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/',
     null, // Questionable behaviour.
     { strict: true }
   ],
   [
     '/:test?/',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/',
     ['/', undefined],
     { strict: true }
   ],
   [
     '/:test?/',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '//',
     null
   ],
   [
     '/:test?/',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '//',
     null,
     { strict: true }
@@ -253,49 +253,49 @@ var TESTS = [
   // Repeated once or more times parameters.
   [
     '/:test+',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: true, offset: 1, length: 6 }],
     '/',
     null
   ],
   [
     '/:test+',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: true, offset: 1, length: 6 }],
     '/route',
     ['/route', 'route']
   ],
   [
     '/:test+',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: true, offset: 1, length: 6 }],
     '/some/basic/route',
     ['/some/basic/route', 'some/basic/route']
   ],
   [
     '/:test(\\d+)+',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: true, offset: 1, length: 11 }],
     '/abc/456/789',
     null
   ],
   [
     '/:test(\\d+)+',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: true, offset: 1, length: 11 }],
     '/123/456/789',
     ['/123/456/789', '123/456/789']
   ],
   [
     '/route.:ext(json|xml)+',
-    [{ name: 'ext', delimiter: '.', optional: false, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: false, repeat: true, offset: 7, length: 15 }],
     '/route.json',
     ['/route.json', 'json']
   ],
   [
     '/route.:ext(json|xml)+',
-    [{ name: 'ext', delimiter: '.', optional: false, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: false, repeat: true, offset: 7, length: 15 }],
     '/route.xml.json',
     ['/route.xml.json', 'xml.json']
   ],
   [
     '/route.:ext(json|xml)+',
-    [{ name: 'ext', delimiter: '.', optional: false, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: false, repeat: true, offset: 7, length: 15 }],
     '/route.html',
     null
   ],
@@ -305,49 +305,49 @@ var TESTS = [
    */
   [
     '/:test*',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: true, offset: 1, length: 6 }],
     '/',
     ['/', undefined]
   ],
   [
     '/:test*',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: true, offset: 1, length: 6 }],
     '//',
     null
   ],
   [
     '/:test*',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: true, offset: 1, length: 6 }],
     '/route',
     ['/route', 'route']
   ],
   [
     '/:test*',
-    [{ name: 'test', delimiter: '/', optional: true, repeat: true }],
+    [{ name: 'test', delimiter: '/', optional: true, repeat: true, offset: 1, length: 6 }],
     '/some/basic/route',
     ['/some/basic/route', 'some/basic/route']
   ],
   [
     '/route.:ext([a-z]+)*',
-    [{ name: 'ext', delimiter: '.', optional: true, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: true, repeat: true, offset: 7, length: 13 }],
     '/route',
     ['/route', undefined]
   ],
   [
     '/route.:ext([a-z]+)*',
-    [{ name: 'ext', delimiter: '.', optional: true, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: true, repeat: true, offset: 7, length: 13 }],
     '/route.json',
     ['/route.json', 'json']
   ],
   [
     '/route.:ext([a-z]+)*',
-    [{ name: 'ext', delimiter: '.', optional: true, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: true, repeat: true, offset: 7, length: 13 }],
     '/route.xml.json',
     ['/route.xml.json', 'xml.json']
   ],
   [
     '/route.:ext([a-z]+)*',
-    [{ name: 'ext', delimiter: '.', optional: true, repeat: true }],
+    [{ name: 'ext', delimiter: '.', optional: true, repeat: true, offset: 7, length: 13 }],
     '/route.123',
     null
   ],
@@ -355,56 +355,56 @@ var TESTS = [
   // Custom named parameters.
   [
     '/:test(\\d+)',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 }],
     '/123',
     ['/123', '123']
   ],
   [
     '/:test(\\d+)',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 }],
     '/abc',
     null
   ],
   [
     '/:test(\\d+)',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 }],
     '/123/abc',
     null
   ],
   [
     '/:test(\\d+)',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 }],
     '/123/abc',
     ['/123', '123'],
     { end: false }
   ],
   [
     '/:test(.*)',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 9 }],
     '/anything/goes/here',
     ['/anything/goes/here', 'anything/goes/here']
   ],
   [
     '/:route([a-z]+)',
-    [{ name: 'route', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'route', delimiter: '/', optional: false, repeat: false, offset: 1, length: 14 }],
     '/abcde',
     ['/abcde', 'abcde']
   ],
   [
     '/:route([a-z]+)',
-    [{ name: 'route', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'route', delimiter: '/', optional: false, repeat: false, offset: 1, length: 14 }],
     '/12345',
     null
   ],
   [
     '/:route(this|that)',
-    [{ name: 'route', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'route', delimiter: '/', optional: false, repeat: false, offset: 1, length: 17 }],
     '/this',
     ['/this', 'this']
   ],
   [
     '/:route(this|that)',
-    [{ name: 'route', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'route', delimiter: '/', optional: false, repeat: false, offset: 1, length: 17 }],
     '/that',
     ['/that', 'that']
   ],
@@ -420,32 +420,32 @@ var TESTS = [
   ],
   [
     ':test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 0, length: 5 }],
     'route',
     ['route', 'route']
   ],
   [
     ':test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 0, length: 5 }],
     '/route',
     null
   ],
   [
     ':test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 0, length: 5 }],
     'route/',
     ['route/', 'route']
   ],
   [
     ':test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 0, length: 5 }],
     'route/',
     null,
     { strict: true }
   ],
   [
     ':test',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 0, length: 5 }],
     'route/',
     ['route/', 'route'],
     { end: false }
@@ -468,26 +468,26 @@ var TESTS = [
   ],
   [
     '/:test.json',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json',
     ['/route.json', 'route']
   ],
   [
     '/:test.json',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json.json',
     ['/route.json.json', 'route.json']
   ],
   [
     '/:test.json',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json',
     ['/route.json', 'route'],
     { end: false }
   ],
   [
     '/:test.json',
-    [{ name: 'test', delimiter: '/', optional: false, repeat: false }],
+    [{ name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/route.json.json',
     ['/route.json.json', 'route.json'],
     { end: false }
@@ -498,21 +498,21 @@ var TESTS = [
    */
   [
     '/test.:format',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 7 }],
     '/test.html',
     ['/test.html', 'html']
   ],
   [
     '/test.:format',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 7 }],
     '/test.hbs.html',
     null
   ],
   [
     '/test.:format.:format',
     [
-      { name: 'format', delimiter: '.', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: false, repeat: false }
+      { name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 7 },
+      { name: 'format', delimiter: '.', optional: false, repeat: false, offset: 14, length: 7 }
     ],
     '/test.hbs.html',
     ['/test.hbs.html', 'hbs', 'html']
@@ -520,21 +520,21 @@ var TESTS = [
   [
     '/test.:format+',
     [
-      { name: 'format', delimiter: '.', optional: false, repeat: true }
+      { name: 'format', delimiter: '.', optional: false, repeat: true, offset: 6, length: 8 }
     ],
     '/test.hbs.html',
     ['/test.hbs.html', 'hbs.html']
   ],
   [
     '/test.:format',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 7 }],
     '/test.hbs.html',
     null,
     { end: false }
   ],
   [
     '/test.:format.',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 7 }],
     '/test.hbs.html',
     null,
     { end: false }
@@ -546,8 +546,8 @@ var TESTS = [
   [
     '/:test.:format',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: false, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: false, repeat: false, offset: 7, length: 7 }
     ],
     '/route.html',
     ['/route.html', 'route', 'html']
@@ -555,8 +555,8 @@ var TESTS = [
   [
     '/:test.:format',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: false, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: false, repeat: false, offset: 7, length: 7 }
     ],
     '/route',
     null
@@ -564,8 +564,8 @@ var TESTS = [
   [
     '/:test.:format',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: false, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: false, repeat: false, offset: 7, length: 7 }
     ],
     '/route',
     null
@@ -573,8 +573,8 @@ var TESTS = [
   [
     '/:test.:format?',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: true, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: true, repeat: false, offset: 7, length: 8 }
     ],
     '/route',
     ['/route', 'route', undefined]
@@ -582,8 +582,8 @@ var TESTS = [
   [
     '/:test.:format?',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: true, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: true, repeat: false, offset: 7, length: 8 }
     ],
     '/route.json',
     ['/route.json', 'route', 'json']
@@ -591,8 +591,8 @@ var TESTS = [
   [
     '/:test.:format?',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: true, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: true, repeat: false, offset: 7, length: 8 }
     ],
     '/route',
     ['/route', 'route', undefined],
@@ -601,8 +601,8 @@ var TESTS = [
   [
     '/:test.:format?',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: true, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: true, repeat: false, offset: 7, length: 8 }
     ],
     '/route.json',
     ['/route.json', 'route', 'json'],
@@ -611,8 +611,8 @@ var TESTS = [
   [
     '/:test.:format?',
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'format', delimiter: '.', optional: true, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'format', delimiter: '.', optional: true, repeat: false, offset: 7, length: 8 }
     ],
     '/route.json.html',
     ['/route.json.html', 'route.json', 'html'],
@@ -620,14 +620,14 @@ var TESTS = [
   ],
   [
     '/test.:format(.*)z',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 11 }],
     '/test.abc',
     null,
     { end: false }
   ],
   [
     '/test.:format(.*)z',
-    [{ name: 'format', delimiter: '.', optional: false, repeat: false }],
+    [{ name: 'format', delimiter: '.', optional: false, repeat: false, offset: 6, length: 11 }],
     '/test.abcz',
     ['/test.abcz', 'abc'],
     { end: false }
@@ -638,57 +638,57 @@ var TESTS = [
    */
   [
     '/(\\d+)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/123',
     ['/123', '123']
   ],
   [
     '/(\\d+)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/abc',
     null
   ],
   [
     '/(\\d+)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/123/abc',
     null
   ],
   [
     '/(\\d+)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/123/abc',
     ['/123', '123'],
     { end: false }
   ],
   [
     '/(\\d+)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 }],
     '/abc',
     null,
     { end: false }
   ],
   [
     '/(\\d+)?',
-    [{ name: '0', delimiter: '/', optional: true, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/',
     ['/', undefined]
   ],
   [
     '/(\\d+)?',
-    [{ name: '0', delimiter: '/', optional: true, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: true, repeat: false, offset: 1, length: 6 }],
     '/123',
     ['/123', '123']
   ],
   [
     '/(.*)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 4 }],
     '/route',
     ['/route', 'route']
   ],
   [
     '/(.*)',
-    [{ name: '0', delimiter: '/', optional: false, repeat: false }],
+    [{ name: '0', delimiter: '/', optional: false, repeat: false, offset: 1, length: 4 }],
     '/route/nested',
     ['/route/nested', 'route/nested']
   ],
@@ -727,7 +727,7 @@ var TESTS = [
   [
     ['/:test(\\d+)', /(.*)/],
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 },
       { name: '0', delimiter: null, optional: false, repeat: false }
     ],
     '/123',
@@ -736,7 +736,7 @@ var TESTS = [
   [
     ['/:test(\\d+)', /(.*)/],
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 10 },
       { name: '0', delimiter: null, optional: false, repeat: false }
     ],
     '/abc',
@@ -749,8 +749,8 @@ var TESTS = [
   [
     ['/:test', '/route/:test'],
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'test', delimiter: '/', optional: false, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 7, length: 5 }
     ],
     '/test',
     ['/test', 'test', undefined]
@@ -758,8 +758,8 @@ var TESTS = [
   [
     ['/:test', '/route/:test'],
     [
-      { name: 'test', delimiter: '/', optional: false, repeat: false },
-      { name: 'test', delimiter: '/', optional: false, repeat: false }
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 1, length: 5 },
+      { name: 'test', delimiter: '/', optional: false, repeat: false, offset: 7, length: 5 }
     ],
     '/route/test',
     ['/route/test', undefined, 'test']
@@ -821,8 +821,8 @@ var TESTS = [
   [
     '/:foo/:bar',
     [
-      { name: 'foo', delimiter: '/', optional: false, repeat: false },
-      { name: 'bar', delimiter: '/', optional: false, repeat: false }
+      { name: 'foo', delimiter: '/', optional: false, repeat: false, offset: 1, length: 4 },
+      { name: 'bar', delimiter: '/', optional: false, repeat: false, offset: 6, length: 4 }
     ],
     '/match/route',
     ['/match/route', 'match', 'route']
@@ -830,8 +830,8 @@ var TESTS = [
   [
     '/:remote([\\w-.]+)/:user([\\w-]+)',
     [
-      { name: 'remote', delimiter: '/', optional: false, repeat: false },
-      { name: 'user', delimiter: '/', optional: false, repeat: false }
+      { name: 'remote', delimiter: '/', optional: false, repeat: false, offset: 1, length: 16 },
+      { name: 'user', delimiter: '/', optional: false, repeat: false, offset: 18, length: 13 }
     ],
     '/endpoint/user',
     ['/endpoint/user', 'endpoint', 'user']
@@ -846,7 +846,7 @@ describe('path-to-regexp', function () {
     it('should work without second keys', function () {
       var re = pathToRegexp('/user/:id', { end: false })
       var params = [
-        { name: 'id', delimiter: '/', optional: false, repeat: false }
+        { name: 'id', delimiter: '/', optional: false, repeat: false, offset: 6, length: 3 }
       ]
 
       assert.deepEqual(re.keys, params)
@@ -856,7 +856,7 @@ describe('path-to-regexp', function () {
     it('should work with keys as null', function () {
       var re = pathToRegexp('/user/:id', null, { end: false })
       var params = [
-        { name: 'id', delimiter: '/', optional: false, repeat: false }
+        { name: 'id', delimiter: '/', optional: false, repeat: false, offset: 6, length: 3 }
       ]
 
       assert.deepEqual(re.keys, params)
