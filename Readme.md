@@ -34,7 +34,7 @@ var pathToRegexp = require('path-to-regexp')
 var keys = []
 var re = pathToRegexp('/foo/:bar', keys)
 // re = /^\/foo\/([^\/]+?)\/?$/i
-// keys = [{ name: 'bar', delimiter: '/', optional: false, repeat: false, offset: 5, length: 4 }]
+// keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
 
 ### Parameters
