@@ -828,6 +828,14 @@ var TESTS = [
     ],
     '/endpoint/user',
     ['/endpoint/user', 'endpoint', 'user']
+  ],
+  [
+    '/:foo\\?',
+    [
+      { name: 'foo', delimiter: '/', optional: false, repeat: false }
+    ],
+    '/route?',
+    ['/route?', 'route']
   ]
 ]
 
