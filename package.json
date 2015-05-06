@@ -7,8 +7,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec",
     "lint": "standard",
+    "test-spec": "mocha -R spec --bail",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec",
     "test": "npm run lint && npm run test-cov"
   },
   "keywords": [
