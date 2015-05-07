@@ -5,6 +5,7 @@ var isarray = require('isarray')
  */
 module.exports = pathToRegexp
 module.exports.parse = parse
+module.exports.compile = compile
 
 /**
  * The main path matching regexp utility.
@@ -86,6 +87,81 @@ function parse (str) {
   }
 
   return tokens
+}
+
+/**
+ * Compile a string to a template function for the path.
+ *
+ * @param  {String}   str
+ * @return {Function}
+ */
+function compile (str) {
+  var keys = parse(str)
+
+  // Compile all the patterns before compilation.
+  for (var i = 0; i < keys.length; i++) {
+    if (typeof keys[i] === 'object') {
+      keys[i].regexp = new RegExp('^' + keys[i].pattern + '$')
+    }
+  }
+
+  return function (obj) {
+    var path = ''
+
+    obj = obj || {}
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i]
+
+      if (typeof key === 'string') {
+        path += key
+
+        continue
+      }
+
+      var value = obj[key.name]
+
+      if (value == null) {
+        if (key.optional) {
+          continue
+        } else {
+          throw new TypeError('Expected "' + key.name + '" to be defined')
+        }
+      }
+
+      if (isarray(value)) {
+        if (!key.repeat) {
+          throw new TypeError('Expected "' + key.name + '" to not repeat')
+        }
+
+        if (value.length === 0) {
+          if (key.optional) {
+            continue
+          } else {
+            throw new TypeError('Expected "' + key.name + '" to not be empty')
+          }
+        }
+
+        for (var j = 0; j < value.length; j++) {
+          if (!key.regexp.test(value)) {
+            throw new TypeError('Expected all "' + key.name + '" to match "' + key.pattern + '"')
+          }
+
+          path += (j === 0 ? key.prefix : key.delimiter) + encodeURIComponent(value[j])
+        }
+
+        continue
+      }
+
+      if (!key.regexp.test(value)) {
+        throw new TypeError('Expected "' + key.name + '" to match "' + key.pattern + '"')
+      }
+
+      path += key.prefix + encodeURIComponent(value)
+    }
+
+    return path
+  }
 }
 
 /**
@@ -171,6 +247,7 @@ function arrayToRegexp (path, keys, options) {
   }
 
   var regexp = new RegExp('(?:' + parts.join('|') + ')', flags(options))
+
   return attachKeys(regexp, keys)
 }
 

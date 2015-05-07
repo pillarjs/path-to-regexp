@@ -862,6 +862,96 @@ describe('path-to-regexp', function () {
     })
   })
 
+  describe('compile', function () {
+    it('should compile a path into a function for reversing', function () {
+      var toPath = pathToRegexp.compile(TEST_PATH)
+
+      expect(toPath({ id: 123 })).to.equal('/user/123')
+    })
+
+    it('should generate path without parameters', function () {
+      var toPath = pathToRegexp.compile('/user')
+
+      expect(toPath()).to.equal('/user')
+    })
+
+    it('should omit optional parameters', function () {
+      var toPath = pathToRegexp.compile('/a/:b?/c')
+
+      expect(toPath()).to.equal('/a/c')
+    })
+
+    it('should throw when a required param is undefined', function () {
+      var toPath = pathToRegexp.compile('/a/:b/c')
+
+      expect(function () {
+        toPath()
+      }).to.throw(TypeError, 'Expected "b" to be defined')
+    })
+
+    it('should encode path parameters', function () {
+      var toPath = pathToRegexp.compile('/:foo')
+
+      expect(toPath({ foo: 'café' })).to.equal('/caf%C3%A9')
+    })
+
+    it('should throw when it does not match the pattern', function () {
+      var toPath = pathToRegexp.compile('/:foo(\\d+)')
+
+      expect(function () {
+        toPath({ foo: 'abc' })
+      }).to.throw(TypeError, 'Expected "foo" to match "\\d+"')
+    })
+
+    it('should handle repeated values', function () {
+      var toPath = pathToRegexp.compile('/:foo+')
+
+      expect(toPath({ foo: [1, 2, 3] })).to.equal('/1/2/3')
+    })
+
+    it('should throw when expecting a repeated value', function () {
+      var toPath = pathToRegexp.compile('/:foo+')
+
+      expect(function () {
+        toPath({ foo: [] })
+      }).to.throw(TypeError, 'Expected "foo" to not be empty')
+    })
+
+    it('should throw when not expecting a repeated value', function () {
+      var toPath = pathToRegexp.compile('/:foo')
+
+      expect(function () {
+        toPath({ foo: [] })
+      }).to.throw(TypeError, 'Expected "foo" to not repeat')
+    })
+
+    it('should throw when repeated value does not match', function () {
+      var toPath = pathToRegexp.compile('/:foo(\\d+)+')
+
+      expect(function () {
+        toPath({ foo: [1, 2, 3, 'a'] })
+      }).to.throw(TypeError, 'Expected all "foo" to match "\\d+"')
+    })
+
+    it('should allow optional repeated values', function () {
+      var toPath = pathToRegexp.compile('/user/:id(\\d+)*')
+
+      expect(toPath()).to.equal('/user')
+    })
+
+    it('should allow optional repeated values to be empty arrays', function () {
+      var toPath = pathToRegexp.compile('/user/:id(\\d+)*')
+
+      expect(toPath({ id: [] })).to.equal('/user')
+    })
+
+    it('should handle optional repeated parameters', function () {
+      var toPath = pathToRegexp.compile('/a/:b*/c')
+
+      expect(toPath({ b: [1, 2, 3] })).to.equal('/a/1/2/3/c')
+    })
+  })
+
   describe('arguments', function () {
     it('should work without second keys', function () {
       var re = pathToRegexp(TEST_PATH, { end: false })
