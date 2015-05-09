@@ -1,3 +1,8 @@
+0.1.5 / 2015-05-08
+==================
+
+  * Add an index property for position in match result.
+
 0.1.4 / 2015-03-05
 ==================
 
