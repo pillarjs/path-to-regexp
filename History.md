@@ -1,3 +1,12 @@
+1.1.0 / 2015-05-09
+==================
+
+  * Expose the parser implementation to consumers
+  * Implement a compiler function to generate valid strings
+  * Huge refactor of tests to be more DRY and cover new parse and compile functions
+  * Use chai in tests
+  * Add .editorconfig
+
 1.0.3 / 2015-01-17
 ==================
 
