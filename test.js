@@ -128,6 +128,34 @@ describe('path-to-regexp', function () {
       assert.equal(params[2].name, 'bar');
       assert.equal(params[2].index, 5);
 
+      assert.equal(m.length, 8);
+      assert.equal(m[0], '/a/b/c/d/e/f/g');
+      assert.equal(m[1], '/a');
+      assert.equal(m[2], 'b');
+      assert.equal(m[3], 'c');
+      assert.equal(m[4], 'd');
+      assert.equal(m[5], 'e');
+      assert.equal(m[6], 'f');
+      assert.equal(m[7], 'g');
+    });
+
+    it('should have proper indexes with matching groups', function () {
+      var params = [];
+      var m = pathToRegExp('/:foo((\\d)+)/:bar', params).exec('/123/abc');
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'foo');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[0].index, 0);
+      assert.equal(params[1].name, 'bar');
+      assert.equal(params[1].optional, false);
+      assert.equal(params[1].index, 2);
+
+      assert.equal(m.length, 4);
+      assert.equal(m[0], '/123/abc');
+      assert.equal(m[1], '3');
+      assert.equal(m[2], '3');
+      assert.equal(m[3], 'abc');
     });
 
     it('should do strict matches with trailing slashes', function () {

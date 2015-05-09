@@ -25,8 +25,8 @@ function pathtoRegexp(path, keys, options) {
   var strict = options.strict;
   var end = options.end !== false;
   var flags = options.sensitive ? '' : 'i';
-  var index = 0;
   var extraOffset = 0;
+
   keys = keys || [];
 
   if (path instanceof RegExp) {
@@ -56,7 +56,7 @@ function pathtoRegexp(path, keys, options) {
       keys.push({
         name: key,
         optional: !!optional,
-        index: index++,
+        index: 0,
         _offset: offset + extraOffset
       });
 
@@ -67,18 +67,32 @@ function pathtoRegexp(path, keys, options) {
         + (star ? '((?:[\\/' + format + '].+?)?)' : '')
         + ')'
         + optional;
+
       extraOffset += result.length - match.length;
 
       return result;
     })
-    .replace(/\*/g, function(star, index) {
-      keys.forEach(function(key) {
-        if (index < key._offset) {
-          key.index++;
-        }
-      });
+    .replace(/\*/g, function (star, index) {
+      var len = keys.length
+
+      while (len-- && keys[len]._offset > index) {
+        keys[len]._offset += 3;
+      }
+
       return '(.*)';
     });
+
+  // This is a workaround for handling *all* matching group positioning.
+  var re = /\((?!\?)/g;
+  var m;
+
+  while (m = re.exec(path)) {
+    var len = keys.length;
+
+    while (len-- && keys[len]._offset > m.index) {
+      keys[len].index++;
+    }
+  }
 
   // If the path is non-ending, match until the end or a slash.
   path += (end ? '$' : (path[path.length - 1] === '/' ? '' : '(?=\\/|$)'));
