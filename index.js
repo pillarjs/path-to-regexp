@@ -25,6 +25,8 @@ function pathtoRegexp(path, keys, options) {
   var strict = options.strict;
   var end = options.end !== false;
   var flags = options.sensitive ? '' : 'i';
+  var index = 0;
+  var extraOffset = 0;
   keys = keys || [];
 
   if (path instanceof RegExp) {
@@ -45,23 +47,38 @@ function pathtoRegexp(path, keys, options) {
   path = ('^' + path + (strict ? '' : path[path.length - 1] === '/' ? '?' : '/?'))
     .replace(/\/\(/g, '/(?:')
     .replace(/([\/\.])/g, '\\$1')
-    .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional) {
+    .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional, offset) {
       slash = slash || '';
       format = format || '';
       capture = capture || '([^\\/' + format + ']+?)';
       optional = optional || '';
 
-      keys.push({ name: key, optional: !!optional });
+      keys.push({
+        name: key,
+        optional: !!optional,
+        index: index++,
+        _offset: offset + extraOffset
+      });
 
-      return ''
+      var result = ''
         + (optional ? '' : slash)
         + '(?:'
         + format + (optional ? slash : '') + capture
         + (star ? '((?:[\\/' + format + '].+?)?)' : '')
         + ')'
         + optional;
+      extraOffset += result.length - match.length;
+
+      return result;
     })
-    .replace(/\*/g, '(.*)');
+    .replace(/\*/g, function(star, index) {
+      keys.forEach(function(key) {
+        if (index < key._offset) {
+          key.index++;
+        }
+      });
+      return '(.*)';
+    });
 
   // If the path is non-ending, match until the end or a slash.
   path += (end ? '$' : (path[path.length - 1] === '/' ? '' : '(?=\\/|$)'));

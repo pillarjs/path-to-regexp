@@ -46,6 +46,90 @@ describe('path-to-regexp', function () {
       assert.ok(!m);
     });
 
+    it('should match wildcards', function () {
+      var params = [];
+      var m = pathToRegExp('/*', params).exec('/pathname');
+
+      assert.equal(params.length, 0);
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/pathname');
+      assert.equal(m[1], 'pathname');
+    });
+
+    it('should match wildcards without leading /', function () {
+      var params = [];
+      var m = pathToRegExp('*', params).exec('/pathname');
+
+      assert.equal(params.length, 0);
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/pathname');
+      assert.equal(m[1], '/pathname');
+    });
+
+    it('should match wildcards with express params', function () {
+      var params = [];
+      var m = pathToRegExp('/:test/*', params).exec('/pathone/pathtwo');
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[0].index, 0);
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/pathone/pathtwo');
+      assert.equal(m[1], 'pathone');
+      assert.equal(m[2], 'pathtwo');
+    });
+
+    it('should match wildcards with express params (reverse order)', function () {
+      var params = [];
+      var m = pathToRegExp('/*/:test', params).exec('/pathone/pathtwo');
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[0].index, 1);
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/pathone/pathtwo');
+      assert.equal(m[1], 'pathone');
+      assert.equal(m[2], 'pathtwo');
+    });
+
+    it('should match wildcards with express params (reverse order, no leading /)', function () {
+      var params = [];
+      var m = pathToRegExp('*/:test', params).exec('/pathone/pathtwo');
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[0].index, 1);
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/pathone/pathtwo');
+      assert.equal(m[1], '/pathone');
+      assert.equal(m[2], 'pathtwo');
+    });
+
+    it('should have proper indexes when using multiple wildcards', function () {
+      var params = [];
+      var m = pathToRegExp('*/:test/*/:foo/*/:bar/*', params).exec('/a/b/c/d/e/f/g');
+
+      assert.equal(params.length, 3);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[0].index, 1);
+
+      assert.equal(params[1].name, 'foo');
+      assert.equal(params[1].index, 3);
+
+      assert.equal(params[2].name, 'bar');
+      assert.equal(params[2].index, 5);
+
+    });
+
     it('should do strict matches with trailing slashes', function () {
       var params = [];
       var re = pathToRegExp('/:test/', params, { strict: true });
