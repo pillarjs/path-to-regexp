@@ -221,9 +221,11 @@ function regexpToRegexp (path, keys) {
     for (var i = 0; i < groups.length; i++) {
       keys.push({
         name: i,
+        prefix: null,
         delimiter: null,
         optional: false,
-        repeat: false
+        repeat: false,
+        pattern: null
       })
     }
   }
