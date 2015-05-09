@@ -1,13 +1,15 @@
-
 # Path-to-RegExp
 
-  Turn an Express-style path string such as `/user/:name` into a regular expression.
+Turn an Express-style path string such as `/user/:name` into a regular expression.
+
+**Note:** This is a legacy branch. You should upgrade to `1.x`. If you find you are stuck on this version, your code will need to take into account the `index` property on the keys.
 
 ## Usage
 
 ```javascript
 var pathToRegexp = require('path-to-regexp');
 ```
+
 ### pathToRegexp(path, keys, options)
 
  - **path** A string in the express format, an array of such strings, or a regular expression
