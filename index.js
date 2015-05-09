@@ -143,7 +143,7 @@ function compile (str) {
         }
 
         for (var j = 0; j < value.length; j++) {
-          if (!key.regexp.test(value)) {
+          if (!key.regexp.test(value[j])) {
             throw new TypeError('Expected all "' + key.name + '" to match "' + key.pattern + '"')
           }
 

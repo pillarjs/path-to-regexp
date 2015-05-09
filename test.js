@@ -5,10 +5,7 @@ var expect = require('chai').expect
 var pathToRegexp = require('./')
 
 /**
- * An array of test cases with expected inputs and outputs. The format of each
- * array item is:
- *
- * ["path", "expected params", "route", "expected output", "options"]
+ * An array of test cases with expected inputs and outputs.
  *
  * @type {Array}
  */
@@ -16,169 +13,452 @@ var TESTS = [
   /**
    * Simple paths.
    */
-  ['/', [], '/', ['/']],
-  ['/test', [], '/test', ['/test']],
-  ['/test', [], '/route', null],
-  ['/test', [], '/test/route', null],
-  ['/test', [], '/test/', ['/test/']],
-  ['/test/', [], '/test', ['/test']],
-  ['/test/', [], '/test/', ['/test/']],
-  ['/test/', [], '/test//', null],
+  [
+    '/',
+    null,
+    [
+      '/'
+    ],
+    [
+      ['/', ['/']],
+      ['/route', null]
+    ],
+    [
+      [null, '/'],
+      [{}, '/'],
+      [{ id: 123 }, '/']
+    ]
+  ],
+  [
+    '/test',
+    null,
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/route', null],
+      ['/test/route', null],
+      ['/test/', ['/test/']]
+    ],
+    [
+      [null, '/test'],
+      [{}, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    null,
+    [
+      '/test/'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', ['/test/']],
+      ['/test//', null]
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
 
   /**
    * Case-sensitive paths.
    */
-  ['/test', [], '/test', ['/test'], { sensitive: true }],
-  ['/test', [], '/TEST', null, { sensitive: true }],
-  ['/TEST', [], '/test', null, { sensitive: true }],
+  [
+    '/test',
+    {
+      sensitive: true
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/TEST', null]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/TEST',
+    {
+      sensitive: true
+    },
+    [
+      '/TEST'
+    ],
+    [
+      ['/test', null],
+      ['/TEST', ['/TEST']]
+    ],
+    [
+      [null, '/TEST']
+    ]
+  ],
 
   /**
    * Strict mode.
    */
-  ['/test', [], '/test', ['/test'], { strict: true }],
-  ['/test', [], '/test/', null, { strict: true }],
-  ['/test/', [], '/test', null, { strict: true }],
-  ['/test/', [], '/test/', ['/test/'], { strict: true }],
-  ['/test/', [], '/test//', null, { strict: true }],
+  [
+    '/test',
+    {
+      strict: true
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', null],
+      ['/TEST', ['/TEST']]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    {
+      strict: true
+    },
+    [
+      '/test/'
+    ],
+    [
+      ['/test', null],
+      ['/test/', ['/test/']],
+      ['/test//', null]
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
 
   /**
    * Non-ending mode.
    */
-  ['/test', [], '/test', ['/test'], { end: false }],
-  ['/test', [], '/test/', ['/test/'], { end: false }],
-  ['/test', [], '/test/route', ['/test'], { end: false }],
-  ['/test/', [], '/test/route', ['/test'], { end: false }],
-  ['/test/', [], '/test//', ['/test'], { end: false }],
-  ['/test/', [], '/test//route', ['/test'], { end: false }],
+  [
+    '/test',
+    {
+      end: false
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', ['/test/']],
+      ['/test/route', ['/test']],
+      ['/route', null]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    {
+      end: false
+    },
+    [
+      '/test/'
+    ],
+    [
+      ['/test/route', ['/test']],
+      ['/test//', ['/test']],
+      ['/test//route', ['/test']]
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
   [
     '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route'],
-    { end: false }
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']]
+    ],
+    [
+      [{}, null],
+      [{ test: 'abc' }, '/abc']
+    ]
   ],
   [
     '/:test/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route'],
-    { end: false }
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route', ['/route', 'route']]
+    ],
+    [
+      [{ test: 'abc' }, '/abc/']
+    ]
   ],
 
   /**
    * Combine modes.
    */
-  ['/test', [], '/test', ['/test'], { end: false, strict: true }],
-  ['/test', [], '/test/', ['/test'], { end: false, strict: true }],
-  ['/test', [], '/test/route', ['/test'], { end: false, strict: true }],
-  ['/test/', [], '/test', null, { end: false, strict: true }],
-  ['/test/', [], '/test/', ['/test/'], { end: false, strict: true }],
-  ['/test/', [], '/test//', ['/test/'], { end: false, strict: true }],
-  ['/test/', [], '/test/route', ['/test/'], { end: false, strict: true }],
-  ['/test.json', [], '/test.json', ['/test.json'], { end: false, strict: true }],
-  ['/test.json', [], '/test.json.hbs', null, { end: false, strict: true }],
   [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route'],
-    { end: false, strict: true }
+    '/test',
+    {
+      end: false,
+      strict: true
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', ['/test']],
+      ['/test/route', ['/test']]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    {
+      end: false,
+      strict: true
+    },
+    [
+      '/test/'
+    ],
+    [
+      ['/test', null],
+      ['/test/', ['/test/']],
+      ['/test//', ['/test/']],
+      ['/test/route', ['/test/']]
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
+  [
+    '/test.json',
+    {
+      end: false,
+      strict: true
+    },
+    [
+      '/test.json'
+    ],
+    [
+      ['/test.json', ['/test.json']],
+      ['/test.json.hbs', null],
+      ['/test.json/route', ['/test.json']]
+    ],
+    [
+      [null, '/test.json']
+    ]
   ],
   [
     '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route/',
-    ['/route', 'route'],
-    { end: false, strict: true }
+    {
+      end: false,
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/route/', ['/route', 'route']]
+    ],
+    [
+      [{}, null],
+      [{ test: 'abc' }, '/abc']
+    ]
   ],
   [
     '/:test/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route/',
-    ['/route/', 'route'],
-    { end: false, strict: true }
-  ],
-  [
-    '/:test/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    null,
-    { end: false, strict: true }
+    {
+      end: false,
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route', null],
+      ['/route/', ['/route/', 'route']]
+    ],
+    [
+      [{ test: 'foobar' }, '/foobar/']
+    ]
   ],
 
   /**
    * Arrays of simple paths.
    */
-  [['/one', '/two'], [], '/one', ['/one']],
-  [['/one', '/two'], [], '/two', ['/two']],
-  [['/one', '/two'], [], '/three', null],
-  [['/one', '/two'], [], '/one/two', null],
+  [
+    ['/one', '/two'],
+    null,
+    [],
+    [
+      ['/one', ['/one']],
+      ['/two', ['/two']],
+      ['/three', null],
+      ['/one/two', null]
+    ]
+  ],
 
   /**
    * Non-ending simple path.
    */
-  ['/test', [], '/test/route', ['/test'], { end: false }],
+  [
+    '/test',
+    {
+      end: false
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test/route', ['/test']]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
 
   /**
    * Single named parameter.
    */
   [
     '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route']
-  ],
-  [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/another',
-    ['/another', 'another']
-  ],
-  [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/something/else',
-    null
-  ],
-  [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json',
-    ['/route.json', 'route.json']
-  ],
-  [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route'],
-    { strict: true }],
-  [
-    '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route/',
     null,
-    { strict: true }
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/another', ['/another', 'another']],
+      ['/something/else', null],
+      ['/route.json', ['/route.json', 'route.json']]
+    ],
+    [
+      [{ test: 'route' }, '/route']
+    ]
+  ],
+  [
+    '/:test',
+    {
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/route/', null]
+    ],
+    [
+      [{ test: 'route' }, '/route']
+    ]
   ],
   [
     '/:test/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route/',
-    ['/route/', 'route'],
-    { strict: true }
-  ],
-  [
-    '/:test/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route//',
-    null,
-    { strict: true }
+    {
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route/', ['/route/', 'route']],
+      ['/route//', null]
+    ],
+    [
+      [{ test: 'route' }, '/route/']
+    ]
   ],
   [
     '/:test',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json',
-    ['/route.json', 'route.json'],
-    { end: false }
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route.json', ['/route.json', 'route.json']],
+      ['/route//', ['/route', 'route']]
+    ],
+    [
+      [{ test: 'route' }, '/route']
+    ]
   ],
 
   /**
@@ -186,105 +466,157 @@ var TESTS = [
    */
   [
     '/:test?',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route']
-  ],
-  [
-    '/:test?',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/route/nested',
-    null
-  ],
-  [
-    '/:test?',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/',
-    ['/', undefined]
-  ],
-  [
-    '/:test?',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route'],
-    { strict: true }
-  ],
-  [
-    '/:test?',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/',
-    null, // Questionable behaviour.
-    { strict: true }
-  ],
-  [
-    '/:test?/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '/',
-    ['/', undefined],
-    { strict: true }
-  ],
-  [
-    '/:test?/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '//',
-    null
-  ],
-  [
-    '/:test?/',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '//',
     null,
-    { strict: true }
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/route/nested', null],
+      ['/', ['/', undefined]],
+      ['//', null]
+    ],
+    [
+      [null, ''],
+      [{ test: 'foobar' }, '/foobar']
+    ]
+  ],
+  [
+    '/:test?',
+    {
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/', null], // Questionable behaviour.
+      ['//', null]
+    ],
+    [
+      [null, ''],
+      [{ test: 'foobar' }, '/foobar']
+    ]
+  ],
+  [
+    '/:test?/',
+    {
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route', null],
+      ['/route/', ['/route/', 'route']],
+      ['/', ['/', undefined]],
+      ['//', null]
+    ],
+    [
+      [null, '/'],
+      [{ test: 'foobar' }, '/foobar/']
+    ]
   ],
 
-  // Repeated once or more times parameters.
+  /**
+   * Repeated one or more times parameters.
+   */
   [
     '/:test+',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: true, pattern: '[^\\/]+?' }],
-    '/',
-    null
-  ],
-  [
-    '/:test+',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: true, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route']
-  ],
-  [
-    '/:test+',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: true, pattern: '[^\\/]+?' }],
-    '/some/basic/route',
-    ['/some/basic/route', 'some/basic/route']
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: true,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/', null],
+      ['/route', ['/route', 'route']],
+      ['/some/basic/route', ['/some/basic/route', 'some/basic/route']],
+      ['//', null]
+    ],
+    [
+      [{}, null],
+      [{ test: 'foobar' }, '/foobar'],
+      [{ test: ['a', 'b', 'c'] }, '/a/b/c']
+    ]
   ],
   [
     '/:test(\\d+)+',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: true, pattern: '\\d+' }],
-    '/abc/456/789',
-    null
-  ],
-  [
-    '/:test(\\d+)+',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: true, pattern: '\\d+' }],
-    '/123/456/789',
-    ['/123/456/789', '123/456/789']
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: true,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/abc/456/789', null],
+      ['/123/456/789', ['/123/456/789', '123/456/789']]
+    ],
+    [
+      [{ test: 'abc' }, null],
+      [{ test: 123 }, '/123'],
+      [{ test: [1, 2, 3] }, '/1/2/3']
+    ]
   ],
   [
     '/route.:ext(json|xml)+',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: false, repeat: true, pattern: 'json|xml' }],
-    '/route.json',
-    ['/route.json', 'json']
-  ],
-  [
-    '/route.:ext(json|xml)+',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: false, repeat: true, pattern: 'json|xml' }],
-    '/route.xml.json',
-    ['/route.xml.json', 'xml.json']
-  ],
-  [
-    '/route.:ext(json|xml)+',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: false, repeat: true, pattern: 'json|xml' }],
-    '/route.html',
-    null
+    null,
+    [
+      '/route',
+      {
+        name: 'ext',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: true,
+        pattern: 'json|xml'
+      }
+    ],
+    [
+      ['/route', null],
+      ['/route.json', ['/route.json', 'json']],
+      ['/route.xml.json', ['/route.xml.json', 'xml.json']],
+      ['/route.html', null]
+    ],
+    [
+      [{ ext: 'foobar' }, null],
+      [{ ext: 'xml' }, '/route.xml'],
+      [{ ext: ['xml', 'json'] }, '/route.xml.json']
+    ]
   ],
 
   /**
@@ -292,108 +624,176 @@ var TESTS = [
    */
   [
     '/:test*',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: true, pattern: '[^\\/]+?' }],
-    '/',
-    ['/', undefined]
-  ],
-  [
-    '/:test*',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: true, pattern: '[^\\/]+?' }],
-    '//',
-    null
-  ],
-  [
-    '/:test*',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: true, pattern: '[^\\/]+?' }],
-    '/route',
-    ['/route', 'route']
-  ],
-  [
-    '/:test*',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: true, repeat: true, pattern: '[^\\/]+?' }],
-    '/some/basic/route',
-    ['/some/basic/route', 'some/basic/route']
-  ],
-  [
-    '/route.:ext([a-z]+)*',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: true, repeat: true, pattern: '[a-z]+' }],
-    '/route',
-    ['/route', undefined]
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: true,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/', ['/', undefined]],
+      ['//', null],
+      ['/route', ['/route', 'route']],
+      ['/some/basic/route', ['/some/basic/route', 'some/basic/route']]
+    ],
+    [
+      [{}, ''],
+      [{ test: 'foobar' }, '/foobar'],
+      [{ test: ['foo', 'bar'] }, '/foo/bar']
+    ]
   ],
   [
     '/route.:ext([a-z]+)*',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: true, repeat: true, pattern: '[a-z]+' }],
-    '/route.json',
-    ['/route.json', 'json']
-  ],
-  [
-    '/route.:ext([a-z]+)*',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: true, repeat: true, pattern: '[a-z]+' }],
-    '/route.xml.json',
-    ['/route.xml.json', 'xml.json']
-  ],
-  [
-    '/route.:ext([a-z]+)*',
-    [{ name: 'ext', prefix: '.', delimiter: '.', optional: true, repeat: true, pattern: '[a-z]+' }],
-    '/route.123',
-    null
+    null,
+    [
+      '/route',
+      {
+        name: 'ext',
+        prefix: '.',
+        delimiter: '.',
+        optional: true,
+        repeat: true,
+        pattern: '[a-z]+'
+      }
+    ],
+    [
+      ['/route', ['/route', undefined]],
+      ['/route.json', ['/route.json', 'json']],
+      ['/route.json.xml', ['/route.json.xml', 'json.xml']],
+      ['/route.123', null]
+    ],
+    [
+      [{}, '/route'],
+      [{ ext: [] }, '/route'],
+      [{ ext: '123' }, null],
+      [{ ext: 'foobar' }, '/route.foobar'],
+      [{ ext: ['foo', 'bar'] }, '/route.foo.bar']
+    ]
   ],
 
-  // Custom named parameters.
+  /**
+   * Custom named parameters.
+   */
   [
     '/:test(\\d+)',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123',
-    ['/123', '123']
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/123', ['/123', '123']],
+      ['/abc', null],
+      ['/123/abc', null]
+    ],
+    [
+      [{ test: 'abc' }, null],
+      [{ test: '123' }, '/123']
+    ]
   ],
   [
     '/:test(\\d+)',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/abc',
-    null
-  ],
-  [
-    '/:test(\\d+)',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123/abc',
-    null
-  ],
-  [
-    '/:test(\\d+)',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123/abc',
-    ['/123', '123'],
-    { end: false }
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/123', ['/123', '123']],
+      ['/abc', null],
+      ['/123/abc', ['/123', '123']]
+    ],
+    [
+      [{ test: '123' }, '/123']
+    ]
   ],
   [
     '/:test(.*)',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }],
-    '/anything/goes/here',
-    ['/anything/goes/here', 'anything/goes/here']
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      }
+    ],
+    [
+      ['/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']]
+    ],
+    [
+      [{ test: '' }, '/'],
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'abc/123' }, '/abc%2F123']
+    ]
   ],
   [
     '/:route([a-z]+)',
-    [{ name: 'route', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[a-z]+' }],
-    '/abcde',
-    ['/abcde', 'abcde']
-  ],
-  [
-    '/:route([a-z]+)',
-    [{ name: 'route', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[a-z]+' }],
-    '/12345',
-    null
+    null,
+    [
+      {
+        name: 'route',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[a-z]+'
+      }
+    ],
+    [
+      ['/abcde', ['/abcde', 'abcde']],
+      ['/12345', null]
+    ],
+    [
+      [{ route: '' }, null],
+      [{ route: '123' }, null],
+      [{ route: 'abc' }, '/abc']
+    ]
   ],
   [
     '/:route(this|that)',
-    [{ name: 'route', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: 'this|that' }],
-    '/this',
-    ['/this', 'this']
-  ],
-  [
-    '/:route(this|that)',
-    [{ name: 'route', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: 'this|that' }],
-    '/that',
-    ['/that', 'that']
+    null,
+    [
+      {
+        name: 'route',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: 'this|that'
+      }
+    ],
+    [
+      ['/this', ['/this', 'this']],
+      ['/that', ['/that', 'that']],
+      ['/foo', null]
+    ],
+    [
+      [{ route: 'this' }, '/this'],
+      [{ route: 'foo' }, null],
+      [{ route: 'that' }, '/that']
+    ]
   ],
 
   /**
@@ -401,47 +801,116 @@ var TESTS = [
    */
   [
     'test',
-    [],
-    'test',
-    ['test']
-  ],
-  [
-    ':test',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    'route',
-    ['route', 'route']
-  ],
-  [
-    ':test',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route',
-    null
-  ],
-  [
-    ':test',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    'route/',
-    ['route/', 'route']
-  ],
-  [
-    ':test',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    'route/',
     null,
-    { strict: true }
+    [
+      'test'
+    ],
+    [
+      ['test', ['test']],
+      ['/test', null]
+    ],
+    [
+      [null, 'test']
+    ]
   ],
   [
     ':test',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    'route/',
-    ['route/', 'route'],
-    { end: false }
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['route', ['route', 'route']],
+      ['/route', null],
+      ['route/', ['route/', 'route']]
+    ],
+    [
+      [{ test: '' }, null],
+      [{}, null],
+      [{ test: null }, null],
+      [{ test: 'route' }, 'route']
+    ]
+  ],
+  [
+    ':test',
+    {
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['route', ['route', 'route']],
+      ['/route', null],
+      ['route/', null]
+    ],
+    [
+      [{ test: 'route' }, 'route']
+    ]
+  ],
+  [
+    ':test',
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['route', ['route', 'route']],
+      ['/route', null],
+      ['route/', ['route/', 'route']],
+      ['route/foobar', ['route', 'route']]
+    ],
+    [
+      [{ test: 'route' }, 'route']
+    ]
   ],
   [
     ':test?',
-    [{ name: 'test', prefix: '', delimiter: '/', optional: true, repeat: false, pattern: '[^\\/]+?' }],
-    '',
-    ['', undefined]
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['route', ['route', 'route']],
+      ['/route', null],
+      ['', ['', undefined]],
+      ['route/foobar', null]
+    ],
+    [
+      [{}, ''],
+      [{ test: '' }, null],
+      [{ test: 'route' }, 'route']
+    ]
   ],
 
   /**
@@ -449,41 +918,40 @@ var TESTS = [
    */
   [
     '/test.json',
-    [],
-    '/test.json',
-    ['/test.json']
-  ],
-  [
-    '/test.json',
-    [],
-    '/route.json',
-    null
-  ],
-  [
-    '/:test.json',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json',
-    ['/route.json', 'route']
+    null,
+    [
+      '/test.json'
+    ],
+    [
+      ['/test.json', ['/test.json']],
+      ['/route.json', null]
+    ],
+    [
+      [{}, '/test.json']
+    ]
   ],
   [
     '/:test.json',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json.json',
-    ['/route.json.json', 'route.json']
-  ],
-  [
-    '/:test.json',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json',
-    ['/route.json', 'route'],
-    { end: false }
-  ],
-  [
-    '/:test.json',
-    [{ name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }],
-    '/route.json.json',
-    ['/route.json.json', 'route.json'],
-    { end: false }
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '.json'
+    ],
+    [
+      ['/test.json', ['/test.json', 'test']],
+      ['/route.json', ['/route.json', 'route']],
+      ['/route.json.json', ['/route.json.json', 'route.json']]
+    ],
+    [
+      [{ test: 'foo' }, '/foo.json']
+    ]
   ],
 
   /**
@@ -491,46 +959,130 @@ var TESTS = [
    */
   [
     '/test.:format',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }],
-    '/test.html',
-    ['/test.html', 'html']
-  ],
-  [
-    '/test.:format',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }],
-    '/test.hbs.html',
-    null
+    null,
+    [
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
+    ],
+    [
+      ['/test.html', ['/test.html', 'html']],
+      ['/test.hbs.html', null]
+    ],
+    [
+      [{}, null],
+      [{ format: '' }, null],
+      [{ format: 'foo' }, '/test.foo']
+    ]
   ],
   [
     '/test.:format.:format',
+    null,
     [
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      },
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
     ],
-    '/test.hbs.html',
-    ['/test.hbs.html', 'hbs', 'html']
+    [
+      ['/test.html', null],
+      ['/test.hbs.html', ['/test.hbs.html', 'hbs', 'html']]
+    ],
+    [
+      [{ format: 'foo.bar' }, null],
+      [{ format: 'foo' }, '/test.foo.foo']
+    ]
   ],
   [
     '/test.:format+',
+    null,
     [
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: true, pattern: '[^.]+?' }
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: true,
+        pattern: '[^.]+?'
+      }
     ],
-    '/test.hbs.html',
-    ['/test.hbs.html', 'hbs.html']
+    [
+      ['/test.html', ['/test.html', 'html']],
+      ['/test.hbs.html', ['/test.hbs.html', 'hbs.html']]
+    ],
+    [
+      [{ format: [] }, null],
+      [{ format: 'foo' }, '/test.foo'],
+      [{ format: ['foo', 'bar'] }, '/test.foo.bar']
+    ]
   ],
   [
     '/test.:format',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }],
-    '/test.hbs.html',
-    null,
-    { end: false }
+    {
+      end: false
+    },
+    [
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
+    ],
+    [
+      ['/test.html', ['/test.html', 'html']],
+      ['/test.hbs.html', null]
+    ],
+    [
+      [{ format: 'foo' }, '/test.foo']
+    ]
   ],
   [
     '/test.:format.',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }],
-    '/test.hbs.html',
     null,
-    { end: false }
+    [
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      },
+      '.'
+    ],
+    [
+      ['/test.html.', ['/test.html.', 'html']],
+      ['/test.hbs.html', null]
+    ],
+    [
+      [{ format: '' }, null],
+      [{ format: 'foo' }, '/test.foo.']
+    ]
   ],
 
   /**
@@ -538,92 +1090,129 @@ var TESTS = [
    */
   [
     '/:test.:format',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route.html',
-    ['/route.html', 'route', 'html']
-  ],
-  [
-    '/:test.:format',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route',
-    null
-  ],
-  [
-    '/:test.:format',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route',
-    null
-  ],
-  [
-    '/:test.:format?',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: true, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route',
-    ['/route', 'route', undefined]
-  ],
-  [
-    '/:test.:format?',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: true, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route.json',
-    ['/route.json', 'route', 'json']
-  ],
-  [
-    '/:test.:format?',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: true, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route',
-    ['/route', 'route', undefined],
-    { end: false }
-  ],
-  [
-    '/:test.:format?',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: true, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route.json',
-    ['/route.json', 'route', 'json'],
-    { end: false }
-  ],
-  [
-    '/:test.:format?',
-    [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'format', prefix: '.', delimiter: '.', optional: true, repeat: false, pattern: '[^.]+?' }
-    ],
-    '/route.json.html',
-    ['/route.json.html', 'route.json', 'html'],
-    { end: false }
-  ],
-  [
-    '/test.:format(.*)z',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '.*' }],
-    '/test.abc',
     null,
-    { end: false }
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
+    ],
+    [
+      ['/route.html', ['/route.html', 'route', 'html']],
+      ['/route', null],
+      ['/route.html.json', ['/route.html.json', 'route.html', 'json']]
+    ],
+    [
+      [{}, null],
+      [{ test: 'route', format: 'foo' }, '/route.foo']
+    ]
+  ],
+  [
+    '/:test.:format?',
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: true,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route', undefined]],
+      ['/route.json', ['/route.json', 'route', 'json']],
+      ['/route.json.html', ['/route.json.html', 'route.json', 'html']]
+    ],
+    [
+      [{ test: 'route' }, '/route'],
+      [{ test: 'route', format: '' }, null],
+      [{ test: 'route', format: 'foo' }, '/route.foo']
+    ]
+  ],
+  [
+    '/:test.:format?',
+    {
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: true,
+        repeat: false,
+        pattern: '[^.]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route', undefined]],
+      ['/route.json', ['/route.json', 'route', 'json']],
+      ['/route.json.html', ['/route.json.html', 'route.json', 'html']]
+    ],
+    [
+      [{ test: 'route' }, '/route'],
+      [{ test: 'route', format: undefined }, '/route'],
+      [{ test: 'route', format: '' }, null],
+      [{ test: 'route', format: 'foo' }, '/route.foo']
+    ]
   ],
   [
     '/test.:format(.*)z',
-    [{ name: 'format', prefix: '.', delimiter: '.', optional: false, repeat: false, pattern: '.*' }],
-    '/test.abcz',
-    ['/test.abcz', 'abc'],
-    { end: false }
+    {
+      end: false
+    },
+    [
+      '/test',
+      {
+        name: 'format',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      },
+      'z'
+    ],
+    [
+      ['/test.abc', null],
+      ['/test.z', ['/test.z', '']],
+      ['/test.abcz', ['/test.abcz', 'abc']]
+    ],
+    [
+      [{}, null],
+      [{ format: '' }, '/test.z'],
+      [{ format: 'foo' }, '/test.fooz']
+    ]
   ],
 
   /**
@@ -631,59 +1220,96 @@ var TESTS = [
    */
   [
     '/(\\d+)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123',
-    ['/123', '123']
-  ],
-  [
-    '/(\\d+)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/abc',
-    null
-  ],
-  [
-    '/(\\d+)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123/abc',
-    null
-  ],
-  [
-    '/(\\d+)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/123/abc',
-    ['/123', '123'],
-    { end: false }
-  ],
-  [
-    '/(\\d+)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' }],
-    '/abc',
     null,
-    { end: false }
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/123', ['/123', '123']],
+      ['/abc', null],
+      ['/123/abc', null]
+    ],
+    [
+      [{}, null],
+      [{ '0': '123' }, '/123']
+    ]
+  ],
+  [
+    '/(\\d+)',
+    {
+      end: false
+    },
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/123', ['/123', '123']],
+      ['/abc', null],
+      ['/123/abc', ['/123', '123']],
+      ['/123/', ['/123/', '123']]
+    ],
+    [
+      [{ '0': '123' }, '/123']
+    ]
   ],
   [
     '/(\\d+)?',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '\\d+' }],
-    '/',
-    ['/', undefined]
-  ],
-  [
-    '/(\\d+)?',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: true, repeat: false, pattern: '\\d+' }],
-    '/123',
-    ['/123', '123']
+    null,
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '\\d+'
+      }
+    ],
+    [
+      ['/', ['/', undefined]],
+      ['/123', ['/123', '123']]
+    ],
+    [
+      [{}, ''],
+      [{ '0': '123' }, '/123']
+    ]
   ],
   [
     '/(.*)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }],
-    '/route',
-    ['/route', 'route']
-  ],
-  [
-    '/(.*)',
-    [{ name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }],
-    '/route/nested',
-    ['/route/nested', 'route/nested']
+    null,
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      }
+    ],
+    [
+      ['/', ['/', '']],
+      ['/route', ['/route', 'route']],
+      ['/route/nested', ['/route/nested', 'route/nested']]
+    ],
+    [
+      [{ '0': '' }, '/'],
+      [{ '0': '123' }, '/123']
+    ]
   ],
 
   /**
@@ -691,21 +1317,46 @@ var TESTS = [
    */
   [
     /.*/,
+    null,
     [],
-    '/match/anything',
-    ['/match/anything']
+    [
+      ['/match/anything', ['/match/anything']]
+    ]
   ],
   [
     /(.*)/,
-    [{ name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }],
-    '/match/anything',
-    ['/match/anything', '/match/anything']
+    null,
+    [
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      }
+    ],
+    [
+      ['/match/anything', ['/match/anything', '/match/anything']]
+    ]
   ],
   [
     /\/(\d+)/,
-    [{ name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }],
-    '/123',
-    ['/123', '123']
+    null,
+    [
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      }
+    ],
+    [
+      ['/abc', null],
+      ['/123', ['/123', '123']]
+    ]
   ],
 
   /**
@@ -713,27 +1364,46 @@ var TESTS = [
    */
   [
     ['/test', /\/(\d+)/],
-    [{ name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }],
-    '/test',
-    ['/test', undefined]
+    null,
+    [
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      }
+    ],
+    [
+      ['/test', ['/test', undefined]]
+    ]
   ],
   [
     ['/:test(\\d+)', /(.*)/],
+    null,
     [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' },
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      },
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      }
     ],
-    '/123',
-    ['/123', '123', undefined]
-  ],
-  [
-    ['/:test(\\d+)', /(.*)/],
     [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '\\d+' },
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }
-    ],
-    '/abc',
-    ['/abc', undefined, '/abc']
+      ['/123', ['/123', '123', undefined]],
+      ['/abc', ['/abc', undefined, '/abc']]
+    ]
   ],
 
   /**
@@ -741,39 +1411,55 @@ var TESTS = [
    */
   [
     ['/:test', '/route/:test'],
+    null,
     [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
     ],
-    '/test',
-    ['/test', 'test', undefined]
-  ],
-  [
-    ['/:test', '/route/:test'],
     [
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'test', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
-    ],
-    '/route/test',
-    ['/route/test', undefined, 'test']
+      ['/test', ['/test', 'test', undefined]],
+      ['/route/test', ['/route/test', undefined, 'test']]
+    ]
   ],
   [
     [/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/],
+    null,
     [
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null },
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      },
+      {
+        name: 0,
+        prefix: null,
+        delimiter: null,
+        optional: false,
+        repeat: false,
+        pattern: null
+      }
     ],
-    '/test',
-    ['/test', 'test', undefined]
-  ],
-  [
-    [/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/],
     [
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null },
-      { name: 0, prefix: null, delimiter: null, optional: false, repeat: false, pattern: null }
-    ],
-    '/route/test',
-    ['/route/test', undefined, 'test']
+      ['/test', ['/test', 'test', undefined]],
+      ['/route/test', ['/route/test', undefined, 'test']]
+    ]
   ],
 
   /**
@@ -781,9 +1467,11 @@ var TESTS = [
    */
   [
     /(?:.*)/,
+    null,
     [],
-    '/anything/you/want',
-    ['/anything/you/want']
+    [
+      ['/anything/you/want', ['/anything/you/want']]
+    ]
   ],
 
   /**
@@ -791,51 +1479,138 @@ var TESTS = [
    */
   [
     '/\\(testing\\)',
-    [],
-    '/testing',
-    null
-  ],
-  [
-    '/\\(testing\\)',
-    [],
-    '/(testing)',
-    ['/(testing)']
+    null,
+    [
+      '/(testing)'
+    ],
+    [
+      ['/testing', null],
+      ['/(testing)', ['/(testing)']]
+    ],
+    [
+      [null, '/(testing)']
+    ]
   ],
   [
     '/.+*?=^!:${}[]|',
-    [],
-    '/.+*?=^!:${}[]|',
-    ['/.+*?=^!:${}[]|']
+    null,
+    [
+      '/.+*?=^!:${}[]|'
+    ],
+    [
+      ['/.+*?=^!:${}[]|', ['/.+*?=^!:${}[]|']]
+    ],
+    [
+      [null, '/.+*?=^!:${}[]|']
+    ]
   ],
 
   /**
-   * Real world examples.
+   * Random examples.
    */
   [
     '/:foo/:bar',
+    null,
     [
-      { name: 'foo', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' },
-      { name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'bar',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
     ],
-    '/match/route',
-    ['/match/route', 'match', 'route']
+    [
+      ['/match/route', ['/match/route', 'match', 'route']]
+    ],
+    [
+      [{ foo: 'a', bar: 'b' }, '/a/b']
+    ]
   ],
   [
     '/:remote([\\w-.]+)/:user([\\w-]+)',
+    null,
     [
-      { name: 'remote', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[\\w-.]+' },
-      { name: 'user', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[\\w-]+' }
+      {
+        name: 'remote',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[\\w-.]+'
+      },
+      {
+        name: 'user',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[\\w-]+'
+      }
     ],
-    '/endpoint/user',
-    ['/endpoint/user', 'endpoint', 'user']
+    [
+      ['/endpoint/user', ['/endpoint/user', 'endpoint', 'user']],
+      ['/endpoint/user-name', ['/endpoint/user-name', 'endpoint', 'user-name']],
+      ['/foo.bar/user-name', ['/foo.bar/user-name', 'foo.bar', 'user-name']]
+    ],
+    [
+      [{ remote: 'foo', user: 'bar' }, '/foo/bar'],
+      [{ remote: 'foo.bar', user: 'uno' }, '/foo.bar/uno']
+    ]
   ],
   [
     '/:foo\\?',
+    null,
     [
-      { name: 'foo', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '?'
     ],
-    '/route?',
-    ['/route?', 'route']
+    [
+      ['/route?', ['/route?', 'route']]
+    ],
+    [
+      [{ foo: 'bar' }, '/bar?']
+    ]
+  ],
+
+  /**
+   * Unicode characters.
+   */
+  [
+    '/:foo',
+    null,
+    [
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/café', ['/café', 'café']]
+    ],
+    [
+      [{ foo: 'café' }, '/caf%C3%A9']
+    ]
   ]
 ]
 
@@ -854,33 +1629,84 @@ describe('path-to-regexp', function () {
     pattern: '[^\\/]+?'
   }
 
-  describe('parse', function () {
-    it('should parse the string', function () {
-      var tokens = pathToRegexp.parse(TEST_PATH)
+  describe('arguments', function () {
+    it('should accept an array of keys as the second argument', function () {
+      var keys = []
+      var re = pathToRegexp(TEST_PATH, keys, { end: false })
 
-      expect(tokens).to.deep.equal(['/user', TEST_PARAM])
+      expect(re.keys).to.equal(keys)
+      expect(keys).to.deep.equal([TEST_PARAM])
+      expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
+    })
+
+    it('should work with keys as null', function () {
+      var re = pathToRegexp(TEST_PATH, null, { end: false })
+
+      expect(re.keys).to.deep.equal([TEST_PARAM])
+      expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
     })
   })
 
-  describe('compile', function () {
-    it('should compile a path into a function for reversing', function () {
-      var toPath = pathToRegexp.compile(TEST_PATH)
+  describe('rules', function () {
+    TESTS.forEach(function (test) {
+      var path = test[0]
+      var opts = test[1]
+      var tokens = test[2]
+      var matchCases = test[3]
+      var compileCases = test[4]
 
-      expect(toPath({ id: 123 })).to.equal('/user/123')
+      var keys = tokens.filter(function (token) {
+        return typeof token !== 'string'
+      })
+
+      describe(util.inspect(path), function () {
+        // Parsing and compiling is only supported with string input.
+        if (typeof path === 'string') {
+          it('should parse', function () {
+            expect(pathToRegexp.parse(path)).to.deep.equal(tokens)
+          })
+
+          describe('compile', function () {
+            var toPath = pathToRegexp.compile(path)
+
+            compileCases.forEach(function (io) {
+              var input = io[0]
+              var output = io[1]
+
+              if (output != null) {
+                it('should compile using ' + util.inspect(input), function () {
+                  expect(toPath(input)).to.equal(output)
+                })
+              } else {
+                it('should not compile using ' + util.inspect(input), function () {
+                  expect(function () {
+                    toPath(input)
+                  }).to.throw(TypeError)
+                })
+              }
+            })
+          })
+        }
+
+        describe('match' + (opts ? ' using ' + util.inspect(opts) : ''), function () {
+          matchCases.forEach(function (io) {
+            var input = io[0]
+            var output = io[1]
+            var message = 'should' + (output ? ' ' : ' not ') + 'match ' + util.inspect(input)
+
+            it(message, function () {
+              var re = pathToRegexp(path, opts)
+
+              expect(re.keys).to.deep.equal(keys)
+              expect(exec(re, input)).to.deep.equal(output)
+            })
+          })
+        })
+      })
     })
+  })
 
-    it('should generate path without parameters', function () {
-      var toPath = pathToRegexp.compile('/user')
-
-      expect(toPath()).to.equal('/user')
-    })
-
-    it('should omit optional parameters', function () {
-      var toPath = pathToRegexp.compile('/a/:b?/c')
-
-      expect(toPath()).to.equal('/a/c')
-    })
-
+  describe('compile errors', function () {
     it('should throw when a required param is undefined', function () {
       var toPath = pathToRegexp.compile('/a/:b/c')
 
@@ -889,24 +1715,12 @@ describe('path-to-regexp', function () {
       }).to.throw(TypeError, 'Expected "b" to be defined')
     })
 
-    it('should encode path parameters', function () {
-      var toPath = pathToRegexp.compile('/:foo')
-
-      expect(toPath({ foo: 'café' })).to.equal('/caf%C3%A9')
-    })
-
     it('should throw when it does not match the pattern', function () {
       var toPath = pathToRegexp.compile('/:foo(\\d+)')
 
       expect(function () {
         toPath({ foo: 'abc' })
       }).to.throw(TypeError, 'Expected "foo" to match "\\d+"')
-    })
-
-    it('should handle repeated values', function () {
-      var toPath = pathToRegexp.compile('/:foo+')
-
-      expect(toPath({ foo: [1, 2, 3] })).to.equal('/1/2/3')
     })
 
     it('should throw when expecting a repeated value', function () {
@@ -931,74 +1745,6 @@ describe('path-to-regexp', function () {
       expect(function () {
         toPath({ foo: [1, 2, 3, 'a'] })
       }).to.throw(TypeError, 'Expected all "foo" to match "\\d+"')
-    })
-
-    it('should allow optional repeated values', function () {
-      var toPath = pathToRegexp.compile('/user/:id(\\d+)*')
-
-      expect(toPath()).to.equal('/user')
-    })
-
-    it('should allow optional repeated values to be empty arrays', function () {
-      var toPath = pathToRegexp.compile('/user/:id(\\d+)*')
-
-      expect(toPath({ id: [] })).to.equal('/user')
-    })
-
-    it('should handle optional repeated parameters', function () {
-      var toPath = pathToRegexp.compile('/a/:b*/c')
-
-      expect(toPath({ b: [1, 2, 3] })).to.equal('/a/1/2/3/c')
-    })
-  })
-
-  describe('arguments', function () {
-    it('should work without second keys', function () {
-      var re = pathToRegexp(TEST_PATH, { end: false })
-
-      expect(re.keys).to.deep.equal([TEST_PARAM])
-      expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
-    })
-
-    it('should work with keys as null', function () {
-      var re = pathToRegexp(TEST_PATH, null, { end: false })
-
-      expect(re.keys).to.deep.equal([TEST_PARAM])
-      expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
-    })
-  })
-
-  describe('rules', function () {
-    TESTS.forEach(function (test) {
-      var description = ''
-      var options = test[4] || {}
-
-      // Generate a base description using the test values.
-      description += 'should ' + (test[3] ? '' : 'not ') + 'match '
-      description += util.inspect(test[2]) + ' against ' + util.inspect(test[0])
-
-      // If additional options have been defined, we should render the options
-      // in the test descriptions.
-      if (Object.keys(options).length) {
-        var optionsDescription = Object.keys(options).map(function (key) {
-          return (options[key] === false ? 'non-' : '') + key
-        }).join(', ')
-
-        description += ' in ' + optionsDescription + ' mode'
-      }
-
-      // Execute the test and check each parameter is as expected.
-      it(description, function () {
-        var keys = []
-        var re = pathToRegexp(test[0], keys, test[4])
-
-        // Check the keys match each other and the expected output.
-        expect(re.keys).to.equal(keys)
-        expect(keys).to.deep.equal(test[1])
-
-        // Run the regexp and check the result as expected.
-        expect(exec(re, test[2])).to.deep.equal(test[3])
-      })
     })
   })
 })
