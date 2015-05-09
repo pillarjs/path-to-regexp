@@ -32,10 +32,10 @@
     "chai": "^2.3.0",
     "istanbul": "~0.3.0",
     "mocha": "~2.2.4",
-    "pre-commit": "~1.0.5"
+    "pre-commit": "~1.0.5",
+    "standard": "~3.7.3"
   },
   "dependencies": {
-    "isarray": "0.0.1",
-    "standard": "~3.7.3"
+    "isarray": "0.0.1"
   }
 }
