@@ -1,6 +1,6 @@
 # Path-to-RegExp
 
-Turn an Express-style path string such as `/user/:name` into a regular expression.
+> Turn an Express-style path string such as `/user/:name` into a regular expression.
 
 [![NPM version][npm-image]][npm-url]
 [![Build status][travis-image]][travis-url]
@@ -21,6 +21,8 @@ npm install path-to-regexp --save
 var pathToRegexp = require('path-to-regexp')
 
 // pathToRegexp(path, keys, options)
+// pathToRegexp.parse(path)
+// pathToRegexp.compile(path)
 ```
 
 - **path** A string in the express format, an array of strings, or a regular expression.
@@ -127,11 +129,45 @@ re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
+### Parse
+
+The parse function is exposed via `pathToRegexp.parse`. This will yield an array of strings and keys.
+
+```js
+var tokens = pathToRegexp.parse('/route/:foo/(.*)')
+
+console.log(tokens[0])
+//=> "/route"
+
+console.log(tokens[1])
+//=> { name: 'foo', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
+
+console.log(tokens[2])
+//=> { name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }
+```
+
+**Note:** This method only works with strings.
+
+### Compile ("Reverse" Path-To-RegExp)
+
+Path-To-RegExp exposes a compile function for transforming an express path into valid path. Confusing enough? This example will straighten everything out for you.
+
+```js
+var toPath = pathToRegexp.compile('/user/:id')
+
+var result = toPath({ id: 123 })
+
+console.log(result)
+//=> "/user/123"
+```
+
+**Note:** The generated function will throw on any invalid input. It will execute all necessary checks to ensure the generated path is valid. This method only works with strings.
+
 ## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= 4.x in a few ways:
 
-* RegExp special characters can now be used in the regular path. E.g. `/user[(\\d+)]`
+* RegExp special characters can now be used in the regular path. E.g. `/user/(\\d+)`
 * All RegExp special characters can now be used inside the custom match. E.g. `/:user(.*)`
 * No more support for asterisk matching - use an explicit parameter instead. E.g. `/(.*)`
 * Parameters can have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
