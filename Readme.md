@@ -163,6 +163,13 @@ console.log(result)
 
 **Note:** The generated function will throw on any invalid input. It will execute all necessary checks to ensure the generated path is valid. This method only works with strings.
 
+### Working with Tokens
+
+Path-To-RegExp exposes the two functions used internally that accept an array of tokens.
+
+* `pathToRegexp.tokensToRegExp(tokens, options)` Transform an array of tokens into a matching regular expression.
+* `pathToRegexp.tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
+
 ## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= 4.x in a few ways:

@@ -6,6 +6,8 @@ var isarray = require('isarray')
 module.exports = pathToRegexp
 module.exports.parse = parse
 module.exports.compile = compile
+module.exports.tokensToFunction = tokensToFunction
+module.exports.tokensToRegExp = tokensToRegExp
 
 /**
  * The main path matching regexp utility.
@@ -96,12 +98,20 @@ function parse (str) {
  * @return {Function}
  */
 function compile (str) {
-  var keys = parse(str)
+  return tokensToFunction(parse(str))
+}
+
+/**
+ * Expose a method for transforming tokens into the path function.
+ */
+function tokensToFunction (tokens) {
+  // Compile all the tokens into regexps.
+  var matches = new Array(tokens.length)
 
   // Compile all the patterns before compilation.
-  for (var i = 0; i < keys.length; i++) {
-    if (typeof keys[i] === 'object') {
-      keys[i].regexp = new RegExp('^' + keys[i].pattern + '$')
+  for (var i = 0; i < tokens.length; i++) {
+    if (typeof tokens[i] === 'object') {
+      matches[i] = new RegExp('^' + tokens[i].pattern + '$')
     }
   }
 
@@ -110,8 +120,8 @@ function compile (str) {
 
     obj = obj || {}
 
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i]
+    for (var i = 0; i < tokens.length; i++) {
+      var key = tokens[i]
 
       if (typeof key === 'string') {
         path += key
@@ -143,7 +153,7 @@ function compile (str) {
         }
 
         for (var j = 0; j < value.length; j++) {
-          if (!key.regexp.test(value[j])) {
+          if (!matches[i].test(value[j])) {
             throw new TypeError('Expected all "' + key.name + '" to match "' + key.pattern + '"')
           }
 
@@ -153,7 +163,7 @@ function compile (str) {
         continue
       }
 
-      if (!key.regexp.test(value)) {
+      if (!matches[i].test(value)) {
         throw new TypeError('Expected "' + key.name + '" to match "' + key.pattern + '"')
       }
 
@@ -262,11 +272,35 @@ function arrayToRegexp (path, keys, options) {
  * @return {RegExp}
  */
 function stringToRegexp (path, keys, options) {
+  var tokens = parse(path)
+  var re = tokensToRegExp(tokens, options)
+
+  // Attach keys back to the regexp.
+  for (var i = 0; i < tokens.length; i++) {
+    if (typeof tokens[i] !== 'string') {
+      keys.push(tokens[i])
+    }
+  }
+
+  return attachKeys(re, keys)
+}
+
+/**
+ * Expose a function for taking tokens and returning a RegExp.
+ *
+ * @param  {Array}  tokens
+ * @param  {Array}  keys
+ * @param  {Object} options
+ * @return {RegExp}
+ */
+function tokensToRegExp (tokens, options) {
+  options = options || {}
+
   var strict = options.strict
   var end = options.end !== false
   var route = ''
-  var endsWithSlash = path.charAt(path.length - 1) === '/'
-  var tokens = parse(path)
+  var lastToken = tokens[tokens.length - 1]
+  var endsWithSlash = typeof lastToken === 'string' && /\/$/.test(lastToken)
 
   // Iterate over the tokens and create our regexp string.
   for (var i = 0; i < tokens.length; i++) {
@@ -277,9 +311,6 @@ function stringToRegexp (path, keys, options) {
     } else {
       var prefix = escapeString(token.prefix)
       var capture = token.pattern
-
-      // Push non-string tokens into the keys array.
-      keys.push(token)
 
       if (token.repeat) {
         capture += '(?:' + prefix + capture + ')*'
@@ -315,7 +346,7 @@ function stringToRegexp (path, keys, options) {
     route += strict && endsWithSlash ? '' : '(?=\\/|$)'
   }
 
-  return attachKeys(new RegExp('^' + route, flags(options)), keys)
+  return new RegExp('^' + route, flags(options))
 }
 
 /**
