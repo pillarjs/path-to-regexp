@@ -21,9 +21,10 @@ var PATH_REGEXP = new RegExp([
   // Match Express-style parameters and un-named parameters with a prefix
   // and optional suffixes. Matches appear as:
   //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
-  // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
-  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?'
+  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
+  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
+  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
+  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
 ].join('|'), 'g')
 
 /**
@@ -63,10 +64,12 @@ function parse (str) {
     var capture = res[4]
     var group = res[5]
     var suffix = res[6]
+    var asterisk = res[7]
 
     var repeat = suffix === '+' || suffix === '*'
     var optional = suffix === '?' || suffix === '*'
     var delimiter = prefix || '/'
+    var pattern = capture || group || (asterisk ? '.*' : '[^' + delimiter + ']+?')
 
     tokens.push({
       name: name || key++,
@@ -74,7 +77,7 @@ function parse (str) {
       delimiter: delimiter,
       optional: optional,
       repeat: repeat,
-      pattern: escapeGroup(capture || group || '[^' + delimiter + ']+?')
+      pattern: escapeGroup(pattern)
     })
   }
 
