@@ -1647,6 +1647,22 @@ describe('path-to-regexp', function () {
     })
   })
 
+  describe('tokens', function () {
+    var tokens = pathToRegexp.parse(TEST_PATH)
+
+    it('should expose method to compile tokens to regexp', function () {
+      var re = pathToRegexp.tokensToRegExp(tokens)
+
+      expect(exec(re, '/user/123')).to.deep.equal(['/user/123', '123'])
+    })
+
+    it('should expose method to compile tokens to a path function', function () {
+      var fn = pathToRegexp.tokensToFunction(tokens)
+
+      expect(fn({ id: 123 })).to.equal('/user/123')
+    })
+  })
+
   describe('rules', function () {
     TESTS.forEach(function (test) {
       var path = test[0]
