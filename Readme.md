@@ -129,6 +129,18 @@ re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
+#### Asterisk
+
+An asterisk can be used for matching everything. It is equivalent to an unnamed matching group of `(.*)`.
+
+```js
+var re = pathToRegexp('/foo/*', keys)
+// keys = [{ name: '0', ... }]
+
+re.exec('/foo/bar/baz')
+//=> ['/foo/bar/baz', 'bar/baz']
+```
+
 ### Parse
 
 The parse function is exposed via `pathToRegexp.parse`. This will yield an array of strings and keys.
