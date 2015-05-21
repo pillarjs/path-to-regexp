@@ -1,3 +1,8 @@
+1.2.0 / 2015-05-20
+==================
+
+  * Add support for matching an asterisk (`*`) as an unnamed match everything group (`(.*)`)
+
 1.1.1 / 2015-05-11
 ==================
 
