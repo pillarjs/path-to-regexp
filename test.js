@@ -1532,6 +1532,65 @@ var TESTS = [
       [{ '0': 'foobar' }, '/foobar']
     ]
   ],
+  [
+    '/foo/*',
+    null,
+    [
+      '/foo',
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      }
+    ],
+    [
+      ['', null],
+      ['/test', null],
+      ['/foo', null],
+      ['/foo/', ['/foo/', '']],
+      ['/foo/bar', ['/foo/bar', 'bar']]
+    ],
+    [
+      [{ '0': 'bar' }, '/foo/bar']
+    ]
+  ],
+  [
+    '/:foo/*',
+    null,
+    [
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      }
+    ],
+    [
+      ['', null],
+      ['/test', null],
+      ['/foo', null],
+      ['/foo/', ['/foo/', 'foo', '']],
+      ['/foo/bar', ['/foo/bar', 'foo', 'bar']]
+    ],
+    [
+      [{ foo: 'foo' }, null],
+      [{ '0': 'bar' }, null],
+      [{ foo: 'foo', '0': 'bar' }, '/foo/bar']
+    ]
+  ],
 
   /**
    * Random examples.
