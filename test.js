@@ -1492,7 +1492,7 @@ var TESTS = [
     ]
   ],
   [
-    '/.+*?=^!:${}[]|',
+    '/.+\\*?=^!:${}[]|',
     null,
     [
       '/.+*?=^!:${}[]|'
@@ -1502,6 +1502,34 @@ var TESTS = [
     ],
     [
       [null, '/.+*?=^!:${}[]|']
+    ]
+  ],
+
+  /**
+   * Asterisk functionality.
+   */
+  [
+    '/*',
+    null,
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '.*'
+      }
+    ],
+    [
+      ['', null],
+      ['/', ['/', '']],
+      ['/foo/bar', ['/foo/bar', 'foo/bar']]
+    ],
+    [
+      [null, null],
+      [{ '0': '' }, '/'],
+      [{ '0': 'foobar' }, '/foobar']
     ]
   ],
 
