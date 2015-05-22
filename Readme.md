@@ -184,13 +184,13 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 
 ## Compatibility with Express <= 4.x
 
-Path-To-RegExp breaks compatibility with Express <= 4.x in a few ways:
+Path-To-RegExp breaks compatibility with Express <= `4.x`:
 
-* RegExp special characters can now be used in the regular path. E.g. `/user/(\\d+)`
-* All RegExp special characters can now be used inside the custom match. E.g. `/:user(.*)`
-* No more support for asterisk matching - use an explicit parameter instead. E.g. `/(.*)`
-* Parameters can have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
-* Strings aren't interpreted as literal regexp strings - no more non-capturing groups, lookaheads, lookbehinds or nested matching groups (but you can still pass a regexp manually)
+* No longer a direct conversion to a RegExp with sugar on top - it's a path matcher with named and unnamed matching groups
+  * It's unlikely you previously abused this feature, it's rare and you could always use a RegExp instead
+* All matching RegExp special characters can be used in a matching group. E.g. `/:user(.*)`
+  * Other RegExp features are not support - no nested matching groups, non-capturing groups or look aheads
+* Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
 
 ## Live Demo
 
