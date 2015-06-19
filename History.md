@@ -1,3 +1,8 @@
+0.1.6 / 2015-06-19
+==================
+
+  * Replace `index` feature by outputting all parameters, unnamed and named.
+
 0.1.5 / 2015-05-08
 ==================
 
