@@ -5,6 +5,11 @@
 module.exports = pathtoRegexp;
 
 /**
+ * Match matching groups in a regular expression.
+ */
+var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
+
+/**
  * Normalize the given path string,
  * returning a regular expression.
  *
@@ -28,8 +33,19 @@ function pathtoRegexp(path, keys, options) {
   var flags = options.sensitive ? '' : 'i';
   var extraOffset = 0;
   var keysOffset = keys.length;
+  var i = 0;
+  var name = 0;
+  var m;
 
   if (path instanceof RegExp) {
+    while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
+      keys.push({
+        name: name++,
+        optional: false,
+        offset: m.index
+      });
+    }
+
     return path;
   }
 
@@ -81,13 +97,8 @@ function pathtoRegexp(path, keys, options) {
       return '(.*)';
     });
 
-  // This is a workaround for handling *all* matching group positioning.
-  var re = /\((?!\?)/g;
-  var i = 0;
-  var name = 0;
-  var m;
-
-  while (m = re.exec(path)) {
+  // This is a workaround for handling unnamed matching groups.
+  while (m = MATCHING_GROUP_REGEXP.exec(path)) {
     if (keysOffset + i === keys.length || keys[keysOffset + i].offset > m.index) {
       keys.splice(keysOffset + i, 0, {
         name: name++, // Unnamed matching groups must be consistently linear.

@@ -707,6 +707,22 @@ describe('path-to-regexp', function () {
     it('should return the regexp', function () {
       assert.deepEqual(pathToRegExp(/.*/), /.*/);
     });
+
+    it('should pull out matching groups', function () {
+      var params = [];
+      var re = pathToRegExp(/(.*)/, params);
+      var m;
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
+
+      m = re.exec('/route');
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/route');
+      assert.equal(m[1], '/route');
+    });
   });
 
   describe('arrays', function () {
