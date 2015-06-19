@@ -5,6 +5,11 @@
 module.exports = pathtoRegexp;
 
 /**
+ * Match matching groups in a regular expression.
+ */
+var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
+
+/**
  * Normalize the given path string,
  * returning a regular expression.
  *
@@ -22,14 +27,25 @@ module.exports = pathtoRegexp;
 
 function pathtoRegexp(path, keys, options) {
   options = options || {};
+  keys = keys || [];
   var strict = options.strict;
   var end = options.end !== false;
   var flags = options.sensitive ? '' : 'i';
   var extraOffset = 0;
-
-  keys = keys || [];
+  var keysOffset = keys.length;
+  var i = 0;
+  var name = 0;
+  var m;
 
   if (path instanceof RegExp) {
+    while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
+      keys.push({
+        name: name++,
+        optional: false,
+        offset: m.index
+      });
+    }
+
     return path;
   }
 
@@ -56,8 +72,7 @@ function pathtoRegexp(path, keys, options) {
       keys.push({
         name: key,
         optional: !!optional,
-        index: 0,
-        _offset: offset + extraOffset
+        offset: offset + extraOffset
       });
 
       var result = ''
@@ -75,23 +90,24 @@ function pathtoRegexp(path, keys, options) {
     .replace(/\*/g, function (star, index) {
       var len = keys.length
 
-      while (len-- && keys[len]._offset > index) {
-        keys[len]._offset += 3;
+      while (len-- > keysOffset && keys[len].offset > index) {
+        keys[len].offset += 3;
       }
 
       return '(.*)';
     });
 
-  // This is a workaround for handling *all* matching group positioning.
-  var re = /\((?!\?)/g;
-  var m;
-
-  while (m = re.exec(path)) {
-    var len = keys.length;
-
-    while (len-- && keys[len]._offset > m.index) {
-      keys[len].index++;
+  // This is a workaround for handling unnamed matching groups.
+  while (m = MATCHING_GROUP_REGEXP.exec(path)) {
+    if (keysOffset + i === keys.length || keys[keysOffset + i].offset > m.index) {
+      keys.splice(keysOffset + i, 0, {
+        name: name++, // Unnamed matching groups must be consistently linear.
+        optional: false,
+        offset: m.index
+      });
     }
+
+    i++;
   }
 
   // If the path is non-ending, match until the end or a slash.
