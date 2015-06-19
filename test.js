@@ -50,7 +50,9 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/*', params).exec('/pathname');
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/pathname');
@@ -61,7 +63,9 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('*', params).exec('/pathname');
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/pathname');
@@ -72,10 +76,11 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/:test/*', params).exec('/pathone/pathtwo');
 
-      assert.equal(params.length, 1);
+      assert.equal(params.length, 2);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
-      assert.equal(params[0].index, 0);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
 
       assert.equal(m.length, 3);
       assert.equal(m[0], '/pathone/pathtwo');
@@ -87,10 +92,11 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/*/:test', params).exec('/pathone/pathtwo');
 
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 0);
       assert.equal(params[0].optional, false);
-      assert.equal(params[0].index, 1);
+      assert.equal(params[1].name, 'test');
+      assert.equal(params[1].optional, false);
 
       assert.equal(m.length, 3);
       assert.equal(m[0], '/pathone/pathtwo');
@@ -102,10 +108,11 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('*/:test', params).exec('/pathone/pathtwo');
 
-      assert.equal(params.length, 1);
-      assert.equal(params[0].name, 'test');
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 0);
       assert.equal(params[0].optional, false);
-      assert.equal(params[0].index, 1);
+      assert.equal(params[1].name, 'test');
+      assert.equal(params[1].optional, false);
 
       assert.equal(m.length, 3);
       assert.equal(m[0], '/pathone/pathtwo');
@@ -117,16 +124,14 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('*/:test/*/:foo/*/:bar/*', params).exec('/a/b/c/d/e/f/g');
 
-      assert.equal(params.length, 3);
-      assert.equal(params[0].name, 'test');
-      assert.equal(params[0].optional, false);
-      assert.equal(params[0].index, 1);
-
-      assert.equal(params[1].name, 'foo');
-      assert.equal(params[1].index, 3);
-
-      assert.equal(params[2].name, 'bar');
-      assert.equal(params[2].index, 5);
+      assert.equal(params.length, 7);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[1].name, 'test');
+      assert.equal(params[2].name, 1);
+      assert.equal(params[3].name, 'foo');
+      assert.equal(params[4].name, 2);
+      assert.equal(params[5].name, 'bar');
+      assert.equal(params[6].name, 3);
 
       assert.equal(m.length, 8);
       assert.equal(m[0], '/a/b/c/d/e/f/g');
@@ -143,13 +148,13 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/:foo((\\d)+)/:bar', params).exec('/123/abc');
 
-      assert.equal(params.length, 2);
+      assert.equal(params.length, 3);
       assert.equal(params[0].name, 'foo');
       assert.equal(params[0].optional, false);
-      assert.equal(params[0].index, 0);
-      assert.equal(params[1].name, 'bar');
+      assert.equal(params[1].name, 0);
       assert.equal(params[1].optional, false);
-      assert.equal(params[1].index, 2);
+      assert.equal(params[2].name, 'bar');
+      assert.equal(params[2].optional, false);
 
       assert.equal(m.length, 4);
       assert.equal(m[0], '/123/abc');
@@ -283,7 +288,9 @@ describe('path-to-regexp', function () {
       var params = [];
       var m = pathToRegExp('/test*', params).exec('/test/route');
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       assert.equal(m.length, 2);
       assert.equal(m[0], '/test/route');
@@ -295,9 +302,11 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/:test*', params);
       var m;
 
-      assert.equal(params.length, 1);
+      assert.equal(params.length, 2);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
 
       m = re.exec('/test/route');
 
@@ -319,7 +328,9 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/test*.json', params);
       var m;
 
-      assert.equal(params.length, 0);
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
 
       m = re.exec('/test.json');
 
@@ -345,9 +356,11 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/:test*.json', params);
       var m;
 
-      assert.equal(params.length, 1);
+      assert.equal(params.length, 2);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
 
       m = re.exec('/testing.json');
 
@@ -373,11 +386,13 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/:test*.:format', params);
       var m;
 
-      assert.equal(params.length, 2);
+      assert.equal(params.length, 3);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
+      assert.equal(params[1].name, 0);
       assert.equal(params[1].optional, false);
+      assert.equal(params[2].name, 'format');
+      assert.equal(params[2].optional, false);
 
       m = re.exec('/testing.json');
 
@@ -409,11 +424,13 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/:test*.:format?', params);
       var m;
 
-      assert.equal(params.length, 2);
+      assert.equal(params.length, 3);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'format');
-      assert.equal(params[1].optional, true);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
+      assert.equal(params[2].name, 'format');
+      assert.equal(params[2].optional, true);
 
       m = re.exec('/testing.json');
 
@@ -449,9 +466,11 @@ describe('path-to-regexp', function () {
       var re = pathToRegExp('/:test*?', params);
       var m;
 
-      assert.equal(params.length, 1);
+      assert.equal(params.length, 2);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, true);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
 
       m = re.exec('/test/route');
 
@@ -701,28 +720,32 @@ describe('path-to-regexp', function () {
 
     it('should match parts properly', function () {
       var params = [];
-      var re = pathToRegExp(['/:test', '/test/:route'], params);
+      var re = pathToRegExp(['/:test', '/*/route', '/test/:route'], params);
       var m;
 
-      assert.equal(params.length, 2);
+      assert.equal(params.length, 3);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 'route');
+      assert.equal(params[1].name, 0);
       assert.equal(params[1].optional, false);
+      assert.equal(params[2].name, 'route');
+      assert.equal(params[2].optional, false);
 
       m = re.exec('/route');
 
-      assert.equal(m.length, 3);
+      assert.equal(m.length, 4);
       assert.equal(m[0], '/route');
       assert.equal(m[1], 'route');
       assert.equal(m[2], undefined);
+      assert.equal(m[3], undefined);
 
       m = re.exec('/test/path');
 
-      assert.equal(m.length, 3);
+      assert.equal(m.length, 4);
       assert.equal(m[0], '/test/path');
       assert.equal(m[1], undefined);
-      assert.equal(m[2], 'path');
+      assert.equal(m[2], undefined);
+      assert.equal(m[3], 'path');
     });
   });
 });
