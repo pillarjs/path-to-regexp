@@ -222,6 +222,19 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], '56');
     });
 
+    it('should allow express format param regexps with asterisk', function () {
+      var params = [];
+      var m = pathToRegExp('/:username([a-z][a-z-]*)', params).exec('/tj-hammer');
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'username');
+      assert.equal(params[0].optional, false);
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/tj-hammer');
+      assert.equal(m[1], 'tj-hammer');
+    });
+
     it('should match without a prefixed slash', function () {
       var params = [];
       var m = pathToRegExp(':test', params).exec('string');
