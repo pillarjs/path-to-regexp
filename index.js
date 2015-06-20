@@ -32,6 +32,7 @@ function pathtoRegexp(path, keys, options) {
   var end = options.end !== false;
   var flags = options.sensitive ? '' : 'i';
   var extraOffset = 0;
+  var starOffset = 0;
   var keysOffset = keys.length;
   var i = 0;
   var name = 0;
@@ -69,12 +70,6 @@ function pathtoRegexp(path, keys, options) {
       capture = capture || '([^\\/' + format + ']+?)';
       optional = optional || '';
 
-      keys.push({
-        name: key,
-        optional: !!optional,
-        offset: offset + extraOffset
-      });
-
       var result = ''
         + (optional ? '' : slash)
         + '(?:'
@@ -83,16 +78,31 @@ function pathtoRegexp(path, keys, options) {
         + ')'
         + optional;
 
+      keys.push({
+        name: key,
+        optional: !!optional,
+        offset: offset + extraOffset,
+        length: result.length
+      });
+
       extraOffset += result.length - match.length;
 
       return result;
     })
     .replace(/\*/g, function (star, index) {
-      var len = keys.length
+      for (var i = keysOffset; i < keys.length; i++) {
+        var key = keys[i];
 
-      while (len-- > keysOffset && keys[len].offset > index) {
-        keys[len].offset += 3;
+        if ((key.offset - starOffset) <= index && index < (key.offset + key.length - starOffset)) {
+          return star;
+        }
+
+        if (key.offset > index) {
+          key.offset += 3;
+        }
       }
+
+      starOffset += 3;
 
       return '(.*)';
     });
