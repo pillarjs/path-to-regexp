@@ -7,7 +7,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "istanbul cover _mocha -- -R spec"
+    "test": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec"
   },
   "keywords": [
     "express",
