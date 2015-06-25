@@ -2,7 +2,7 @@
 
 Turn an Express-style path string such as `/user/:name` into a regular expression.
 
-**Note:** This is a legacy branch. You should upgrade to `1.x`. If you find you are stuck on this version, your code will need to take into account the `index` property on the keys.
+**Note:** This is a legacy branch. You should upgrade to `1.x`.
 
 ## Usage
 
