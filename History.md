@@ -1,3 +1,8 @@
+0.1.7 / 2015-07-28
+==================
+
+  * Fixed regression with escaped round brackets and matching groups.
+
 0.1.6 / 2015-06-19
 ==================
 
