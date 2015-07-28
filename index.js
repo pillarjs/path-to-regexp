@@ -91,7 +91,7 @@ function pathtoRegexp(path, keys, options) {
       var len = keys.length
 
       while (len-- > keysOffset && keys[len].offset > index) {
-        keys[len].offset += 3;
+        keys[len].offset += 3; // Replacement length minus asterisk length.
       }
 
       return '(.*)';
@@ -99,6 +99,18 @@ function pathtoRegexp(path, keys, options) {
 
   // This is a workaround for handling unnamed matching groups.
   while (m = MATCHING_GROUP_REGEXP.exec(path)) {
+    var escapeCount = 0;
+    var index = m.index;
+
+    while (path.charAt(--index) === '\\') {
+      escapeCount++;
+    }
+
+    // It's possible to escape the bracket.
+    if (escapeCount % 2 === 1) {
+      continue;
+    }
+
     if (keysOffset + i === keys.length || keys[keysOffset + i].offset > m.index) {
       keys.splice(keysOffset + i, 0, {
         name: name++, // Unnamed matching groups must be consistently linear.

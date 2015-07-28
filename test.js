@@ -764,4 +764,44 @@ describe('path-to-regexp', function () {
       assert.equal(m[3], 'path');
     });
   });
+
+  describe('regressions', function () {
+    it('should work with strongloop/expressjs.com#417', function () {
+      var params = [];
+      var re = pathToRegExp('/:foo\\(:bar?\\)', params);
+      var m;
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'foo');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 'bar');
+      assert.equal(params[1].optional, true);
+
+      m = re.exec('/hello(world)');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/hello(world)');
+      assert.equal(m[1], 'hello');
+      assert.equal(m[2], 'world');
+    });
+
+    it('should handle an escaped escape character', function () {
+      var params = [];
+      var re = pathToRegExp('/:foo\\\\(world)', params);
+      var m;
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'foo');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
+
+      m = re.exec('/hello\\world');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/hello\\world');
+      assert.equal(m[1], 'hello');
+      assert.equal(m[2], 'world');
+    });
+  });
 });
