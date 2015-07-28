@@ -1675,6 +1675,38 @@ var TESTS = [
       [{ foo: 'bar' }, '/bar?']
     ]
   ],
+  [
+    '/:foo\\(:bar?\\)',
+    null,
+    [
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '(',
+      {
+        name: 'bar',
+        prefix: '',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      ')'
+    ],
+    [
+      ['/hello(world)', ['/hello(world)', 'hello', 'world']],
+      ['/hello()', ['/hello()', 'hello', undefined]]
+    ],
+    [
+      [{ foo: 'hello', bar: 'world' }, '/hello(world)'],
+      [{ foo: 'hello' }, '/hello()']
+    ]
+  ],
 
   /**
    * Unicode characters.
