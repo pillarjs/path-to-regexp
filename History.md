@@ -1,3 +1,9 @@
+1.2.1 / 2015-08-17
+==================
+
+  * Encode values before validation with path compilation function
+  * More examples of using compilation in README
+
 1.2.0 / 2015-05-20
 ==================
 
