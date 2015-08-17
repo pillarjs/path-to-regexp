@@ -1707,6 +1707,37 @@ var TESTS = [
       [{ foo: 'hello' }, '/hello()']
     ]
   ],
+  [
+    '/:postType(video|audio|text)(\\+.+)?',
+    null,
+    [
+      {
+        name: 'postType',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: 'video|audio|text'
+      },
+      {
+        name: 0,
+        prefix: '',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '\\+.+'
+      }
+    ],
+    [
+      ['/video', ['/video', 'video', undefined]],
+      ['/video+test', ['/video+test', 'video', '+test']],
+      ['/video+', null]
+    ],
+    [
+      [{ postType: 'video' }, '/video'],
+      [{ postType: 'random' }, null]
+    ]
+  ],
 
   /**
    * Unicode characters.
