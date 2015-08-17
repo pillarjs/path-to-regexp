@@ -167,10 +167,20 @@ Path-To-RegExp exposes a compile function for transforming an express path into 
 ```js
 var toPath = pathToRegexp.compile('/user/:id')
 
-var result = toPath({ id: 123 })
+toPath({ id: 123 }) //=> "/user/123"
+toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
+toPath({ id: '/' }) //=> "%2F"
 
-console.log(result)
-//=> "/user/123"
+var toPathRepeated = pathToRegexp.compile('/:segment+')
+
+toPathRepeated({ segment: 'foo' }) //=> "/foo"
+toPathRepeated({ segment: ['a', 'b', 'c'] }) //=> "/a/b/c"
+
+var toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
+
+toPathRegexp({ id: 123 }) //=> "/user/123"
+toPathRegexp({ id: '123' }) //=> "/user/123"
+toPathRegexp({ id: 'abc' }) //=> throws TypeError
 ```
 
 **Note:** The generated function will throw on any invalid input. It will execute all necessary checks to ensure the generated path is valid. This method only works with strings.
