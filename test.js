@@ -384,10 +384,12 @@ var TESTS = [
       ['/route', ['/route', 'route']],
       ['/another', ['/another', 'another']],
       ['/something/else', null],
-      ['/route.json', ['/route.json', 'route.json']]
+      ['/route.json', ['/route.json', 'route.json']],
+      ['/something%2Felse', ['/something%2Felse', 'something%2Felse']]
     ],
     [
-      [{ test: 'route' }, '/route']
+      [{ test: 'route' }, '/route'],
+      [{ test: 'something/else' }, '/something%2Felse']
     ]
   ],
   [

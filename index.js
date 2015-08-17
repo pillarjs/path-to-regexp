@@ -132,6 +132,7 @@ function tokensToFunction (tokens) {
       }
 
       var value = data[token.name]
+      var segment
 
       if (value == null) {
         if (token.optional) {
@@ -143,7 +144,7 @@ function tokensToFunction (tokens) {
 
       if (isarray(value)) {
         if (!token.repeat) {
-          throw new TypeError('Expected "' + token.name + '" to not repeat')
+          throw new TypeError('Expected "' + token.name + '" to not repeat, but received "' + value + '"')
         }
 
         if (value.length === 0) {
@@ -155,21 +156,25 @@ function tokensToFunction (tokens) {
         }
 
         for (var j = 0; j < value.length; j++) {
-          if (!matches[i].test(value[j])) {
-            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '"')
+          segment = encodeURIComponent(value[j])
+
+          if (!matches[i].test(segment)) {
+            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
           }
 
-          path += (j === 0 ? token.prefix : token.delimiter) + encodeURIComponent(value[j])
+          path += (j === 0 ? token.prefix : token.delimiter) + segment
         }
 
         continue
       }
 
-      if (!matches[i].test(value)) {
-        throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '"')
+      segment = encodeURIComponent(value)
+
+      if (!matches[i].test(segment)) {
+        throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
       }
 
-      path += token.prefix + encodeURIComponent(value)
+      path += token.prefix + segment
     }
 
     return path
