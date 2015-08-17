@@ -120,57 +120,56 @@ function tokensToFunction (tokens) {
 
   return function (obj) {
     var path = ''
-
-    obj = obj || {}
+    var data = obj || {}
 
     for (var i = 0; i < tokens.length; i++) {
-      var key = tokens[i]
+      var token = tokens[i]
 
-      if (typeof key === 'string') {
-        path += key
+      if (typeof token === 'string') {
+        path += token
 
         continue
       }
 
-      var value = obj[key.name]
+      var value = data[token.name]
 
       if (value == null) {
-        if (key.optional) {
+        if (token.optional) {
           continue
         } else {
-          throw new TypeError('Expected "' + key.name + '" to be defined')
+          throw new TypeError('Expected "' + token.name + '" to be defined')
         }
       }
 
       if (isarray(value)) {
-        if (!key.repeat) {
-          throw new TypeError('Expected "' + key.name + '" to not repeat')
+        if (!token.repeat) {
+          throw new TypeError('Expected "' + token.name + '" to not repeat')
         }
 
         if (value.length === 0) {
-          if (key.optional) {
+          if (token.optional) {
             continue
           } else {
-            throw new TypeError('Expected "' + key.name + '" to not be empty')
+            throw new TypeError('Expected "' + token.name + '" to not be empty')
           }
         }
 
         for (var j = 0; j < value.length; j++) {
           if (!matches[i].test(value[j])) {
-            throw new TypeError('Expected all "' + key.name + '" to match "' + key.pattern + '"')
+            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '"')
           }
 
-          path += (j === 0 ? key.prefix : key.delimiter) + encodeURIComponent(value[j])
+          path += (j === 0 ? token.prefix : token.delimiter) + encodeURIComponent(value[j])
         }
 
         continue
       }
 
       if (!matches[i].test(value)) {
-        throw new TypeError('Expected "' + key.name + '" to match "' + key.pattern + '"')
+        throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '"')
       }
 
-      path += key.prefix + encodeURIComponent(value)
+      path += token.prefix + encodeURIComponent(value)
     }
 
     return path
