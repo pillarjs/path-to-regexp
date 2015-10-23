@@ -55,6 +55,8 @@ re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
+**Please note:** Named parameters must be made up of "word characters" (`[A-Za-z0-9_]`).
+
 #### Suffixed Parameters
 
 ##### Optional
