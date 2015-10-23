@@ -1,3 +1,9 @@
+Unreleased
+==================
+
+  * Clarify README intentions and named parameter token support
+  * Support advanced Closure Compiler with type annotations
+
 1.2.1 / 2015-08-17
 ==================
 
