@@ -25,8 +25,8 @@ var pathToRegexp = require('path-to-regexp')
 // pathToRegexp.compile(path)
 ```
 
-- **path** A string in the express format, an array of strings, or a regular expression.
-- **keys** An array to be populated with the keys present in the url.
+- **path** An Express-style string, an array of strings, or a regular expression.
+- **keys** An array to be populated with the keys found in the path.
 - **options**
   - **sensitive** When `true` the route will be case sensitive. (default: `false`)
   - **strict** When `false` the trailing slash is optional. (default: `false`)
@@ -41,11 +41,11 @@ var re = pathToRegexp('/foo/:bar', keys)
 
 ### Parameters
 
-The path has the ability to define parameters and automatically populate the keys array.
+The path string can be used to define parameters and populate the keys.
 
 #### Named Parameters
 
-Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, this parameter will match up to the next path segment.
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, this parameter will match the following path segment.
 
 ```js
 var re = pathToRegexp('/:foo/:bar', keys)
@@ -59,7 +59,7 @@ re.exec('/test/route')
 
 ##### Optional
 
-Parameters can be suffixed with a question mark (`?`) to make the entire parameter optional. This will also make any prefixed path delimiter optional (`/` or `.`).
+Parameters can be suffixed with a question mark (`?`) to make the parameter optional. This will also make any the prefixed path delimiter optional (`/` or `.`).
 
 ```js
 var re = pathToRegexp('/:foo/:bar?', keys)
@@ -74,7 +74,7 @@ re.exec('/test/route')
 
 ##### Zero or more
 
-Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter match. The prefixed path delimiter is also taken into account for the match.
+Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefixed path delimiter is taken into account for each match.
 
 ```js
 var re = pathToRegexp('/:foo*', keys)
@@ -89,7 +89,7 @@ re.exec('/bar/baz')
 
 ##### One or more
 
-Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameters match. The prefixed path delimiter is included in the match.
+Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefixed path delimiter is taken into account for each match.
 
 ```js
 var re = pathToRegexp('/:foo+', keys)
@@ -104,7 +104,7 @@ re.exec('/bar/baz')
 
 #### Custom Match Parameters
 
-All parameters can be provided a custom matching regexp and override the default. Please note: Backslashes need to be escaped in strings.
+All parameters can be provided a custom regexp, which overrides the default (`[^\/]+`). Please note: Backslashes need to be escaped with another backslash in strings.
 
 ```js
 var re = pathToRegexp('/:foo(\\d+)', keys)
@@ -119,11 +119,11 @@ re.exec('/abc')
 
 #### Unnamed Parameters
 
-It is possible to write an unnamed parameter that is only a matching group. It works the same as a named parameter, except it will be numerically indexed.
+It is possible to write an unnamed parameter that only consists of a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
 ```js
 var re = pathToRegexp('/:foo/(.*)', keys)
-// keys = [{ name: 'foo', ... }, { name: '0', ... }]
+// keys = [{ name: 'foo', ... }, { name: 0, ... }]
 
 re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
@@ -143,7 +143,7 @@ re.exec('/foo/bar/baz')
 
 ### Parse
 
-The parse function is exposed via `pathToRegexp.parse`. This will yield an array of strings and keys.
+The parse function is exposed via `pathToRegexp.parse`. This will return an array of strings and keys.
 
 ```js
 var tokens = pathToRegexp.parse('/route/:foo/(.*)')
@@ -158,11 +158,11 @@ console.log(tokens[2])
 //=> { name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }
 ```
 
-**Note:** This method only works with strings.
+**Note:** This method only works with Express-style strings.
 
 ### Compile ("Reverse" Path-To-RegExp)
 
-Path-To-RegExp exposes a compile function for transforming an express path into valid path. Confusing enough? This example will straighten everything out for you.
+Path-To-RegExp exposes a compile function for transforming an Express-style path into a valid path.
 
 ```js
 var toPath = pathToRegexp.compile('/user/:id')
@@ -183,7 +183,7 @@ toPathRegexp({ id: '123' }) //=> "/user/123"
 toPathRegexp({ id: 'abc' }) //=> throws TypeError
 ```
 
-**Note:** The generated function will throw on any invalid input. It will execute all necessary checks to ensure the generated path is valid. This method only works with strings.
+**Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.
 
 ### Working with Tokens
 
