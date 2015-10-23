@@ -30,8 +30,8 @@ var PATH_REGEXP = new RegExp([
 /**
  * Parse a string for the raw tokens.
  *
- * @param  {String} str
- * @return {Array}
+ * @param  {string} str
+ * @return {!Array}
  */
 function parse (str) {
   var tokens = []
@@ -97,8 +97,8 @@ function parse (str) {
 /**
  * Compile a string to a template function for the path.
  *
- * @param  {String}   str
- * @return {Function}
+ * @param  {string}             str
+ * @return {!function(Object=)}
  */
 function compile (str) {
   return tokensToFunction(parse(str))
@@ -184,8 +184,8 @@ function tokensToFunction (tokens) {
 /**
  * Escape a regular expression string.
  *
- * @param  {String} str
- * @return {String}
+ * @param  {string} str
+ * @return {string}
  */
 function escapeString (str) {
   return str.replace(/([.+*?=^!:${}()[\]|\/])/g, '\\$1')
@@ -194,8 +194,8 @@ function escapeString (str) {
 /**
  * Escape the capturing group by escaping special characters and meaning.
  *
- * @param  {String} group
- * @return {String}
+ * @param  {string} group
+ * @return {string}
  */
 function escapeGroup (group) {
   return group.replace(/([=!:$\/()])/g, '\\$1')
@@ -204,9 +204,9 @@ function escapeGroup (group) {
 /**
  * Attach the keys as a property of the regexp.
  *
- * @param  {RegExp} re
- * @param  {Array}  keys
- * @return {RegExp}
+ * @param  {!RegExp} re
+ * @param  {Array}   keys
+ * @return {!RegExp}
  */
 function attachKeys (re, keys) {
   re.keys = keys
@@ -217,7 +217,7 @@ function attachKeys (re, keys) {
  * Get the flags for a regexp from the options.
  *
  * @param  {Object} options
- * @return {String}
+ * @return {string}
  */
 function flags (options) {
   return options.sensitive ? '' : 'i'
@@ -226,9 +226,9 @@ function flags (options) {
 /**
  * Pull out keys from a regexp.
  *
- * @param  {RegExp} path
- * @param  {Array}  keys
- * @return {RegExp}
+ * @param  {!RegExp} path
+ * @param  {!Array}  keys
+ * @return {!RegExp}
  */
 function regexpToRegexp (path, keys) {
   // Use a negative lookahead to match only capturing groups.
@@ -253,10 +253,10 @@ function regexpToRegexp (path, keys) {
 /**
  * Transform an array into a regexp.
  *
- * @param  {Array}  path
- * @param  {Array}  keys
- * @param  {Object} options
- * @return {RegExp}
+ * @param  {!Array}  path
+ * @param  {Array}   keys
+ * @param  {!Object} options
+ * @return {!RegExp}
  */
 function arrayToRegexp (path, keys, options) {
   var parts = []
@@ -273,10 +273,10 @@ function arrayToRegexp (path, keys, options) {
 /**
  * Create a path regexp from string input.
  *
- * @param  {String} path
- * @param  {Array}  keys
- * @param  {Object} options
- * @return {RegExp}
+ * @param  {string}  path
+ * @param  {!Array}  keys
+ * @param  {!Object} options
+ * @return {!RegExp}
  */
 function stringToRegexp (path, keys, options) {
   var tokens = parse(path)
@@ -295,10 +295,9 @@ function stringToRegexp (path, keys, options) {
 /**
  * Expose a function for taking tokens and returning a RegExp.
  *
- * @param  {Array}  tokens
- * @param  {Array}  keys
- * @param  {Object} options
- * @return {RegExp}
+ * @param  {!Array}  tokens
+ * @param  {Object=} options
+ * @return {!RegExp}
  */
 function tokensToRegExp (tokens, options) {
   options = options || {}
@@ -363,28 +362,28 @@ function tokensToRegExp (tokens, options) {
  * placeholder key descriptions. For example, using `/user/:id`, `keys` will
  * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
  *
- * @param  {(String|RegExp|Array)} path
- * @param  {Array}                 [keys]
- * @param  {Object}                [options]
- * @return {RegExp}
+ * @param  {(string|RegExp|Array)} path
+ * @param  {(Array|Object)=}       keys
+ * @param  {Object=}               options
+ * @return {!RegExp}
  */
 function pathToRegexp (path, keys, options) {
   keys = keys || []
 
   if (!isarray(keys)) {
-    options = keys
+    options = /** @type {!Object} */ (keys)
     keys = []
   } else if (!options) {
     options = {}
   }
 
   if (path instanceof RegExp) {
-    return regexpToRegexp(path, keys, options)
+    return regexpToRegexp(path, /** @type {!Array} */ (keys))
   }
 
   if (isarray(path)) {
-    return arrayToRegexp(path, keys, options)
+    return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
   }
 
-  return stringToRegexp(path, keys, options)
+  return stringToRegexp(/** @type {string} */ (path), /** @type {!Array} */ (keys), options)
 }
