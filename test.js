@@ -542,6 +542,50 @@ var TESTS = [
       [{ test: 'foobar' }, '/foobar/']
     ]
   ],
+  [
+    '/:test?/bar',
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '/bar'
+    ],
+    [
+      ['/foo/bar', ['/foo/bar', 'foo']]
+    ],
+    [
+      [{ test: 'foo' }, '/foo/bar']
+    ]
+  ],
+  [
+    '/:test?-bar',
+    null,
+    [
+      '/',
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '-bar'
+    ],
+    [
+      ['/-bar', ['/-bar', undefined]],
+      ['/foo-bar', ['/foo-bar', 'foo']]
+    ],
+    [
+      [{ test: 'foo' }, '/foo-bar']
+    ]
+  ],
 
   /**
    * Repeated one or more times parameters.
@@ -936,9 +980,10 @@ var TESTS = [
     '/:test.json',
     null,
     [
+      '/',
       {
         name: 'test',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -947,11 +992,13 @@ var TESTS = [
       '.json'
     ],
     [
+      ['/.json', null],
       ['/test.json', ['/test.json', 'test']],
       ['/route.json', ['/route.json', 'route']],
       ['/route.json.json', ['/route.json.json', 'route.json']]
     ],
     [
+      [{ test: '' }, null],
       [{ test: 'foo' }, '/foo.json']
     ]
   ],
@@ -1094,9 +1141,10 @@ var TESTS = [
     '/:test.:format',
     null,
     [
+      '/',
       {
         name: 'test',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -1125,9 +1173,10 @@ var TESTS = [
     '/:test.:format?',
     null,
     [
+      '/',
       {
         name: 'test',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -1159,9 +1208,10 @@ var TESTS = [
       end: false
     },
     [
+      '/',
       {
         name: 'test',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -1194,10 +1244,10 @@ var TESTS = [
       end: false
     },
     [
-      '/test',
+      '/test.',
       {
         name: 'format',
-        prefix: '.',
+        prefix: '',
         delimiter: '.',
         optional: false,
         repeat: false,
@@ -1595,6 +1645,39 @@ var TESTS = [
   ],
 
   /**
+   * Unnamed group prefix.
+   */
+  [
+    '/(apple-)?icon-:res(\\d+).png',
+    null,
+    [
+      '/',
+      {
+        name: 0,
+        prefix: '',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: 'apple-'
+      },
+      'icon-',
+      {
+        name: 'res',
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '\\d+'
+      },
+      '.png'
+    ],
+    [
+      ['/apple-icon-240.png', ['/apple-icon-240.png', 'apple-', '240']]
+    ],
+    []
+  ],
+
+  /**
    * Random examples.
    */
   [
@@ -1660,9 +1743,10 @@ var TESTS = [
     '/:foo\\?',
     null,
     [
+      '/',
       {
         name: 'foo',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -1681,9 +1765,10 @@ var TESTS = [
     '/:foo\\(:bar?\\)',
     null,
     [
+      '/',
       {
         name: 'foo',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,
@@ -1713,9 +1798,10 @@ var TESTS = [
     '/:postType(video|audio|text)(\\+.+)?',
     null,
     [
+      '/',
       {
         name: 'postType',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: false,
         repeat: false,

@@ -45,11 +45,11 @@ The path string can be used to define parameters and populate the keys.
 
 #### Named Parameters
 
-Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, this parameter will match the following path segment.
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the following path segment.
 
 ```js
 var re = pathToRegexp('/:foo/:bar', keys)
-// keys = [{ name: 'foo', ... }, { name: 'bar', ... }]
+// keys = [{ name: 'foo', prefix: '/', ... }, { name: 'bar', prefix: '/', ... }]
 
 re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
@@ -57,11 +57,21 @@ re.exec('/test/route')
 
 **Please note:** Named parameters must be made up of "word characters" (`[A-Za-z0-9_]`).
 
-#### Suffixed Parameters
+Path segments are defined by "prefix" characters (`.` or `/`). If a prefix is used, and the parameter is followed by the same prefix character or end of the path, it is considered a segment and the prefix is part of the match. This behavior is apparent when using optional parameters.
+
+```js
+var re = pathToRegexp('/:prefix(apple-)?icon-:res(\\d+).png', keys)
+// keys = [{ name: 'prefix', prefix: '', ... }, { name: 'res', prefix: '', ... }]
+
+re.exec('/icon-76.png')
+//=> ['/icon-76.png', undefined, '76']
+```
+
+#### Modified Parameters
 
 ##### Optional
 
-Parameters can be suffixed with a question mark (`?`) to make the parameter optional. This will also make any the prefixed path delimiter optional (`/` or `.`).
+Parameters can be suffixed with a question mark (`?`) to make the parameter optional. This will also make the prefix optional.
 
 ```js
 var re = pathToRegexp('/:foo/:bar?', keys)
@@ -76,7 +86,7 @@ re.exec('/test/route')
 
 ##### Zero or more
 
-Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefixed path delimiter is taken into account for each match.
+Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is taken into account for each match.
 
 ```js
 var re = pathToRegexp('/:foo*', keys)
@@ -91,7 +101,7 @@ re.exec('/bar/baz')
 
 ##### One or more
 
-Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefixed path delimiter is taken into account for each match.
+Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is taken into account for each match.
 
 ```js
 var re = pathToRegexp('/:foo+', keys)
@@ -106,7 +116,7 @@ re.exec('/bar/baz')
 
 #### Custom Match Parameters
 
-All parameters can be provided a custom regexp, which overrides the default (`[^\/]+`). Please note: Backslashes need to be escaped with another backslash in strings.
+All parameters can be provided a custom regexp, which overrides the default (`[^\/]+`).
 
 ```js
 var re = pathToRegexp('/:foo(\\d+)', keys)
@@ -118,6 +128,8 @@ re.exec('/123')
 re.exec('/abc')
 //=> null
 ```
+
+**Please note:** Backslashes need to be escaped with another backslash in strings.
 
 #### Unnamed Parameters
 
