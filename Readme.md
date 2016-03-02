@@ -216,6 +216,10 @@ Path-To-RegExp breaks compatibility with Express <= `4.x`:
   * Other RegExp features are not support - no nested matching groups, non-capturing groups or look aheads
 * Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
 
+## TypeScript
+
+Includes a [`.d.ts`](index.d.ts) file for TypeScript users.
+
 ## Live Demo
 
 You can see a live demo of this library in use at [express-route-tester](http://forbeslindesay.github.com/express-route-tester/).

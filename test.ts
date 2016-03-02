@@ -1,15 +1,27 @@
 /* global describe, it */
 
-var util = require('util')
-var expect = require('chai').expect
-var pathToRegexp = require('./')
+/// <reference path="typings/main.d.ts" />
+
+import util = require('util')
+import chai = require('chai')
+import pathToRegexp = require('./index')
+
+const expect = chai.expect
+
+type Test = [
+  pathToRegexp.Path,
+  pathToRegexp.Options,
+  pathToRegexp.Token[],
+  Array<[string, string[]]>,
+  Array<[any, string]>
+]
 
 /**
  * An array of test cases with expected inputs and outputs.
  *
  * @type {Array}
  */
-var TESTS = [
+var TESTS: Test[] = [
   /**
    * Simple paths.
    */
@@ -342,7 +354,8 @@ var TESTS = [
       ['/two', ['/two']],
       ['/three', null],
       ['/one/two', null]
-    ]
+    ],
+    []
   ],
 
   /**
@@ -1373,7 +1386,8 @@ var TESTS = [
     [],
     [
       ['/match/anything', ['/match/anything']]
-    ]
+    ],
+    []
   ],
   [
     /(.*)/,
@@ -1390,7 +1404,8 @@ var TESTS = [
     ],
     [
       ['/match/anything', ['/match/anything', '/match/anything']]
-    ]
+    ],
+    []
   ],
   [
     /\/(\d+)/,
@@ -1408,7 +1423,8 @@ var TESTS = [
     [
       ['/abc', null],
       ['/123', ['/123', '123']]
-    ]
+    ],
+    []
   ],
 
   /**
@@ -1429,7 +1445,8 @@ var TESTS = [
     ],
     [
       ['/test', ['/test', undefined]]
-    ]
+    ],
+    []
   ],
   [
     ['/:test(\\d+)', /(.*)/],
@@ -1455,7 +1472,8 @@ var TESTS = [
     [
       ['/123', ['/123', '123', undefined]],
       ['/abc', ['/abc', undefined, '/abc']]
-    ]
+    ],
+    []
   ],
 
   /**
@@ -1485,7 +1503,8 @@ var TESTS = [
     [
       ['/test', ['/test', 'test', undefined]],
       ['/route/test', ['/route/test', undefined, 'test']]
-    ]
+    ],
+    []
   ],
   [
     [/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/],
@@ -1511,7 +1530,8 @@ var TESTS = [
     [
       ['/test', ['/test', 'test', undefined]],
       ['/route/test', ['/route/test', undefined, 'test']]
-    ]
+    ],
+    []
   ],
 
   /**
@@ -1523,7 +1543,8 @@ var TESTS = [
     [],
     [
       ['/anything/you/want', ['/anything/you/want']]
-    ]
+    ],
+    []
   ],
 
   /**

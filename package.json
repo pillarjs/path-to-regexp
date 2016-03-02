@@ -2,14 +2,17 @@
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
   "version": "1.2.1",
+  "main": "index.js",
+  "typings": "index.d.ts",
   "files": [
     "index.js",
     "LICENSE"
   ],
   "scripts": {
     "lint": "standard",
-    "test-spec": "mocha -R spec --bail",
-    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec",
+    "test-spec": "mocha --require ts-node/register -R spec --bail test.ts",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require ts-node/register -R spec test.ts",
+    "prepublish": "typings install",
     "test": "npm run lint && npm run test-cov"
   },
   "keywords": [
@@ -33,7 +36,10 @@
     "istanbul": "~0.3.0",
     "mocha": "~2.2.4",
     "pre-commit": "~1.0.5",
-    "standard": "~3.7.3"
+    "standard": "~3.7.3",
+    "ts-node": "^0.5.5",
+    "typescript": "^1.8.7",
+    "typings": "^0.6.9"
   },
   "dependencies": {
     "isarray": "0.0.1"

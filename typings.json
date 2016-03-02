@@ -1,0 +1,9 @@
+{
+  "ambientDependencies": {
+    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#d6dd320291705694ba8e1a79497a908e9f5e6617",
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#48c1e3c1d6baefa4f1a126f188c27c4fefd36bff"
+  },
+  "devDependencies": {
+    "chai": "github:typed-typings/npm-chai#01a92b8efc0cfa0ac894d695abd06b8b11e3b75b"
+  }
+}
