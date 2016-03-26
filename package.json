@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "standard",
     "test-spec": "mocha -R spec --bail",
+    "test-browser": "mochify --wd test.js",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec",
     "test": "npm run lint && npm run test-cov"
   },
@@ -32,6 +33,7 @@
     "chai": "^2.3.0",
     "istanbul": "~0.3.0",
     "mocha": "~2.2.4",
+    "mochify": "^2.17.0",
     "pre-commit": "~1.0.5",
     "standard": "~3.7.3"
   },

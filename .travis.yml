@@ -5,5 +5,15 @@ node_js:
   - "0.12"
   - "4.0"
   - "4.1"
+  - "5.9"
 
 after_script: "npm install coveralls@2 && cat ./coverage/lcov.info | coveralls"
+
+env:
+  global:
+    - SAUCE_USERNAME=""
+    - secure: ""
+
+script:
+  - 'npm test'
+  - 'if [ "x$TRAVIS_NODE_VERSION" = "x5.9" ]; then npm run test-browser; fi'

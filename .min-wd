@@ -1,0 +1,13 @@
+{
+  "sauceLabs": true,
+  "BUILD_VAR": "TRAVIS_BUILD_NUMBER",
+  "url": "http://wesleytodd.com/webdriver.html",
+  "browsers": [{
+    "name": "chrome"
+  }, {
+    "name": "firefox"
+  }, {
+    "name": "internet explorer",
+	"version": "10"
+  }]
+}
