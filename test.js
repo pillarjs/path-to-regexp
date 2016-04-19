@@ -385,11 +385,15 @@ var TESTS = [
       ['/another', ['/another', 'another']],
       ['/something/else', null],
       ['/route.json', ['/route.json', 'route.json']],
-      ['/something%2Felse', ['/something%2Felse', 'something%2Felse']]
+      ['/something%2Felse', ['/something%2Felse', 'something%2Felse']],
+      ['/something%2Felse%2Fmore', ['/something%2Felse%2Fmore', 'something%2Felse%2Fmore']],
+      ['/;,:@&=+$-_.!~*()', ['/;,:@&=+$-_.!~*()', ';,:@&=+$-_.!~*()']]
     ],
     [
       [{ test: 'route' }, '/route'],
-      [{ test: 'something/else' }, '/something%2Felse']
+      [{ test: 'something/else' }, '/something%2Felse'],
+      [{ test: 'something/else/more' }, '/something%2Felse%2Fmore'],
+      [{ test: ';,:@&=+$-_.!~*()' }, '/;,:@&=+$-_.!~*()']
     ]
   ],
   [
@@ -786,12 +790,15 @@ var TESTS = [
       }
     ],
     [
-      ['/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']]
+      ['/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']],
+      ['/;,:@&=/+$-_.!/~*()', ['/;,:@&=/+$-_.!/~*()', ';,:@&=/+$-_.!/~*()']]
     ],
     [
       [{ test: '' }, '/'],
       [{ test: 'abc' }, '/abc'],
-      [{ test: 'abc/123' }, '/abc%2F123']
+      [{ test: 'abc/123' }, '/abc%2F123'],
+      [{ test: 'abc/123/456' }, '/abc%2F123%2F456'],
+      [{ test: ';,:@&=/+$-_.!/~*()' }, '/;,:@&=%2F+$-_.!%2F~*()']
     ]
   ],
   [
