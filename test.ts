@@ -398,11 +398,14 @@ var TESTS: Test[] = [
       ['/another', ['/another', 'another']],
       ['/something/else', null],
       ['/route.json', ['/route.json', 'route.json']],
-      ['/something%2Felse', ['/something%2Felse', 'something%2Felse']]
+      ['/something%2Felse', ['/something%2Felse', 'something%2Felse']],
+      ['/something%2Felse%2Fmore', ['/something%2Felse%2Fmore', 'something%2Felse%2Fmore']],
+      ['/;,:@&=+$-_.!~*()', ['/;,:@&=+$-_.!~*()', ';,:@&=+$-_.!~*()']]
     ],
     [
       [{ test: 'route' }, '/route'],
-      [{ test: 'something/else' }, '/something%2Felse']
+      [{ test: 'something/else' }, '/something%2Felse'],
+      [{ test: 'something/else/more' }, '/something%2Felse%2Fmore']
     ]
   ],
   [
@@ -799,12 +802,14 @@ var TESTS: Test[] = [
       }
     ],
     [
-      ['/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']]
+      ['/anything/goes/here', ['/anything/goes/here', 'anything/goes/here']],
+      ['/;,:@&=/+$-_.!/~*()', ['/;,:@&=/+$-_.!/~*()', ';,:@&=/+$-_.!/~*()']]
     ],
     [
       [{ test: '' }, '/'],
       [{ test: 'abc' }, '/abc'],
-      [{ test: 'abc/123' }, '/abc%2F123']
+      [{ test: 'abc/123' }, '/abc%2F123'],
+      [{ test: 'abc/123/456' }, '/abc%2F123%2F456']
     ]
   ],
   [
@@ -1978,6 +1983,16 @@ describe('path-to-regexp', function () {
           })
         })
       })
+    })
+  })
+
+  describe('compile', function () {
+    it('should allow pretty option', function () {
+      var value = ';,:@&=+$-_.!~*()'
+      var toPath = pathToRegexp.compile('/:value')
+      var path = toPath({ value }, { pretty: true })
+
+      expect(path).to.equal(`/${value}`)
     })
   })
 

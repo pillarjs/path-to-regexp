@@ -45,9 +45,13 @@ declare namespace pathToRegexp {
     pattern: string;
   }
 
+  interface PathFunctionOptions {
+    pretty?: boolean;
+  }
+
   export type Token = string | Key;
   export type Path = string | RegExp | Array<string | RegExp>;
-  export type PathFunction = (data?: Object) => string;
+  export type PathFunction = (data?: Object, options?: PathFunctionOptions) => string;
 }
 
 export = pathToRegexp;

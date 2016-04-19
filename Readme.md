@@ -185,6 +185,9 @@ toPath({ id: 123 }) //=> "/user/123"
 toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
 toPath({ id: '/' }) //=> "/user/%2F"
 
+toPath({ id: ':' }) //=> "/user/%3A"
+toPath({ id: ':' }, { pretty: true }) //=> "/user/:"
+
 var toPathRepeated = pathToRegexp.compile('/:segment+')
 
 toPathRepeated({ segment: 'foo' }) //=> "/foo"
@@ -194,7 +197,7 @@ var toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
 
 toPathRegexp({ id: 123 }) //=> "/user/123"
 toPathRegexp({ id: '123' }) //=> "/user/123"
-toPathRegexp({ id: 'abc' }) //=> throws TypeError
+toPathRegexp({ id: 'abc' }) //=> Throws `TypeError`.
 ```
 
 **Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.
