@@ -112,6 +112,18 @@ function compile (str) {
 }
 
 /**
+ * Encode characters for segment that could cause trouble for parsing.
+ *
+ * @param  {string}
+ * @return {string}
+ */
+function encodeSegment (str) {
+  return encodeURI(str).replace(/[/?#'"]/g, function (c) {
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+  })
+}
+
+/**
  * Expose a method for transforming tokens into the path function.
  */
 function tokensToFunction (tokens) {
@@ -163,7 +175,7 @@ function tokensToFunction (tokens) {
         }
 
         for (var j = 0; j < value.length; j++) {
-          segment = encodeURIComponent(value[j])
+          segment = encodeSegment(value[j])
 
           if (!matches[i].test(segment)) {
             throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
@@ -175,7 +187,7 @@ function tokensToFunction (tokens) {
         continue
       }
 
-      segment = encodeURIComponent(value)
+      segment = encodeSegment(value)
 
       if (!matches[i].test(segment)) {
         throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
