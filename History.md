@@ -1,8 +1,11 @@
-Unreleased
+1.3.0 / 2016-05-08
 ==================
 
-  * Clarify README intentions and named parameter token support
+  * Clarify README language and named parameter token support
   * Support advanced Closure Compiler with type annotations
+  * Add pretty paths options to compiled function output
+  * Add TypeScript definition to project
+  * Improved prefix handling with non-complete segment parameters (E.g. `/:foo?-bar`)
 
 1.2.1 / 2015-08-17
 ==================
