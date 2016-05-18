@@ -859,6 +859,27 @@ var TESTS: Test[] = [
       [{ route: 'that' }, '/that']
     ]
   ],
+  [
+    '/:path(abc|xyz)*',
+    null,
+    [
+      {
+        name: 'path',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: true,
+        pattern: 'abc|xyz'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/abc/abc', ['/abc/abc', 'abc/abc']]
+    ],
+    [
+      [{ path: 'abc' }, '/abc']
+    ]
+  ],
 
   /**
    * Prefixed slashes could be omitted.

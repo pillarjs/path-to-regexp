@@ -133,7 +133,7 @@ function tokensToFunction (tokens) {
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^' + tokens[i].pattern + '$')
+      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$')
     }
   }
 
@@ -337,7 +337,7 @@ function tokensToRegExp (tokens, options) {
       route += escapeString(token)
     } else {
       var prefix = escapeString(token.prefix)
-      var capture = token.pattern
+      var capture = '(?:' + token.pattern + ')'
 
       if (token.repeat) {
         capture += '(?:' + prefix + capture + ')*'
