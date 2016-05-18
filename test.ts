@@ -874,10 +874,18 @@ var TESTS: Test[] = [
     ],
     [
       ['/abc', ['/abc', 'abc']],
-      ['/abc/abc', ['/abc/abc', 'abc/abc']]
+      ['/abc/abc', ['/abc/abc', 'abc/abc']],
+      ['/xyz/xyz', ['/xyz/xyz', 'xyz/xyz']],
+      ['/abc/xyz', ['/abc/xyz', 'abc/xyz']],
+      ['/abc/xyz/abc/xyz', ['/abc/xyz/abc/xyz', 'abc/xyz/abc/xyz']],
+      ['/xyzxyz', null]
     ],
     [
-      [{ path: 'abc' }, '/abc']
+      [{ path: 'abc' }, '/abc'],
+      [{ path: ['abc', 'xyz'] }, '/abc/xyz'],
+      [{ path: ['xyz', 'abc', 'xyz'] }, '/xyz/abc/xyz'],
+      [{ path: 'abc123' }, null],
+      [{ path: 'abcxyz' }, null]
     ]
   ],
 
