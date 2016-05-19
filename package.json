@@ -38,7 +38,7 @@
     "standard": "~3.7.3",
     "ts-node": "^0.5.5",
     "typescript": "^1.8.7",
-    "typings": "^0.6.9"
+    "typings": "^1.0.4"
   },
   "dependencies": {
     "isarray": "0.0.1"
