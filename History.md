@@ -1,3 +1,8 @@
+1.3.0 / 2016-05-18
+==================
+
+  * Handle RegExp unions in path matching groups
+
 1.3.0 / 2016-05-08
 ==================
 
