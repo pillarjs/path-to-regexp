@@ -859,6 +859,35 @@ var TESTS: Test[] = [
       [{ route: 'that' }, '/that']
     ]
   ],
+  [
+    '/:path(abc|xyz)*',
+    null,
+    [
+      {
+        name: 'path',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: true,
+        pattern: 'abc|xyz'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/abc/abc', ['/abc/abc', 'abc/abc']],
+      ['/xyz/xyz', ['/xyz/xyz', 'xyz/xyz']],
+      ['/abc/xyz', ['/abc/xyz', 'abc/xyz']],
+      ['/abc/xyz/abc/xyz', ['/abc/xyz/abc/xyz', 'abc/xyz/abc/xyz']],
+      ['/xyzxyz', null]
+    ],
+    [
+      [{ path: 'abc' }, '/abc'],
+      [{ path: ['abc', 'xyz'] }, '/abc/xyz'],
+      [{ path: ['xyz', 'abc', 'xyz'] }, '/xyz/abc/xyz'],
+      [{ path: 'abc123' }, null],
+      [{ path: 'abcxyz' }, null]
+    ]
+  ],
 
   /**
    * Prefixed slashes could be omitted.
