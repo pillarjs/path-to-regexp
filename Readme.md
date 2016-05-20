@@ -207,6 +207,17 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 * `pathToRegexp.tokensToRegExp(tokens, options)` Transform an array of tokens into a matching regular expression.
 * `pathToRegexp.tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
 
+#### Token Information
+
+* `name` The name of the token (`string` for named or `number` for index)
+* `prefix` The prefix character for the segment (`/` or `.`)
+* `delimiter` The delimiter for the segment (same as prefix or `/`)
+* `optional` Indicates the token is optional (`boolean`)
+* `repeat` Indicates the token is repeated (`boolean`)
+* `partial` Indicates this token is a partial path segment (`boolean`)
+* `pattern` The RegExp used to match this token (`string`)
+* `asterisk` Indicates the token is an `*` match (`boolean`)
+
 ## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= `4.x`:
