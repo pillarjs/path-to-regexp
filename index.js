@@ -61,18 +61,13 @@ function parse (str) {
     var modifier = res[6]
     var asterisk = res[7]
 
-    // Only use the prefix when followed by another path segment.
-    if (prefix != null && next != null && next !== prefix) {
-      path += prefix
-      prefix = null
-    }
-
     // Push the current path onto the tokens.
     if (path) {
       tokens.push(path)
       path = ''
     }
 
+    var partial = prefix != null && next != null && next !== prefix
     var repeat = modifier === '+' || modifier === '*'
     var optional = modifier === '?' || modifier === '*'
     var delimiter = res[2] || '/'
@@ -84,6 +79,7 @@ function parse (str) {
       delimiter: delimiter,
       optional: optional,
       repeat: repeat,
+      partial: partial,
       pattern: escapeGroup(pattern)
     })
   }
@@ -157,6 +153,11 @@ function tokensToFunction (tokens) {
 
       if (value == null) {
         if (token.optional) {
+          // Prepend partial segment prefixes.
+          if (token.partial) {
+            path += token.prefix
+          }
+
           continue
         } else {
           throw new TypeError('Expected "' + token.name + '" to be defined')
@@ -262,6 +263,7 @@ function regexpToRegexp (path, keys) {
         prefix: null,
         delimiter: null,
         optional: false,
+        partial: false,
         repeat: false,
         pattern: null
       })
@@ -344,10 +346,10 @@ function tokensToRegExp (tokens, options) {
       }
 
       if (token.optional) {
-        if (prefix) {
+        if (!token.partial) {
           capture = '(?:' + prefix + '(' + capture + '))?'
         } else {
-          capture = '(' + capture + ')?'
+          capture = prefix + '(' + capture + ')?'
         }
       } else {
         capture = prefix + '(' + capture + ')'

@@ -57,11 +57,9 @@ re.exec('/test/route')
 
 **Please note:** Named parameters must be made up of "word characters" (`[A-Za-z0-9_]`).
 
-Path segments are defined by "prefix" characters (`.` or `/`). If a prefix is used, and the parameter is followed by the same prefix character or end of the path, it is considered a segment and the prefix is part of the match. This behavior is apparent when using optional parameters.
-
 ```js
-var re = pathToRegexp('/:prefix(apple-)?icon-:res(\\d+).png', keys)
-// keys = [{ name: 'prefix', prefix: '', ... }, { name: 'res', prefix: '', ... }]
+var re = pathToRegexp('/(apple-)?icon-:res(\\d+).png', keys)
+// keys = [{ name: 0, prefix: '/', ... }, { name: 'res', prefix: '', ... }]
 
 re.exec('/icon-76.png')
 //=> ['/icon-76.png', undefined, '76']
