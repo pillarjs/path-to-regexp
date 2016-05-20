@@ -41,9 +41,10 @@ declare namespace pathToRegexp {
     prefix: string;
     delimiter: string;
     optional: boolean;
-    partial: boolean;
     repeat: boolean;
     pattern: string;
+    partial: boolean;
+    asterisk: boolean;
   }
 
   interface PathFunctionOptions {

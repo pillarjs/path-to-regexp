@@ -80,6 +80,7 @@ function parse (str) {
       optional: optional,
       repeat: repeat,
       partial: partial,
+      asterisk: !!asterisk,
       pattern: escapeGroup(pattern)
     })
   }
@@ -108,13 +109,25 @@ function compile (str) {
 }
 
 /**
- * Encode characters for segment that could cause trouble for parsing.
+ * Prettier encoding of URI path segments.
  *
  * @param  {string}
  * @return {string}
  */
 function encodeURIComponentPretty (str) {
-  return encodeURI(str).replace(/[/?#'"]/g, function (c) {
+  return encodeURI(str).replace(/[\/?#]/g, function (c) {
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+  })
+}
+
+/**
+ * Encode the asterisk parameter. Similar to `pretty`, but allows slashes.
+ *
+ * @param  {string}
+ * @return {string}
+ */
+function encodeAsterisk (str) {
+  return encodeURI(str).replace(/[?#]/g, function (c) {
     return '%' + c.charCodeAt(0).toString(16).toUpperCase()
   })
 }
@@ -166,7 +179,7 @@ function tokensToFunction (tokens) {
 
       if (isarray(value)) {
         if (!token.repeat) {
-          throw new TypeError('Expected "' + token.name + '" to not repeat, but received "' + value + '"')
+          throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
         }
 
         if (value.length === 0) {
@@ -181,7 +194,7 @@ function tokensToFunction (tokens) {
           segment = encode(value[j])
 
           if (!matches[i].test(segment)) {
-            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
+            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '", but received `' + JSON.stringify(segment) + '`')
           }
 
           path += (j === 0 ? token.prefix : token.delimiter) + segment
@@ -190,7 +203,7 @@ function tokensToFunction (tokens) {
         continue
       }
 
-      segment = encode(value)
+      segment = token.asterisk ? encodeAsterisk(value) : encode(value)
 
       if (!matches[i].test(segment)) {
         throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
@@ -263,8 +276,9 @@ function regexpToRegexp (path, keys) {
         prefix: null,
         delimiter: null,
         optional: false,
-        partial: false,
         repeat: false,
+        partial: false,
+        asterisk: false,
         pattern: null
       })
     }
