@@ -1,4 +1,10 @@
-1.3.0 / 2016-05-18
+1.5.0 / 2016-05-20
+==================
+
+  * Handle partial token segments (better)
+  * Allow compile to handle asterisk token segments
+
+1.4.0 / 2016-05-18
 ==================
 
   * Handle RegExp unions in path matching groups
