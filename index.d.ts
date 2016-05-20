@@ -41,6 +41,7 @@ declare namespace pathToRegexp {
     prefix: string;
     delimiter: string;
     optional: boolean;
+    partial: boolean;
     repeat: boolean;
     pattern: string;
   }
