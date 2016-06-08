@@ -6,6 +6,7 @@
   "typings": "index.d.ts",
   "files": [
     "index.js",
+    "index.d.ts",
     "LICENSE"
   ],
   "scripts": {
