@@ -1497,6 +1497,28 @@ var TESTS: Test[] = [
       [{ '0': '123' }, '/123']
     ]
   ],
+  [
+    '/route\\(\\\\(\\d+\\\\)\\)',
+     null,
+    [
+      '/route(\\',
+      {
+        name: 0,
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: '\\d+\\\\'
+      },
+      ')'
+    ],
+    [
+      ['/route(\\123\\)', ['/route(\\123\\)', '123\\']]
+    ],
+    []
+  ],
 
   /**
    * Regexps.
