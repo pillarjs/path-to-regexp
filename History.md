@@ -1,3 +1,8 @@
+1.5.3 / 2016-06-15
+==================
+
+  * Add `\\` to the ignore character group to avoid backtracking on mismatched parens
+
 1.5.2 / 2016-06-15
 ==================
 
