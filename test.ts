@@ -1911,6 +1911,25 @@ var TESTS: Test[] = [
     ]
   ],
   [
+    '/:foo(test\\)/bar',
+    null,
+    [
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: true,
+        asterisk: false,
+        pattern: '[^\\/]+?'
+      },
+      '(test)/bar'
+    ],
+    [],
+    []
+  ],
+  [
     '/:remote([\\w-.]+)/:user([\\w-]+)',
     null,
     [
