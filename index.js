@@ -177,6 +177,10 @@ function tokensToFunction (tokens) {
         }
       }
 
+      if (typeof value === 'string' && token.repeat) {
+        value = value.match(new RegExp('([^' + escapeString(token.delimiter) + ']+)', 'g'))
+      }
+
       if (isarray(value)) {
         if (!token.repeat) {
           throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
