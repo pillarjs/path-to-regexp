@@ -1,5 +1,3 @@
-var isarray = require('isarray')
-
 /**
  * Expose `pathToRegexp`.
  */
@@ -177,7 +175,7 @@ function tokensToFunction (tokens) {
         }
       }
 
-      if (isarray(value)) {
+      if (Array.isArray(value)) {
         if (!token.repeat) {
           throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
         }
@@ -316,6 +314,7 @@ function arrayToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function stringToRegexp (path, keys, options) {
+  console.log(path, keys, options)
   var tokens = parse(path)
   var re = tokensToRegExp(tokens, options)
 
@@ -407,7 +406,7 @@ function tokensToRegExp (tokens, options) {
 function pathToRegexp (path, keys, options) {
   keys = keys || []
 
-  if (!isarray(keys)) {
+  if (!Array.isArray(keys)) {
     options = /** @type {!Object} */ (keys)
     keys = []
   } else if (!options) {
@@ -418,7 +417,7 @@ function pathToRegexp (path, keys, options) {
     return regexpToRegexp(path, /** @type {!Array} */ (keys))
   }
 
-  if (isarray(path)) {
+  if (Array.isArray(path)) {
     return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
   }
 
