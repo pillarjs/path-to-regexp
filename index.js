@@ -314,6 +314,7 @@ function arrayToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function stringToRegexp (path, keys, options) {
+  console.log(path, keys, options)
   var tokens = parse(path)
   var re = tokensToRegExp(tokens, options)
 
@@ -405,7 +406,7 @@ function tokensToRegExp (tokens, options) {
 function pathToRegexp (path, keys, options) {
   keys = keys || []
 
-  if (Array.isArray(keys)) {
+  if (!Array.isArray(keys)) {
     options = /** @type {!Object} */ (keys)
     keys = []
   } else if (!options) {
@@ -419,6 +420,6 @@ function pathToRegexp (path, keys, options) {
   if (Array.isArray(path)) {
     return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
   }
-  console.log(keys);
+
   return stringToRegexp(/** @type {string} */ (path), /** @type {!Array} */ (keys), options)
 }

@@ -2202,6 +2202,7 @@ describe('path-to-regexp', function () {
       })
 
       describe(util.inspect(path), function () {
+        //console.log(path, opts);
         var re = pathToRegexp(path, opts)
 
         // Parsing and compiling is only supported with string input.
