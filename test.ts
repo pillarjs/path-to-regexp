@@ -2156,6 +2156,23 @@ describe('path-to-regexp', function () {
   }
 
   describe('arguments', function () {
+    it('should work without different call combinations', function () {
+      pathToRegexp('/test')
+      pathToRegexp('/test', [])
+      pathToRegexp('/test', {})
+      pathToRegexp('/test', [], {})
+
+      pathToRegexp(/^\/test/)
+      pathToRegexp(/^\/test/, [])
+      pathToRegexp(/^\/test/, {})
+      pathToRegexp(/^\/test/, [], {})
+
+      pathToRegexp(['/a', '/b'])
+      pathToRegexp(['/a', '/b'], [])
+      pathToRegexp(['/a', '/b'], {})
+      pathToRegexp(['/a', '/b'], [], {})
+    })
+
     it('should accept an array of keys as the second argument', function () {
       var keys = []
       var re = pathToRegexp(TEST_PATH, keys, { end: false })

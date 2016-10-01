@@ -316,27 +316,23 @@ function arrayToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function stringToRegexp (path, keys, options) {
-  var tokens = parse(path)
-  var re = tokensToRegExp(tokens, options)
-
-  // Attach keys back to the regexp.
-  for (var i = 0; i < tokens.length; i++) {
-    if (typeof tokens[i] !== 'string') {
-      keys.push(tokens[i])
-    }
-  }
-
-  return attachKeys(re, keys)
+  return tokensToRegExp(parse(path), keys, options)
 }
 
 /**
  * Expose a function for taking tokens and returning a RegExp.
  *
- * @param  {!Array}  tokens
- * @param  {Object=} options
+ * @param  {!Array}          tokens
+ * @param  {(Array|Object)=} keys
+ * @param  {Object=}         options
  * @return {!RegExp}
  */
-function tokensToRegExp (tokens, options) {
+function tokensToRegExp (tokens, keys, options) {
+  if (!isarray(keys)) {
+    options = /** @type {!Object} */ (keys || options)
+    keys = []
+  }
+
   options = options || {}
 
   var strict = options.strict
@@ -354,6 +350,8 @@ function tokensToRegExp (tokens, options) {
     } else {
       var prefix = escapeString(token.prefix)
       var capture = '(?:' + token.pattern + ')'
+
+      keys.push(token)
 
       if (token.repeat) {
         capture += '(?:' + prefix + capture + ')*'
@@ -389,7 +387,7 @@ function tokensToRegExp (tokens, options) {
     route += strict && endsWithSlash ? '' : '(?=\\/|$)'
   }
 
-  return new RegExp('^' + route, flags(options))
+  return attachKeys(new RegExp('^' + route, flags(options)), keys)
 }
 
 /**
@@ -405,14 +403,12 @@ function tokensToRegExp (tokens, options) {
  * @return {!RegExp}
  */
 function pathToRegexp (path, keys, options) {
-  keys = keys || []
-
   if (!isarray(keys)) {
-    options = /** @type {!Object} */ (keys)
+    options = /** @type {!Object} */ (keys || options)
     keys = []
-  } else if (!options) {
-    options = {}
   }
+
+  options = options || {}
 
   if (path instanceof RegExp) {
     return regexpToRegexp(path, /** @type {!Array} */ (keys))
