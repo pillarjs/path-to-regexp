@@ -1,5 +1,5 @@
 declare function pathToRegexp (path: pathToRegexp.Path, options?: pathToRegexp.Options): pathToRegexp.PathRegExp;
-declare function pathToRegexp (path: pathToRegexp.Path, keys: pathToRegexp.Token[], options?: pathToRegexp.Options): pathToRegexp.PathRegExp;
+declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.Options): pathToRegexp.PathRegExp;
 
 declare namespace pathToRegexp {
   export interface PathRegExp extends RegExp {
@@ -35,6 +35,7 @@ declare namespace pathToRegexp {
    * Transform an array of tokens into a matching regular expression.
    */
   export function tokensToRegExp (tokens: Token[], options?: Options): PathRegExp;
+  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: Options): PathRegExp;
 
   export interface Key {
     name: string | number;
