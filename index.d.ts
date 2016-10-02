@@ -1,5 +1,5 @@
-declare function pathToRegexp (path: pathToRegexp.Path, options?: pathToRegexp.Options): pathToRegexp.PathRegExp;
-declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.Options): pathToRegexp.PathRegExp;
+declare function pathToRegexp (path: pathToRegexp.Path, options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): pathToRegexp.PathRegExp;
+declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): pathToRegexp.PathRegExp;
 
 declare namespace pathToRegexp {
   export interface PathRegExp extends RegExp {
@@ -7,24 +7,37 @@ declare namespace pathToRegexp {
     keys: Key[];
   }
 
-  export interface Options {
-    // When `true` the route will be case sensitive. (default: `false`)
+  export interface RegExpOptions {
+    /**
+     * When `true` the route will be case sensitive. (default: `false`)
+     */
     sensitive?: boolean;
-    // When `false` the trailing slash is optional. (default: `false`)
+    /**
+     * When `false` the trailing slash is optional. (default: `false`)
+     */
     strict?: boolean;
-    // When `false` the path will match at the beginning. (default: `true`)
+    /**
+     * When `false` the path will match at the beginning. (default: `true`)
+     */
     end?: boolean;
+  }
+
+  export interface ParseOptions {
+    /**
+     * Set the default delimiter for repeat parameters. (default: `'/'`)
+     */
+    delimiter?: string;
   }
 
   /**
    * Parse an Express-style path into an array of tokens.
    */
-  export function parse (path: string): Token[];
+  export function parse (path: string, options?: ParseOptions): Token[];
 
   /**
    * Transforming an Express-style path into a valid path.
    */
-  export function compile (path: string): PathFunction;
+  export function compile (path: string, options?: ParseOptions): PathFunction;
 
   /**
    * Transform an array of tokens into a path generator function.
@@ -34,8 +47,8 @@ declare namespace pathToRegexp {
   /**
    * Transform an array of tokens into a matching regular expression.
    */
-  export function tokensToRegExp (tokens: Token[], options?: Options): PathRegExp;
-  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: Options): PathRegExp;
+  export function tokensToRegExp (tokens: Token[], options?: RegExpOptions): PathRegExp;
+  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): PathRegExp;
 
   export interface Key {
     name: string | number;

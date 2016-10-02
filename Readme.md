@@ -31,6 +31,7 @@ var pathToRegexp = require('path-to-regexp')
   - **sensitive** When `true` the route will be case sensitive. (default: `false`)
   - **strict** When `false` the trailing slash is optional. (default: `false`)
   - **end** When `false` the path will match at the beginning. (default: `true`)
+  - **delimiter** Set the default delimiter for repeat parameters. (default: `'/'`)
 
 ```javascript
 var keys = []

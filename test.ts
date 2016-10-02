@@ -10,7 +10,7 @@ const expect = chai.expect
 
 type Test = [
   pathToRegexp.Path,
-  pathToRegexp.Options,
+  pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions,
   pathToRegexp.Token[],
   Array<[string, string[]]>,
   Array<[any, string]>
@@ -1122,7 +1122,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1148,7 +1148,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       },
       {
         name: 'format',
@@ -1158,7 +1158,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1183,7 +1183,7 @@ var TESTS: Test[] = [
         repeat: true,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1211,7 +1211,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1235,7 +1235,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       },
       '.'
     ],
@@ -1274,7 +1274,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1309,7 +1309,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -1347,7 +1347,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^.]+?'
+        pattern: '[^\\.]+?'
       }
     ],
     [
@@ -2135,6 +2135,92 @@ var TESTS: Test[] = [
     [
       [{ foo: 'café' }, '/caf%C3%A9']
     ]
+  ],
+
+  /**
+   * Hostnames.
+   */
+  [
+    ':domain.com',
+    {
+      delimiter: '.'
+    },
+    [
+      {
+        name: 'domain',
+        prefix: '',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: '[^\\.]+?'
+      },
+      '.com'
+    ],
+    [
+      ['example.com', ['example.com', 'example']],
+      ['github.com', ['github.com', 'github']],
+    ],
+    [
+      [{ domain: 'example' }, 'example.com'],
+      [{ domain: 'github' }, 'github.com']
+    ]
+  ],
+  [
+    'mail.:domain.com',
+    {
+      delimiter: '.'
+    },
+    [
+      'mail',
+      {
+        name: 'domain',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: '[^\\.]+?'
+      },
+      '.com'
+    ],
+    [
+      ['mail.example.com', ['mail.example.com', 'example']],
+      ['mail.github.com', ['mail.github.com', 'github']]
+    ],
+    [
+      [{ domain: 'example' }, 'mail.example.com'],
+      [{ domain: 'github' }, 'mail.github.com']
+    ]
+  ],
+  [
+    'example.:ext',
+    {
+      delimiter: '.'
+    },
+    [
+      'example',
+      {
+        name: 'ext',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: '[^\\.]+?'
+      }
+    ],
+    [
+      ['example.com', ['example.com', 'com']],
+      ['example.org', ['example.org', 'org']],
+    ],
+    [
+      [{ ext: 'com' }, 'example.com'],
+      [{ ext: 'org' }, 'example.org']
+    ]
   ]
 ]
 
@@ -2224,7 +2310,7 @@ describe('path-to-regexp', function () {
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {
           it('should parse', function () {
-            expect(pathToRegexp.parse(path)).to.deep.equal(tokens)
+            expect(pathToRegexp.parse(path, opts)).to.deep.equal(tokens)
           })
 
           describe('compile', function () {
