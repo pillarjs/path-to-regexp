@@ -1,3 +1,10 @@
+1.6.0 / 2016-10-03
+==================
+
+  * Populate `RegExp.keys` when using the `tokensToRegExp` method (making it consistent with the main export)
+  * Allow a `delimiter` option to be passed in with `parse`
+  * Updated TypeScript definition with `Keys` and `Options` updated
+
 1.5.3 / 2016-06-15
 ==================
 
