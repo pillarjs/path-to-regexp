@@ -40,6 +40,8 @@ var re = pathToRegexp('/foo/:bar', keys)
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
 
+**Please note:** The `RegExp` returned by `path-to-regexp` is intended for use with pathnames or hostnames. It can not handle the query strings or fragments of a URL.
+
 ### Parameters
 
 The path string can be used to define parameters and populate the keys.
