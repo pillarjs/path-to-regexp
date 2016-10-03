@@ -30,14 +30,16 @@ var PATH_REGEXP = new RegExp([
 /**
  * Parse a string for the raw tokens.
  *
- * @param  {string} str
+ * @param  {string}  str
+ * @param  {Object=} options
  * @return {!Array}
  */
-function parse (str) {
+function parse (str, options) {
   var tokens = []
   var key = 0
   var index = 0
   var path = ''
+  var defaultDelimiter = options && options.delimiter || '/'
   var res
 
   while ((res = PATH_REGEXP.exec(str)) != null) {
@@ -70,8 +72,8 @@ function parse (str) {
     var partial = prefix != null && next != null && next !== prefix
     var repeat = modifier === '+' || modifier === '*'
     var optional = modifier === '?' || modifier === '*'
-    var delimiter = res[2] || '/'
-    var pattern = capture || group || (asterisk ? '.*' : '[^' + delimiter + ']+?')
+    var delimiter = res[2] || defaultDelimiter
+    var pattern = capture || group
 
     tokens.push({
       name: name || key++,
@@ -81,7 +83,7 @@ function parse (str) {
       repeat: repeat,
       partial: partial,
       asterisk: !!asterisk,
-      pattern: escapeGroup(pattern)
+      pattern: pattern ? escapeGroup(pattern) : (asterisk ? '.*' : '[^' + escapeString(delimiter) + ']+?')
     })
   }
 
@@ -102,10 +104,11 @@ function parse (str) {
  * Compile a string to a template function for the path.
  *
  * @param  {string}             str
+ * @param  {Object=}            options
  * @return {!function(Object=, Object=)}
  */
-function compile (str) {
-  return tokensToFunction(parse(str))
+function compile (str, options) {
+  return tokensToFunction(parse(str, options))
 }
 
 /**
@@ -316,7 +319,7 @@ function arrayToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function stringToRegexp (path, keys, options) {
-  return tokensToRegExp(parse(path), keys, options)
+  return tokensToRegExp(parse(path, options), keys, options)
 }
 
 /**
