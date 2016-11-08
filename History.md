@@ -1,3 +1,8 @@
+1.7.0 / 2016-11-08
+==================
+
+  * Allow a `delimiter` option to be passed in with `tokensToRegExp` which will be used for "non-ending" token match situations
+
 1.6.0 / 2016-10-03
 ==================
 
