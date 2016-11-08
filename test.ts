@@ -2221,6 +2221,23 @@ var TESTS: Test[] = [
       [{ ext: 'com' }, 'example.com'],
       [{ ext: 'org' }, 'example.org']
     ]
+  ],
+  [
+    'this is',
+    {
+      delimiter: ' ',
+      end: false
+    },
+    [
+      'this is'
+    ],
+    [
+      ['this is a test', ['this is']],
+      ['this isn\'t', null]
+    ],
+    [
+      [null, 'this is']
+    ]
   ]
 ]
 

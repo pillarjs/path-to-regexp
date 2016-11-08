@@ -20,6 +20,10 @@ declare namespace pathToRegexp {
      * When `false` the path will match at the beginning. (default: `true`)
      */
     end?: boolean;
+    /**
+     * Sets the final character for non-ending optimistic matches. (default: `/`)
+     */
+    delimiter?: string;
   }
 
   export interface ParseOptions {
