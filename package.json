@@ -42,6 +42,6 @@
     "typings": "^1.0.4"
   },
   "dependencies": {
-    "isarray": "0.0.1"
+    "isarray": "1.0.0"
   }
 }
