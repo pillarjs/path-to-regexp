@@ -739,6 +739,7 @@ var TESTS: Test[] = [
     [
       [{}, ''],
       [{ test: 'foobar' }, '/foobar'],
+      [{ test: 'foo/bar' }, '/foo/bar'],
       [{ test: ['foo', 'bar'] }, '/foo/bar']
     ]
   ],
@@ -2010,7 +2011,7 @@ var TESTS: Test[] = [
     ],
     [
       [{ foo: 'foo' }, '/foobaz'],
-      [{ foo: 'foo/bar' }, '/foo%2Fbarbaz'],
+      [{ foo: 'foo/bar' }, '/foo/barbaz'],
       [{ foo: ['foo', 'bar'] }, '/foo/barbaz']
     ]
   ],
