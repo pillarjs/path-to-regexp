@@ -74,4 +74,4 @@ declare namespace pathToRegexp {
   export type PathFunction = (data?: Object, options?: PathFunctionOptions) => string;
 }
 
-export = pathToRegexp;
+export default pathToRegexp;
