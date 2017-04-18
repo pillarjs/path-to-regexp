@@ -221,6 +221,14 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 * `pattern` The RegExp used to match this token (`string`)
 * `asterisk` Indicates the token is an `*` match (`boolean`)
 
+## Browser Support
+
+Path-To-RegExp supports all popular browsers, including Internet Explorer 9 and above.
+
+For compatibility with older browsers that don't support ES5 methods you may need to include
+[`Array.isArray()` polyfill](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray#Polyfill)
+before any other code.
+
 ## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= `4.x`:
