@@ -24,7 +24,7 @@ var PATH_REGEXP = new RegExp([
   // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
   // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
   // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
-  '([\\/.])?(?:(?:\\:([^\\/\\?\\#]+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?|(\\*))'
+  '([\\/.])?(?:(?:\\:([a-zA-Z0-9\\-\\_]+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?|(\\*))'
 ].join('|'), 'g')
 
 /**
