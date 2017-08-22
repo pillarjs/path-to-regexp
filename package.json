@@ -13,7 +13,6 @@
     "lint": "standard",
     "test-spec": "mocha --require ts-node/register -R spec --bail test.ts",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require ts-node/register -R spec test.ts",
-    "prepublish": "typings install",
     "test": "npm run lint && npm run test-cov"
   },
   "keywords": [
@@ -33,15 +32,14 @@
     "url": "https://github.com/pillarjs/path-to-regexp.git"
   },
   "devDependencies": {
-    "chai": "^2.3.0",
-    "istanbul": "~0.3.0",
-    "mocha": "~2.2.4",
-    "standard": "~3.7.3",
-    "ts-node": "^0.5.5",
-    "typescript": "^1.8.7",
-    "typings": "^1.0.4"
-  },
-  "dependencies": {
-    "isarray": "1.0.0"
+    "@types/chai": "^4.0.4",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^8.0.24",
+    "chai": "^4.1.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.5.0",
+    "standard": "^10.0.3",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.4.2"
   }
 }

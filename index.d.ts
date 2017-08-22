@@ -1,12 +1,6 @@
-declare function pathToRegexp (path: pathToRegexp.Path, options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): pathToRegexp.PathRegExp;
-declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): pathToRegexp.PathRegExp;
+declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): RegExp;
 
 declare namespace pathToRegexp {
-  export interface PathRegExp extends RegExp {
-    // An array to be populated with the keys found in the path.
-    keys: Key[];
-  }
-
   export interface RegExpOptions {
     /**
      * When `true` the route will be case sensitive. (default: `false`)
@@ -24,6 +18,10 @@ declare namespace pathToRegexp {
      * Sets the final character for non-ending optimistic matches. (default: `/`)
      */
     delimiter?: string;
+    /**
+     * List of characters that can also be "end" characters.
+     */
+    endsWith?: string | string[];
   }
 
   export interface ParseOptions {
@@ -31,6 +29,10 @@ declare namespace pathToRegexp {
      * Set the default delimiter for repeat parameters. (default: `'/'`)
      */
     delimiter?: string;
+    /**
+     * List of valid delimiter characters. (default: `'./'`)
+     */
+    delimiters?: string | string[];
   }
 
   /**
@@ -51,8 +53,7 @@ declare namespace pathToRegexp {
   /**
    * Transform an array of tokens into a matching regular expression.
    */
-  export function tokensToRegExp (tokens: Token[], options?: RegExpOptions): PathRegExp;
-  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): PathRegExp;
+  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp;
 
   export interface Key {
     name: string | number;
@@ -62,11 +63,13 @@ declare namespace pathToRegexp {
     repeat: boolean;
     pattern: string;
     partial: boolean;
-    asterisk: boolean;
   }
 
   interface PathFunctionOptions {
-    pretty?: boolean;
+    /**
+     * Function for encoding input strings for output.
+     */
+    encode?: (value: string) => string;
   }
 
   export type Token = string | Key;
