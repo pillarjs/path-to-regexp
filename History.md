@@ -1,3 +1,15 @@
+2.0.0 / 2017-08-23
+==================
+
+  * New option! Ability to set `endsWith` to match paths like `/test?query=string` up to the query string
+  * New option! Set `delimiters` for specific characters to be treated as parameter prefixes (e.g. `/:test`)
+  * Remove `isarray` dependency
+  * Explicitly handle trailing delimiters instead of trimming them (e.g. `/test/` is now treated as `/test/` instead of `/test` when matching)
+  * Remove overloaded `keys` argument that accepted `options`
+  * Remove `keys` list attached to the `RegExp` output
+  * Remove asterisk functionality (it's a real pain to properly encode)
+  * Change `tokensToFunction` (e.g. `compile`) to accept an `encode` function for pretty encoding (e.g. pass your own implementation)
+
 1.7.0 / 2016-11-08
 ==================
 
