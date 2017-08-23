@@ -1696,7 +1696,7 @@ var TESTS: Test[] = [
     ]
   ],
   [
-    '/.+*?=^!:${}[]|',
+    '/.+*?=^!\\:${}[]|',
     null,
     [
       '/.+*?=^!:${}[]|'
@@ -2218,6 +2218,63 @@ var TESTS: Test[] = [
       [{ foo: 'foo', bar: 'bar' }, '$foo$bar'],
     ]
   ],
+
+   /**
+   * Unnamed modifiers.
+   */
+  [
+    '/:*',
+    null,
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: true,
+        partial: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['', ['', undefined]],
+      ['/', ['/', undefined]],
+      ['/foo/bar', ['/foo/bar', 'foo/bar']]
+    ],
+    [
+      [null, ''],
+      [{ '0': '' }, null],
+      [{ '0': 'foobar' }, '/foobar'],
+      [{ '0': ['foo', 'bar'] }, '/foo/bar'],
+      [{ '0': 'foo/bar' }, '/foo%2Fbar']
+    ]
+  ],
+  [
+    '/foo/:*',
+    null,
+    [
+      '/foo',
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: true,
+        partial: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['', null],
+      ['/test', null],
+      ['/foo', ['/foo', undefined]],
+      ['/foo/', ['/foo/', undefined]],
+      ['/foo/bar', ['/foo/bar', 'bar']]
+    ],
+    [
+      [{ '0': 'bar' }, '/foo/bar']
+    ]
+  ]
 ]
 
 /**

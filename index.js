@@ -19,9 +19,10 @@ var PATH_REGEXP = new RegExp([
   // Match Express-style parameters and un-named parameters with a prefix
   // and optional suffixes. Matches appear as:
   //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined]
-  '(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
+  // "/:?" => [undefined, undefined, undefined, "?"]
+  // "/:test(\\d+)?" => ["test", "\d+", undefined, "?"]
+  // "/route(\\d+)"  => [undefined, undefined, "\d+", undefined]
+  '(?:\\:(\\w*)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
 ].join('|'), 'g')
 
 /**
