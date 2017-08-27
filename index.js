@@ -329,16 +329,13 @@ function tokensToRegExp (tokens, keys, options) {
     }
   }
 
-  // In non-strict mode we allow a delimiter at the end of a match.
-  if (!strict) {
-    route += '(?:' + delimiter + '(?=' + endsWith + '))?'
-  }
-
   if (end) {
-    route += endsWith === '$' ? endsWith : '(?=' + endsWith + ')'
+    if (!strict) route += '(?:' + delimiter + ')?'
+
+    route += endsWith === '$' ? '$' : '(?=' + endsWith + ')'
   } else {
-    // In non-ending mode, we need the capturing groups to match as much as
-    // possible by using a positive lookahead to the end or next path segment.
+    if (!strict) route += '(?:' + delimiter + '(?=' + endsWith + '))?'
+
     route += '(?=' + delimiter + '|' + endsWith + ')'
   }
 
