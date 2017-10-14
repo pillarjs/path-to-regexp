@@ -8,6 +8,12 @@ module.exports.tokensToFunction = tokensToFunction
 module.exports.tokensToRegExp = tokensToRegExp
 
 /**
+ * Default configs.
+ */
+var DEFAULT_DELIMITER = '/'
+var DEFAULT_DELIMITERS = './'
+
+/**
  * The main path matching regexp utility.
  *
  * @type {RegExp}
@@ -36,8 +42,8 @@ function parse (str, options) {
   var key = 0
   var index = 0
   var path = ''
-  var defaultDelimiter = (options && options.delimiter) || '/'
-  var delimiters = (options && options.delimiters) || './'
+  var defaultDelimiter = (options && options.delimiter) || DEFAULT_DELIMITER
+  var delimiters = (options && options.delimiters) || DEFAULT_DELIMITERS
   var pathEscaped = false
   var res
 
@@ -295,9 +301,11 @@ function tokensToRegExp (tokens, keys, options) {
 
   var strict = options.strict
   var end = options.end !== false
-  var delimiter = escapeString(options.delimiter || '/')
+  var delimiter = escapeString(options.delimiter || DEFAULT_DELIMITER)
+  var delimiters = options.delimiters || DEFAULT_DELIMITERS
   var endsWith = [].concat(options.endsWith || []).map(escapeString).concat('$').join('|')
   var route = ''
+  var isEndDelimited = false
 
   // Iterate over the tokens and create our regexp string.
   for (var i = 0; i < tokens.length; i++) {
@@ -305,6 +313,7 @@ function tokensToRegExp (tokens, keys, options) {
 
     if (typeof token === 'string') {
       route += escapeString(token)
+      isEndDelimited = i === tokens.length - 1 && delimiters.indexOf(token[token.length - 1]) > -1
     } else {
       var prefix = escapeString(token.prefix)
       var capture = '(?:' + token.pattern + ')'
@@ -335,8 +344,7 @@ function tokensToRegExp (tokens, keys, options) {
     route += endsWith === '$' ? '$' : '(?=' + endsWith + ')'
   } else {
     if (!strict) route += '(?:' + delimiter + '(?=' + endsWith + '))?'
-
-    route += '(?=' + delimiter + '|' + endsWith + ')'
+    if (!isEndDelimited) route += '(?=' + delimiter + '|' + endsWith + ')'
   }
 
   return new RegExp('^' + route, flags(options))
