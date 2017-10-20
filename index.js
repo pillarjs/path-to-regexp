@@ -316,25 +316,21 @@ function tokensToRegExp (tokens, keys, options) {
       isEndDelimited = i === tokens.length - 1 && delimiters.indexOf(token[token.length - 1]) > -1
     } else {
       var prefix = escapeString(token.prefix)
-      var capture = '(?:' + token.pattern + ')'
+      var capture = token.repeat
+        ? '(?:' + token.pattern + ')(?:' + prefix + '(?:' + token.pattern + '))*'
+        : token.pattern
 
       if (keys) keys.push(token)
 
-      if (token.repeat) {
-        capture += '(?:' + prefix + capture + ')*'
-      }
-
       if (token.optional) {
-        if (!token.partial) {
-          capture = '(?:' + prefix + '(' + capture + '))?'
+        if (token.partial) {
+          route += prefix + '(' + capture + ')?'
         } else {
-          capture = prefix + '(' + capture + ')?'
+          route += '(?:' + prefix + '(' + capture + '))?'
         }
       } else {
-        capture = prefix + '(' + capture + ')'
+        route += prefix + '(' + capture + ')'
       }
-
-      route += capture
     }
   }
 
