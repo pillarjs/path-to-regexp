@@ -1,3 +1,9 @@
+2.1.0 / 2017-10-20
+==================
+
+  * Handle non-ending paths where the final character is a delimiter
+    * E.g. `/foo/` before required either `/foo/` or `/foo//` to match in non-ending mode
+
 2.0.0 / 2017-08-23
 ==================
 
