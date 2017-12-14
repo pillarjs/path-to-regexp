@@ -63,8 +63,6 @@ re.exec('/test/route')
 
 **Please note:** Parameter names must be made up of "word characters" (`[A-Za-z0-9_]`).
 
-If you'd like to customize the values that match a parameter, you can use the modifiers below.
-
 #### Parameter Modifiers
 
 ##### Optional
@@ -116,9 +114,7 @@ re.exec('/bar/baz')
 
 #### Custom Matching Parameters
 
-All parameters can be provided a custom regexp, which overrides the default (`[^\/]+`).
-
-For example, you can match a digit character in the path:
+All parameters can be provided a custom regexp, which overrides the default match (`[^\/]+`). For example, you can match a digits in the path:
 
 ```js
 var re = pathToRegexp('/icon-:foo(\\d+).png')
