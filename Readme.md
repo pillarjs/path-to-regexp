@@ -61,15 +61,7 @@ re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
-**Please note:** Named parameters must be made up of "word characters" (`[A-Za-z0-9_]`).
-
-```js
-var re = pathToRegexp('/(apple-)?icon-:res(\\d+).png')
-// keys = [{ name: 0, prefix: '/', ... }, { name: 'res', prefix: '', ... }]
-
-re.exec('/icon-76.png')
-//=> ['/icon-76.png', undefined, '76']
-```
+**Please note:** Parameter names must be made up of "word characters" (`[A-Za-z0-9_]`).
 
 #### Parameter Modifiers
 
@@ -120,18 +112,18 @@ re.exec('/bar/baz')
 //=> ['/bar/baz', 'bar/baz']
 ```
 
-#### Custom Match Parameters
+#### Custom Matching Parameters
 
-All parameters can be provided a custom regexp, which overrides the default (`[^\/]+`).
+All parameters can be provided a custom regexp, which overrides the default match (`[^\/]+`). For example, you can match digits in the path:
 
 ```js
-var re = pathToRegexp('/:foo(\\d+)')
+var re = pathToRegexp('/icon-:foo(\\d+).png')
 // keys = [{ name: 'foo', ... }]
 
-re.exec('/123')
-//=> ['/123', '123']
+re.exec('/icon-123.png')
+//=> ['/icon-123.png', '123']
 
-re.exec('/abc')
+re.exec('/icon-abc.png')
 //=> null
 ```
 
