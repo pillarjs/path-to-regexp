@@ -121,7 +121,7 @@ var re = pathToRegexp('/icon-:foo(\\d+).png')
 // keys = [{ name: 'foo', ... }]
 
 re.exec('/icon-123.png')
-//=> ['/icon-123.png', '123', index: 0, input: '/icon-123.png']
+//=> ['/icon-123.png', '123']
 
 re.exec('/icon-abc.png')
 //=> null
