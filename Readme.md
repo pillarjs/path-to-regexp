@@ -114,7 +114,7 @@ re.exec('/bar/baz')
 
 #### Custom Matching Parameters
 
-All parameters can be provided a custom regexp, which overrides the default match (`[^\/]+`). For example, you can match a digits in the path:
+All parameters can be provided a custom regexp, which overrides the default match (`[^\/]+`). For example, you can match digits in the path:
 
 ```js
 var re = pathToRegexp('/icon-:foo(\\d+).png')
