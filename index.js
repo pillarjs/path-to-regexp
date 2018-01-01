@@ -13,17 +13,9 @@ const DEFAULT_DELIMITERS = './'
  *
  * @type {RegExp}
  */
-const PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined]
-  '(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
-].join('|'), 'g')
+const PATH_REGEXP = new RegExp(
+  '(\\\\.)|(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?',
+  'g')
 
 /**
  * Parse a string for the raw tokens.
@@ -38,9 +30,7 @@ const parse = (str, options) => {
   const defaultDelimiter = (options && options.delimiter) || DEFAULT_DELIMITER
 
   let res
-  let key = 0
-  let path = ''
-  let index = 0
+  let [key, path, index] = [0, '', 0]
   let pathEscaped = false
 
   while ((res = PATH_REGEXP.exec(str)) !== null) {
@@ -112,25 +102,24 @@ const parse = (str, options) => {
  * @param  {Object=}            options
  * @return {!function(Object=, Object=)}
  */
-export const compile = (str, options) => tokensToFunction(parse(str, options))
+const compile = (str, options) => tokensToFunction(parse(str, options))
 
 /**
  * Expose a method for transforming tokens into the path function.
  */
-export const tokensToFunction = (tokens) => {
+const tokensToFunction = (tokens) => {
   // Compile all the tokens into regexps.
   const matches = new Array(tokens.length)
-
-  // Compile all the patterns before compilation.
-  for (let i = 0; i < tokens.length; i++) {
-    if (typeof tokens[i] === 'object')
-      matches[i] = new RegExp(`^(?:${tokens[i].pattern})$`)
-  }
+  
+  tokens.map((tok, i) => [i, tok])
+        .filter(([_, tok]) => typeof tok === 'object')
+        .forEach(([i, tok]) => matches[i] = new RegExp(`^(?:${tok.pattern})$`))
 
   return (data, options) => {
     const encode = (options && options.encode) || encodeURIComponent
 
     let path = ''
+    let segment
 
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i]
@@ -142,11 +131,10 @@ export const tokensToFunction = (tokens) => {
 
       const value = data ? data[token.name] : undefined
 
-      let segment
-
       if (Array.isArray(value)) {
-        if (!token.repeat)
+        if (!token.repeat) {
           throw new TypeError(`Expected ${token.name} to not repeat, but got array`)
+        }
 
         if (value.length === 0) {
           if (token.optional) continue
@@ -166,11 +154,14 @@ export const tokensToFunction = (tokens) => {
         continue
       }
 
-      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      if (typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean') {
         segment = encode(String(value))
 
-        if (!matches[i].test(segment))
+        if (!matches[i].test(segment)) {
           throw new TypeError(`Expected ${token.name} to match ${token.pattern}, but got a ${segment}`)
+        }
 
         path += token.prefix + segment
 
@@ -179,8 +170,9 @@ export const tokensToFunction = (tokens) => {
 
       if (token.optional) {
         // Prepend partial segment prefixes.
-        if (token.partial) path += token.prefix
-
+        if (token.partial) {
+          path += token.prefix
+        }
         continue
       }
 
@@ -222,23 +214,24 @@ const flags = options => options && options.sensitive ? '' : 'i'
  * @param  {Array=}  keys
  * @return {!RegExp}
  */
-export const regexpToRegexp = (path, keys) => {
+const regexpToRegexp = (path, keys) => {
   if (!keys) return path
 
   // Use a negative lookahead to match only capturing groups.
   const groups = path.source.match(/\((?!\?)/g)
 
-  if (groups)
-    for (let i in groups)
+  if (groups) {
+    groups.forEach(elem =>
       keys.push({
-        name: i,
+        name: elem,
         prefix: null,
         delimiter: null,
         optional: false,
         repeat: false,
         partial: false,
         pattern: null,
-      })
+      }))
+  }
 
   return keys
 }
@@ -252,10 +245,7 @@ export const regexpToRegexp = (path, keys) => {
  * @return {!RegExp}
  */
 const arrayToRegexp = (path, keys, options) => {
-  const parts = []
-
-  for (const pathItem in path)
-    parts.push(pathToRegexp(pathItem, keys, options).source)
+  const parts = path.map(pathItem => pathToRegexp(pathItem, keys, options).source)
 
   return new RegExp(`(?:${parts.join('|')})`, flags(optional))
 }
@@ -278,7 +268,7 @@ const stringToRegexp = (path, keys, options) => tokensToRegExp(parse(path, optio
  * @param  {Object=} options
  * @return {!RegExp}
  */
-export const tokensToRegExp = (tokens, keys, options = {}) => {
+const tokensToRegExp = (tokens, keys, options = {}) => {
   const strict = options.strict
   const end = options.end !== false
   const delimiter = escapeString(options.delimiter || DEFAULT_DELIMITER)
@@ -341,4 +331,6 @@ const pathToRegexp = (path, keys, options) => path instanceof RegExp
     ? arrayToRegexp(/** @type {!Array} */ (path), keys, options)
     : stringToRegexp(/** @type {string} */ (path), keys, options)
 
-export default pathToRegexp
+// default pathToRegexp
+
+compile("/:foo/:bar/(.*)")
