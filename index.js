@@ -70,16 +70,14 @@ const parse = (str, options) => {
       const k = path.length + 1
 
       if (delimiters.indexOf(path[k]) > -1) {
-        prev = path[k]
-        path = path.slice(0, k)
+        [prev, path] = [path[k], path.slice(0, k)]
       }
     }
 
     // Push the current path onto the tokens.
     if (path) {
       tokens.push(path)
-      path = ''
-      pathEscaped = false
+      [path, pathEscaped] = ['', false]
     }
 
     const partial = prev !== '' && next !== undefined && next !== prev
@@ -150,14 +148,15 @@ const tokensToFunction = (tokens) => {
           throw new TypeError(`Expected ${token.name} to not be empty`)
         }
 
-        for (let j = 0; j < value.length; j++) {
+        value.forEach((_, i) => {
           segment = encode(value[j])
 
-          if (!matches[i].test(segment))
+          if (!matches[i].test(segment)) {
             throw new TypeError(`Expected all ${token.name} to match ${token.pattern}`)
+          }
 
           path += (j === 0 ? token.prefix : token.delimiter) + segment
-        }
+        })
 
         continue
       }
