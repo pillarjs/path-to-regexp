@@ -279,8 +279,7 @@ const tokensToRegExp = (tokens, keys, options = {}) => {
   let isEndDelimited = false
 
   // Iterate over the tokens and create our regexp string.
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
+  tokens.forEach((token, i) => {
 
     if (typeof token === 'string') {
       route += escapeString(token)
@@ -299,7 +298,7 @@ const tokensToRegExp = (tokens, keys, options = {}) => {
           : `(?:${prefix}(${capture}))?`
         : `${prefix}(${capture})`
     }
-  }
+  })
 
   if (end) {
     if (!strict) route += `(?:${delimiter})?`
