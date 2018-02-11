@@ -15,14 +15,8 @@ const parse = (str, options) => {
   let [key, index, path, pathEscaped] = [0, 0, '', false]
 
   while ((res = PATH_REGEXP.exec(str)) !== null) {
-    const [
-      m,
-      escaped
-    ] = res
-
-    const {
-      index: offset
-    } = res
+    const [ m, escaped ] = res
+    const { index: offset } = res
 
     path += str.slice(index, offset)
     index = offset + m.length
@@ -85,7 +79,7 @@ const escapeString = str => str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1')
 
 const escapeGroup = group => group.replace(/([=!:$/()])/g, '\\$1')
 
-const tokensToFunction = tokens => {
+const tokensToFunction = (tokens) => {
   const matches = tokens.map((token, i) => typeof token === 'object'
     ? new RegExp(`^(?:${token.pattern})$`)
     : token
@@ -125,7 +119,7 @@ const tokensToFunction = tokens => {
             throw new TypeError(`Expected all "${token.name}" to match "${token.pattern}"`)
           }
 
-          path += (j === 0 ? token.prefix : token.delimiter) + segment
+          path += `${(j === 0 ? token.prefix : token.delimiter)}${segment}`
         })
 
         continue
@@ -138,7 +132,7 @@ const tokensToFunction = tokens => {
           throw new TypeError(`Expected "${token.name}" to match "${token.pattern}", but got "${segment}"`)
         }
 
-        path += token.prefix + segment
+        path += `${token.prefix}${segment}`
         continue
       }
 
@@ -178,11 +172,7 @@ const regexpToRegexp = (path, keys) => {
   return path
 }
 
-const arrayToRegexp = (path, keys, options) => {
-  const parts = path.map(pathItem => pathToRegexp(pathItem, keys, options).source)
-
-  return new RegExp(`(?:${parts.join('|')})`, flags(options))
-}
+const arrayToRegexp = (path, keys, options) => new RegExp(`(?:${path.map(pathItem => pathToRegexp(pathItem, keys, options).source).join('|')})`, flags(options))
 
 const stringToRegexp = (path, keys, options) => tokensToRegExp(parse(path, options), keys, options)
 
