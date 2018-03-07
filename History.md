@@ -1,3 +1,8 @@
+2.2.0 / 2018-03-06
+==================
+
+  * Pass `token` as second argument to `encode` option (e.g. `encode(value, token)`)
+
 2.1.0 / 2017-10-20
 ==================
 
