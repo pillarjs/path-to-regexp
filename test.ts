@@ -208,6 +208,7 @@ var TESTS: Test[] = [
       [{}, null],
       [{ test: 'abc' }, '/abc'],
       [{ test: 'a+b' }, '/a+b', { encode: (value) => value }],
+      [{ test: 'a+b' }, '/test', { encode: (_, token) => String(token.name) }],
       [{ test: 'a+b' }, '/a%2Bb']
     ]
   ],
