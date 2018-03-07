@@ -172,7 +172,7 @@ toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
 toPath({ id: '/' }) //=> "/user/%2F"
 
 toPath({ id: ':/' }) //=> "/user/%3A%2F"
-toPath({ id: ':/' }, { encode: (x) => x }) //=> "/user/:/"
+toPath({ id: ':/' }, { encode: (value, token) => value }) //=> "/user/:/"
 
 var toPathRepeated = pathToRegexp.compile('/:segment+')
 
