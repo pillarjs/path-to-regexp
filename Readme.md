@@ -192,7 +192,7 @@ toPathRegexp({ id: 'abc' }) //=> Throws `TypeError`.
 
 Path-To-RegExp exposes the two functions used internally that accept an array of tokens.
 
-* `pathToRegexp.tokensToRegExp(tokens, options)` Transform an array of tokens into a matching regular expression.
+* `pathToRegexp.tokensToRegExp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
 * `pathToRegexp.tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
 
 #### Token Information
