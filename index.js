@@ -200,12 +200,12 @@ function tokensToFunction (tokens) {
 
 /**
  * Get the type of path
- * 
+ *
  * @param {all} path
  * @return {string}
  */
 function type (path) {
-  return Object.prototype.toString.call(path).slice(8,-1);
+  return Object.prototype.toString.call(path).slice(8, -1)
 }
 
 /**
@@ -369,7 +369,7 @@ function tokensToRegExp (tokens, keys, options) {
  * @return {!RegExp}
  */
 function pathToRegexp (path, keys, options) {
-  var pathType = type(path);
+  var pathType = type(path)
 
   if (pathType === 'RegExp') {
     return regexpToRegexp(path, keys)
@@ -386,6 +386,6 @@ function pathToRegexp (path, keys, options) {
   if (pathType === 'Number') {
     return stringToRegexp(/** @type {Number} */ String(path), keys, options)
   }
-  
-  throw new TypeError('Expected RexExp|Array|String|Number, but got ' + pathType);
+
+  throw new TypeError('Expected RexExp|Array|String|Number, but got ' + pathType)
 }
