@@ -371,21 +371,15 @@ function tokensToRegExp (tokens, keys, options) {
 function pathToRegexp (path, keys, options) {
   var pathType = type(path)
 
-  if (pathType === 'RegExp') {
-    return regexpToRegexp(path, keys)
+  switch (pathType) {
+    case 'RegExp':
+      return regexpToRegexp(path, keys)
+    case 'Array':
+      return arrayToRegexp(/** @type {Array} */ (path), keys, options)
+    case 'String':
+    case 'Number':
+      return stringToRegexp(/** @type {string|number} */ String(path), keys, options)
+    default:
+      throw new TypeError('Expected RexExp|Array|String|Number, but got ' + pathType)
   }
-
-  if (pathType === 'Array') {
-    return arrayToRegexp(/** @type {Array} */ (path), keys, options)
-  }
-
-  if (pathType === 'String') {
-    return stringToRegexp(/** @type {string} */ (path), keys, options)
-  }
-
-  if (pathType === 'Number') {
-    return stringToRegexp(/** @type {Number} */ String(path), keys, options)
-  }
-
-  throw new TypeError('Expected RexExp|Array|String|Number, but got ' + pathType)
 }
