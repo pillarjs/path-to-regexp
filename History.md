@@ -1,3 +1,8 @@
+2.2.1 / 2018-04-24
+==================
+
+  * Allow empty string with `end: false` to match both relative and absolute paths
+
 2.2.0 / 2018-03-06
 ==================
 
