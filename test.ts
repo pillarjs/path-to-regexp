@@ -237,6 +237,23 @@ var TESTS: Test[] = [
       [{ test: 'abc' }, '/abc/']
     ]
   ],
+  [
+    '',
+    {
+      end: false
+    },
+    [],
+    [
+      ['', ['']],
+      ['/', ['/']],
+      ['route', ['']],
+      ['/route', ['']],
+      ['/route/', ['']]
+    ],
+    [
+      [null, '']
+    ]
+  ],
 
   /**
    * Combine modes.
