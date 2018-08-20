@@ -1,3 +1,8 @@
+2.3.0 / 2018-08-20
+==================
+
+  * Use `delimiter` when processing repeated matching groups (e.g. `foo/bar` has no prefix, but has a delimiter)
+
 2.2.1 / 2018-04-24
 ==================
 
