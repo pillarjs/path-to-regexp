@@ -3,15 +3,15 @@ declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[
 declare namespace pathToRegexp {
   export interface RegExpOptions {
     /**
-     * When `true` the route will be case sensitive. (default: `false`)
+     * When `true` the regexp will be case sensitive. (default: `false`)
      */
     sensitive?: boolean;
     /**
-     * When `false` the trailing slash is optional. (default: `false`)
+     * When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
      */
     strict?: boolean;
     /**
-     * When `false` the path will match at the beginning. (default: `true`)
+     * When `false` the regexp will match the beginning instead of the entire string. (default: `true`)
      */
     end?: boolean;
     /**

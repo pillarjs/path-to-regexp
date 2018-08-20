@@ -26,11 +26,11 @@ var pathToRegexp = require('path-to-regexp')
 ```
 
 - **path** A string, array of strings, or a regular expression.
-- **keys** An array to be populated with the keys found in the path.
+- **keys** An array to be populated with keys found in the path.
 - **options**
-  - **sensitive** When `true` the route will be case sensitive. (default: `false`)
-  - **strict** When `false` the trailing slash is optional. (default: `false`)
-  - **end** When `false` the path will match at the beginning. (default: `true`)
+  - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
+  - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
+  - **end** When `false` the regexp will match the beginning instead of the entire string. (default: `true`)
   - Advanced options (use for non-pathname strings, e.g. host names):
     - **delimiter** The default delimiter for segments. (default: `'/'`)
     - **endsWith** Optional character, or list of characters, to treat as "end" characters.
