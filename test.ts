@@ -1077,6 +1077,33 @@ var TESTS: Test[] = [
       [{ test: 'route' }, 'route']
     ]
   ],
+  [
+    ':test+',
+    null,
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: '/',
+        optional: false,
+        repeat: true,
+        partial: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['route', ['route', 'route']],
+      ['/route', null],
+      ['', null],
+      ['foo/bar', ['foo/bar', 'foo/bar']]
+    ],
+    [
+      [{}, null],
+      [{ test: '' }, null],
+      [{ test: ['route'] }, 'route'],
+      [{ test: ['foo', 'bar'] }, 'foo/bar']
+    ]
+  ],
 
   /**
    * Formats.
@@ -2249,6 +2276,36 @@ var TESTS: Test[] = [
     [
       [{ foo: 'foo' }, '$foo'],
       [{ foo: 'foo', bar: 'bar' }, '$foo$bar'],
+    ]
+  ],
+  [
+    ':test+',
+    {
+      delimiter: ' ',
+      delimiters: ' '
+    },
+    [
+      {
+        name: 'test',
+        prefix: '',
+        delimiter: ' ',
+        optional: false,
+        repeat: true,
+        partial: false,
+        pattern: '[^ ]+?'
+      }
+    ],
+    [
+      ['hello', ['hello', 'hello']],
+      [' hello ', null],
+      ['', null],
+      ['hello world', ['hello world', 'hello world']]
+    ],
+    [
+      [{}, null],
+      [{ test: '' }, null],
+      [{ test: ['hello'] }, 'hello'],
+      [{ test: ['hello', 'world'] }, 'hello world']
     ]
   ],
 ]

@@ -25,8 +25,8 @@ var PATH_REGEXP = new RegExp([
   // Match Express-style parameters and un-named parameters with a prefix
   // and optional suffixes. Matches appear as:
   //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined]
+  // ":test(\\d+)?" => ["test", "\d+", undefined, "?"]
+  // "(\\d+)"  => [undefined, undefined, "\d+", undefined]
   '(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
 ].join('|'), 'g')
 
@@ -315,21 +315,20 @@ function tokensToRegExp (tokens, keys, options) {
       route += escapeString(token)
       isEndDelimited = i === tokens.length - 1 && delimiters.indexOf(token[token.length - 1]) > -1
     } else {
-      var prefix = escapeString(token.prefix)
       var capture = token.repeat
-        ? '(?:' + token.pattern + ')(?:' + prefix + '(?:' + token.pattern + '))*'
+        ? '(?:' + token.pattern + ')(?:' + escapeString(token.delimiter) + '(?:' + token.pattern + '))*'
         : token.pattern
 
       if (keys) keys.push(token)
 
       if (token.optional) {
         if (token.partial) {
-          route += prefix + '(' + capture + ')?'
+          route += escapeString(token.prefix) + '(' + capture + ')?'
         } else {
-          route += '(?:' + prefix + '(' + capture + '))?'
+          route += '(?:' + escapeString(token.prefix) + '(' + capture + '))?'
         }
       } else {
-        route += prefix + '(' + capture + ')'
+        route += escapeString(token.prefix) + '(' + capture + ')'
       }
     }
   }
