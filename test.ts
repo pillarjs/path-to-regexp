@@ -256,6 +256,118 @@ var TESTS: Test[] = [
   ],
 
   /**
+   * Non-starting mode.
+   */
+  [
+    '/test',
+    {
+      start: false
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', ['/test/']],
+      ['/route/test', ['/test']],
+      ['/test/route', null],
+      ['/route/test/deep', null],
+      ['/route', null]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    {
+      start: false
+    },
+    [
+      '/test/'
+    ],
+    [
+      ['/test', null],
+      ['/test/route', null],
+      ['/test//route', null],
+      ['/test//', ['/test//']],
+      ['/route/test/', ['/test/']]
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
+  [
+    '/:test',
+    {
+      start: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+    ],
+    [
+      [{}, null],
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'a+b' }, '/a+b', { encode: (value) => value }],
+      [{ test: 'a+b' }, '/test', { encode: (_, token) => String(token.name) }],
+      [{ test: 'a+b' }, '/a%2Bb']
+    ]
+  ],
+  [
+    '/:test/',
+    {
+      start: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route', null],
+      ['/route/', ['/route/', 'route']]
+    ],
+    [
+      [{ test: 'abc' }, '/abc/']
+    ]
+  ],
+  [
+    '',
+    {
+      start: false
+    },
+    [],
+    [
+      ['', ['']],
+      ['/', ['/']],
+      ['route', ['']],
+      ['/route', ['']],
+      ['/route/', ['/']]
+    ],
+    [
+      [null, '']
+    ]
+  ],
+
+  /**
    * Combine modes.
    */
   [
@@ -333,6 +445,116 @@ var TESTS: Test[] = [
     [
       ['/route', ['/route', 'route']],
       ['/route/', ['/route', 'route']]
+    ],
+    [
+      [{}, null],
+      [{ test: 'abc' }, '/abc']
+    ]
+  ],
+  [
+    '/:test/',
+    {
+      end: false,
+      strict: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        pattern: '[^\\/]+?'
+      },
+      '/'
+    ],
+    [
+      ['/route', null],
+      ['/route/', ['/route/', 'route']]
+    ],
+    [
+      [{ test: 'foobar' }, '/foobar/']
+    ]
+  ],
+  [
+    '/test',
+    {
+      start: false,
+      end: false
+    },
+    [
+      '/test'
+    ],
+    [
+      ['/test', ['/test']],
+      ['/test/', ['/test/']],
+      ['/test/route', ['/test']],
+      ['/route/test/deep', ['/test']]
+    ],
+    [
+      [null, '/test']
+    ]
+  ],
+  [
+    '/test/',
+    {
+      start: false,
+      end: false
+    },
+    [
+      '/test/'
+    ],
+    [
+      ['/test', null],
+      ['/test/', ['/test/']],
+      ['/test//', ['/test//']],
+      ['/test/route', ['/test/']],
+      ['/route/test/deep', ['/test/']],
+    ],
+    [
+      [null, '/test/']
+    ]
+  ],
+  [
+    '/test.json',
+    {
+      start: false,
+      end: false
+    },
+    [
+      '/test.json'
+    ],
+    [
+      ['/test.json', ['/test.json']],
+      ['/test.json.hbs', null],
+      ['/test.json/route', ['/test.json']],
+      ['/route/test.json/deep', ['/test.json']]
+    ],
+    [
+      [null, '/test.json']
+    ]
+  ],
+  [
+    '/:test',
+    {
+      start: false,
+      end: false
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        pattern: '[^\\/]+?'
+      }
+    ],
+    [
+      ['/route', ['/route', 'route']],
+      ['/route/', ['/route/', 'route']]
     ],
     [
       [{}, null],
