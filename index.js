@@ -305,7 +305,7 @@ function tokensToRegExp (tokens, keys, options) {
   var delimiter = escapeString(options.delimiter || DEFAULT_DELIMITER)
   var delimiters = options.delimiters || DEFAULT_DELIMITERS
   var endsWith = [].concat(options.endsWith || []).map(escapeString).concat('$').join('|')
-  var route = ''
+  var route = start ? '^' : ''
   var isEndDelimited = tokens.length === 0
 
   // Iterate over the tokens and create our regexp string.
@@ -343,7 +343,7 @@ function tokensToRegExp (tokens, keys, options) {
     if (!isEndDelimited) route += '(?=' + delimiter + '|' + endsWith + ')'
   }
 
-  return new RegExp((start ? '^' : '') + route, flags(options))
+  return new RegExp(route, flags(options))
 }
 
 /**
