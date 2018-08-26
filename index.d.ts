@@ -11,13 +11,13 @@ declare namespace pathToRegexp {
      */
     strict?: boolean;
     /**
-     * When `false` the regexp will match the end instead of the entire string. (default: `true`)
-     */
-    start?: boolean;
-    /**
-     * When `false` the regexp will match the beginning instead of the entire string. (default: `true`)
+     * When `true` the regexp will match to the end of the string. (default: `true`)
      */
     end?: boolean;
+    /**
+     * When `true` the regexp will match from the beginning of the string. (default: `true`)
+     */
+    start?: boolean;
     /**
      * Sets the final character for non-ending optimistic matches. (default: `/`)
      */

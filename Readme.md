@@ -30,7 +30,8 @@ var pathToRegexp = require('path-to-regexp')
 - **options**
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
-  - **end** When `false` the regexp will match the beginning instead of the entire string. (default: `true`)
+  - **end** When `true` the regexp will match to the end of the string. (default: `true`)
+  - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
   - Advanced options (use for non-pathname strings, e.g. host names):
     - **delimiter** The default delimiter for segments. (default: `'/'`)
     - **endsWith** Optional character, or list of characters, to treat as "end" characters.
