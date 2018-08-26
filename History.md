@@ -1,3 +1,8 @@
+2.4.0 / 2018-08-26
+==================
+
+  * Support `start` option to disable anchoring from beginning of the string
+
 2.3.0 / 2018-08-20
 ==================
 
