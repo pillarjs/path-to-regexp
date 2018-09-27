@@ -1,43 +1,50 @@
-/**
- * Expose `pathToRegexp`.
- */
-module.exports = pathToRegexp
-module.exports.parse = parse
-module.exports.compile = compile
-module.exports.tokensToFunction = tokensToFunction
-module.exports.tokensToRegExp = tokensToRegExp
+  
+  
+  export interface RegExpOptions {
+    sensitive?: boolean;
+    strict?: boolean;
+    end?: boolean;
+    start?: boolean;
+    delimiter?: string;
+    delimiters?: string | string[];
+    endsWith?: string | string[];
+  }
 
-/**
- * Default configs.
- */
+  export interface ParseOptions {
+    delimiter?: string;
+    delimiters?: string | string[];
+  }
+
+
+  export interface Key {
+    name: string | number;
+    prefix: string;
+    delimiter: string;
+    optional: boolean;
+    repeat: boolean;
+    pattern: string;
+    partial: boolean;
+  }
+
+  export interface PathFunctionOptions {
+    encode?: (value: string, token: Key) => string;
+  }
+
+  export type Token = string | Key ;
+  export type Path = string | RegExp | Array<string | RegExp>;
+  export type PathFunction = (data?: Object, options?: PathFunctionOptions) => string;
+
+
 var DEFAULT_DELIMITER = '/'
 var DEFAULT_DELIMITERS = './'
 
-/**
- * The main path matching regexp utility.
- *
- * @type {RegExp}
- */
 var PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
   '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // ":test(\\d+)?" => ["test", "\d+", undefined, "?"]
-  // "(\\d+)"  => [undefined, undefined, "\d+", undefined]
   '(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
 ].join('|'), 'g')
 
-/**
- * Parse a string for the raw tokens.
- *
- * @param  {string}  str
- * @param  {Object=} options
- * @return {!Array}
- */
-function parse (str, options) {
+
+export function parse (pathString: string, options?: ParseOptions): Token[] {
   var tokens = []
   var key = 0
   var index = 0
@@ -47,11 +54,11 @@ function parse (str, options) {
   var pathEscaped = false
   var res
 
-  while ((res = PATH_REGEXP.exec(str)) !== null) {
+  while ((res = PATH_REGEXP.exec(pathString)) !== null) {
     var m = res[0]
     var escaped = res[1]
     var offset = res.index
-    path += str.slice(index, offset)
+    path += pathString.slice(index, offset)
     index = offset + m.length
 
     // Ignore already escaped sequences.
@@ -62,7 +69,7 @@ function parse (str, options) {
     }
 
     var prev = ''
-    var next = str[index]
+    var next = pathString[index]
     var name = res[2]
     var capture = res[3]
     var group = res[4]
@@ -102,35 +109,27 @@ function parse (str, options) {
   }
 
   // Push any remaining characters.
-  if (path || index < str.length) {
-    tokens.push(path + str.substr(index))
+  if (path || index < pathString.length) {
+    tokens.push(path + pathString.substr(index))
   }
 
   return tokens
 }
 
-/**
- * Compile a string to a template function for the path.
- *
- * @param  {string}             str
- * @param  {Object=}            options
- * @return {!function(Object=, Object=)}
- */
-function compile (str, options) {
-  return tokensToFunction(parse(str, options))
+
+export function compile (pathString: string, options?: ParseOptions): PathFunction {
+  return tokensToFunction(parse(pathString, options))
 }
 
-/**
- * Expose a method for transforming tokens into the path function.
- */
-function tokensToFunction (tokens) {
+
+export function tokensToFunction (tokens: Token[]): PathFunction {
   // Compile all the tokens into regexps.
   var matches = new Array(tokens.length)
 
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$')
+      matches[i] = new RegExp('^(?:' + (tokens as Key[])[i].pattern + ')$')
     }
   }
 
@@ -198,44 +197,21 @@ function tokensToFunction (tokens) {
   }
 }
 
-/**
- * Escape a regular expression string.
- *
- * @param  {string} str
- * @return {string}
- */
+
 function escapeString (str) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1')
 }
 
-/**
- * Escape the capturing group by escaping special characters and meaning.
- *
- * @param  {string} group
- * @return {string}
- */
 function escapeGroup (group) {
   return group.replace(/([=!:$/()])/g, '\\$1')
 }
 
-/**
- * Get the flags for a regexp from the options.
- *
- * @param  {Object} options
- * @return {string}
- */
 function flags (options) {
   return options && options.sensitive ? '' : 'i'
 }
 
-/**
- * Pull out keys from a regexp.
- *
- * @param  {!RegExp} path
- * @param  {Array=}  keys
- * @return {!RegExp}
- */
-function regexpToRegexp (path, keys) {
+
+export function regexpToRegexp (path, keys) {
   if (!keys) return path
 
   // Use a negative lookahead to match only capturing groups.
@@ -258,15 +234,9 @@ function regexpToRegexp (path, keys) {
   return path
 }
 
-/**
- * Transform an array into a regexp.
- *
- * @param  {!Array}  path
- * @param  {Array=}  keys
- * @param  {Object=} options
- * @return {!RegExp}
- */
-function arrayToRegexp (path, keys, options) {
+
+
+export function arrayToRegexp (path, keys, options) {
   var parts = []
 
   for (var i = 0; i < path.length; i++) {
@@ -276,27 +246,13 @@ function arrayToRegexp (path, keys, options) {
   return new RegExp('(?:' + parts.join('|') + ')', flags(options))
 }
 
-/**
- * Create a path regexp from string input.
- *
- * @param  {string}  path
- * @param  {Array=}  keys
- * @param  {Object=} options
- * @return {!RegExp}
- */
-function stringToRegexp (path, keys, options) {
+
+export function stringToRegexp (path, keys, options) {
   return tokensToRegExp(parse(path, options), keys, options)
 }
 
-/**
- * Expose a function for taking tokens and returning a RegExp.
- *
- * @param  {!Array}  tokens
- * @param  {Array=}  keys
- * @param  {Object=} options
- * @return {!RegExp}
- */
-function tokensToRegExp (tokens, keys, options) {
+
+export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp {
   options = options || {}
 
   var strict = options.strict
@@ -346,26 +302,15 @@ function tokensToRegExp (tokens, keys, options) {
   return new RegExp(route, flags(options))
 }
 
-/**
- * Normalize the given path string, returning a regular expression.
- *
- * An empty array can be passed in for the keys, which will hold the
- * placeholder key descriptions. For example, using `/user/:id`, `keys` will
- * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
- *
- * @param  {(string|RegExp|Array)} path
- * @param  {Array=}                keys
- * @param  {Object=}               options
- * @return {!RegExp}
- */
-function pathToRegexp (path, keys, options) {
+
+export function pathToRegexp (path: Path, keys?: Key[], options?: RegExpOptions & ParseOptions): RegExp {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys)
   }
 
   if (Array.isArray(path)) {
-    return arrayToRegexp(/** @type {!Array} */ (path), keys, options)
+    return arrayToRegexp((path), keys, options)
   }
 
-  return stringToRegexp(/** @type {string} */ (path), keys, options)
+  return stringToRegexp((path), keys, options)
 }

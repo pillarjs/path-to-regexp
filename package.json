@@ -3,6 +3,8 @@
   "description": "Express style path to RegExp utility",
   "version": "2.4.0",
   "main": "index.js",
+  "module": "index.mjs",
+  "jsnext:main": "index.es.js",
   "typings": "index.d.ts",
   "files": [
     "index.js",
@@ -11,6 +13,7 @@
   ],
   "scripts": {
     "lint": "standard",
+    "pkg": "npx rollup -c rollup.pkg.js",
     "test-spec": "mocha --require ts-node/register -R spec --bail test.ts",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require ts-node/register -R spec test.ts",
     "test": "npm run lint && npm run test-cov"
@@ -39,7 +42,9 @@
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "standard": "^11.0.1",
+    "rollup": "0.66.2",
+    "rollup-plugin-tsc": "1.1.11",
     "ts-node": "^7.0.1",
-    "typescript": "^3.0.1"
+    "typescript": "3.0.3"
   }
 }

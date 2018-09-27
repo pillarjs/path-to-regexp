@@ -2,16 +2,16 @@
 
 import util = require('util')
 import chai = require('chai')
-import pathToRegexp = require('./index')
+import {pathToRegexp, Path, RegExpOptions, ParseOptions, Token, PathFunctionOptions, parse, compile, tokensToFunction, tokensToRegExp} from './index'
 
 const expect = chai.expect
 
 type Test = [
-  pathToRegexp.Path,
-  pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions,
-  pathToRegexp.Token[],
+  Path,
+  RegExpOptions & ParseOptions,
+  Token[],
   Array<[string, string[]]>,
-  Array<[any, string] | [any, string, pathToRegexp.PathFunctionOptions]>
+  Array<[any, string] | [any, string, PathFunctionOptions]>
 ]
 
 /**
@@ -2573,16 +2573,16 @@ describe('path-to-regexp', function () {
   })
 
   describe('tokens', function () {
-    var tokens = pathToRegexp.parse(TEST_PATH)
+    var tokens = parse(TEST_PATH)
 
     it('should expose method to compile tokens to regexp', function () {
-      var re = pathToRegexp.tokensToRegExp(tokens)
+      var re = tokensToRegExp(tokens)
 
       expect(exec(re, '/user/123')).to.deep.equal(['/user/123', '123'])
     })
 
     it('should expose method to compile tokens to a path function', function () {
-      var fn = pathToRegexp.tokensToFunction(tokens)
+      var fn = tokensToFunction(tokens)
 
       expect(fn({ id: 123 })).to.equal('/user/123')
     })
@@ -2603,11 +2603,11 @@ describe('path-to-regexp', function () {
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {
           it('should parse', function () {
-            expect(pathToRegexp.parse(path as string, opts)).to.deep.equal(tokens)
+            expect(parse(path as string, opts)).to.deep.equal(tokens)
           })
 
           describe('compile', function () {
-            var toPath = pathToRegexp.compile(path as string, opts)
+            var toPath = compile(path as string, opts)
 
             compileCases.forEach(function (io) {
               var input = io[0]
@@ -2652,7 +2652,7 @@ describe('path-to-regexp', function () {
 
   describe('compile errors', function () {
     it('should throw when a required param is undefined', function () {
-      var toPath = pathToRegexp.compile('/a/:b/c')
+      var toPath = compile('/a/:b/c')
 
       expect(function () {
         toPath()
@@ -2660,7 +2660,7 @@ describe('path-to-regexp', function () {
     })
 
     it('should throw when it does not match the pattern', function () {
-      var toPath = pathToRegexp.compile('/:foo(\\d+)')
+      var toPath = compile('/:foo(\\d+)')
 
       expect(function () {
         toPath({ foo: 'abc' })
@@ -2668,7 +2668,7 @@ describe('path-to-regexp', function () {
     })
 
     it('should throw when expecting a repeated value', function () {
-      var toPath = pathToRegexp.compile('/:foo+')
+      var toPath = compile('/:foo+')
 
       expect(function () {
         toPath({ foo: [] })
@@ -2676,7 +2676,7 @@ describe('path-to-regexp', function () {
     })
 
     it('should throw when not expecting a repeated value', function () {
-      var toPath = pathToRegexp.compile('/:foo')
+      var toPath = compile('/:foo')
 
       expect(function () {
         toPath({ foo: [] })
@@ -2684,7 +2684,7 @@ describe('path-to-regexp', function () {
     })
 
     it('should throw when repeated value does not match', function () {
-      var toPath = pathToRegexp.compile('/:foo(\\d+)+')
+      var toPath = compile('/:foo(\\d+)+')
 
       expect(function () {
         toPath({ foo: [1, 2, 3, 'a'] })
