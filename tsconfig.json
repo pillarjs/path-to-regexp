@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": ["dom","dom.iterable", "es6", "es7", "es2017", "esnext", "webworker"],
+    "pretty": true,
+    "baseUrl": ".",
+    "rootDir": "."
+  },
+  "exclude": ["node_modules"]
+}

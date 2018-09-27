@@ -26,11 +26,11 @@
     partial: boolean;
   }
 
-  interface PathFunctionOptions {
+  export interface PathFunctionOptions {
     encode?: (value: string, token: Key) => string;
   }
 
-  export type Token = string & Key;
+  export type Token = string | Key ;
   export type Path = string | RegExp | Array<string | RegExp>;
   export type PathFunction = (data?: Object, options?: PathFunctionOptions) => string;
 
@@ -129,7 +129,7 @@ export function tokensToFunction (tokens: Token[]): PathFunction {
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$')
+      matches[i] = new RegExp('^(?:' + (tokens as Key[])[i].pattern + ')$')
     }
   }
 
@@ -303,7 +303,7 @@ export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpO
 }
 
 
-export function pathToRegexp (path, keys, options) {
+export function pathToRegexp (path: Path, keys?: Key[], options?: RegExpOptions & ParseOptions): RegExp {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys)
   }
