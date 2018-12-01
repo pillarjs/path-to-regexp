@@ -1747,7 +1747,7 @@ var TESTS: Test[] = [
   ],
   [
     '/route\\(\\\\(\\d+\\\\)\\)',
-     null,
+    null,
     [
       '/route(\\',
       {
@@ -1763,6 +1763,26 @@ var TESTS: Test[] = [
     ],
     [
       ['/route(\\123\\)', ['/route(\\123\\)', '123\\']]
+    ],
+    []
+  ],
+  [
+    '/(login)?',
+    null,
+    [
+      {
+        name: 0,
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        partial: false,
+        pattern: 'login'
+      }
+    ],
+    [
+      ['/', ['/', undefined]],
+      ['/login', ['/login', 'login']]
     ],
     []
   ],
