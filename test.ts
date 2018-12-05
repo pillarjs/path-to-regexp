@@ -827,9 +827,11 @@ var TESTS: Test[] = [
       '/bar'
     ],
     [
+      ['/bar', ['/bar', undefined]],
       ['/foo/bar', ['/foo/bar', 'foo']]
     ],
     [
+      [null, '/bar'],
       [{ test: 'foo' }, '/foo/bar']
     ]
   ],
@@ -2289,6 +2291,40 @@ var TESTS: Test[] = [
     [
       [{ postType: 'video' }, '/video'],
       [{ postType: 'random' }, null]
+    ]
+  ],
+  [
+    '/:required/:optional?-ext',
+    null,
+    [
+      {
+        name: 'required',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'optional',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        partial: true,
+        pattern: '[^\\/]+?'
+      },
+      '-ext'
+    ],
+    [
+      ['/foo-ext', ['/foo-ext', 'foo', undefined]],
+      ['/foo/bar-ext', ['/foo/bar-ext', 'foo', 'bar']],
+      ['/foo/-ext', null]
+    ],
+    [
+      [{ required: 'foo' }, '/foo-ext'],
+      [{ required: 'foo', optional: 'baz' }, '/foo/baz-ext']
     ]
   ],
 

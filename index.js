@@ -186,7 +186,7 @@ function tokensToFunction (tokens) {
 
       if (token.optional) {
         // Prepend partial segment prefixes.
-        if (token.partial) path += token.prefix
+        if (i === 0 && token.partial) path += token.prefix
 
         continue
       }
@@ -323,7 +323,7 @@ function tokensToRegExp (tokens, keys, options) {
       if (keys) keys.push(token)
 
       if (token.optional) {
-        if (token.partial) {
+        if (i === 0 && token.partial) {
           route += escapeString(token.prefix) + '(' + capture + ')?'
         } else {
           route += '(?:' + escapeString(token.prefix) + '(' + capture + '))?'
