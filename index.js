@@ -66,9 +66,8 @@ function parse (str, options) {
     var modifier = res[5]
 
     if (!pathEscaped && path.length) {
-      var k = path.length - 1
-      prev = path[k]
-      path = path.slice(0, k)
+      prev = path[path.length - 1]
+      path = path.slice(0, -1)
     }
 
     // Push the current path onto the tokens.

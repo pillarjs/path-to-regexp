@@ -2535,6 +2535,49 @@ var TESTS: Test[] = [
       [{ test: ['hello', 'world'] }, 'hello world']
     ]
   ],
+  [
+    'name/:attr1?-:attr2?-:attr3?',
+    {},
+    [
+      'name',
+      {
+        delimiter: '/',
+        name: 'attr1',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '/',
+        repeat: false
+      },
+      {
+        delimiter: '-',
+        name: 'attr2',
+        optional: true,
+        pattern: '[^-]+?',
+        prefix: '-',
+        repeat: false
+      },
+      {
+        delimiter: '-',
+        name: 'attr3',
+        optional: true,
+        pattern: '[^-]+?',
+        prefix: '-',
+        repeat: false
+      }
+    ],
+    [
+      ['name/test', ['name/test', 'test', undefined, undefined]],
+      ['name/1', ['name/1', '1', undefined, undefined]],
+      ['name/1-2', ['name/1-2', '1', '2', undefined]],
+      ['name/1-2-3', ['name/1-2-3', '1', '2', '3']],
+      ['name/test/route', null]
+    ],
+    [
+      [{}, 'name'],
+      [{ attr1: 'test' }, 'name/test'],
+      [{ attr2: 'attr' }, 'name-attr']
+    ]
+  ],
 ]
 
 /**

@@ -26,7 +26,7 @@ const pathToRegexp = require('path-to-regexp')
 ```
 
 - **path** A string, array of strings, or a regular expression.
-- **keys** An array to be populated with keys found in the path.
+- **keys** An array to populate with keys found in the path.
 - **options**
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
