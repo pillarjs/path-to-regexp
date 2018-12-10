@@ -32,10 +32,8 @@ var pathToRegexp = require('path-to-regexp')
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
-  - Advanced options (use for non-pathname strings, e.g. host names):
-    - **delimiter** The default delimiter for segments. (default: `'/'`)
-    - **endsWith** Optional character, or list of characters, to treat as "end" characters.
-    - **delimiters** List of characters to consider delimiters when parsing. (default: `'./'`)
+  - **delimiter** The default delimiter for segments. (default: `'/'`)
+  - **endsWith** Optional character, or list of characters, to treat as "end" characters.
 
 ```javascript
 var keys = []
@@ -44,7 +42,7 @@ var re = pathToRegexp('/foo/:bar', keys)
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
 
-**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It does not handle arbitrary data (e.g. query strings, URL fragments, JSON, etc).
+**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
 
 ### Parameters
 
@@ -199,11 +197,10 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 #### Token Information
 
 * `name` The name of the token (`string` for named or `number` for index)
-* `prefix` The prefix character for the segment (`/` or `.`)
-* `delimiter` The delimiter for the segment (same as prefix or `/`)
+* `prefix` The prefix character for the segment (e.g. `/`)
+* `delimiter` The delimiter for the segment (same as prefix or default delimiter)
 * `optional` Indicates the token is optional (`boolean`)
 * `repeat` Indicates the token is repeated (`boolean`)
-* `partial` Indicates this token is a partial path segment (`boolean`)
 * `pattern` The RegExp used to match this token (`string`)
 
 ## Compatibility with Express <= 4.x
