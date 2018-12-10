@@ -33,10 +33,6 @@ declare namespace pathToRegexp {
      * Set the default delimiter for repeat parameters. (default: `'/'`)
      */
     delimiter?: string;
-    /**
-     * List of valid delimiter characters. (default: `'./'`)
-     */
-    delimiters?: string | string[];
   }
 
   /**
@@ -66,7 +62,6 @@ declare namespace pathToRegexp {
     optional: boolean;
     repeat: boolean;
     pattern: string;
-    partial: boolean;
   }
 
   interface PathFunctionOptions {
