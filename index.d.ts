@@ -47,12 +47,12 @@ declare namespace pathToRegexp {
   /**
    * Transforming an Express-style path into a valid path.
    */
-  export function compile <P>(path: string, options?: ParseOptions): PathFunction<P>;
+  export function compile <P extends object = object> (path: string, options?: ParseOptions): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a path generator function.
    */
-  export function tokensToFunction <P>(tokens: Token[]): PathFunction<P>;
+  export function tokensToFunction <P extends object = object> (tokens: Token[]): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a matching regular expression.
@@ -78,7 +78,7 @@ declare namespace pathToRegexp {
 
   export type Token = string | Key;
   export type Path = string | RegExp | Array<string | RegExp>;
-  export type PathFunction<P = any> = (data?: P, options?: PathFunctionOptions) => string;
+  export type PathFunction <P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
 }
 
 export = pathToRegexp;
