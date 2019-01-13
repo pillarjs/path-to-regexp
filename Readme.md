@@ -34,6 +34,7 @@ const pathToRegexp = require('path-to-regexp')
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
   - **delimiter** The default delimiter for segments. (default: `'/'`)
   - **endsWith** Optional character, or list of characters, to treat as "end" characters.
+  - **whitelist** List of characters to consider delimiters when parsing. (default: `undefined`, any character)
 
 ```javascript
 const keys = []

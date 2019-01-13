@@ -42,6 +42,7 @@ function parse (str, options) {
   var index = 0
   var path = ''
   var defaultDelimiter = (options && options.delimiter) || DEFAULT_DELIMITER
+  var whitelist = (options && options.whitelist) || undefined
   var pathEscaped = false
   var res
 
@@ -66,8 +67,14 @@ function parse (str, options) {
     var modifier = res[5]
 
     if (!pathEscaped && path.length) {
-      prev = path[path.length - 1]
-      path = path.slice(0, -1)
+      var k = path.length - 1
+      var c = path[k]
+      var matches = whitelist ? whitelist.indexOf(c) > -1 : true
+
+      if (matches) {
+        prev = c
+        path = path.slice(0, k)
+      }
     }
 
     // Push the current path onto the tokens.
@@ -79,8 +86,8 @@ function parse (str, options) {
 
     var repeat = modifier === '+' || modifier === '*'
     var optional = modifier === '?' || modifier === '*'
-    var delimiter = prev || defaultDelimiter
     var pattern = capture || group
+    var delimiter = prev || defaultDelimiter
 
     tokens.push({
       name: name || key++,
@@ -88,7 +95,9 @@ function parse (str, options) {
       delimiter: delimiter,
       optional: optional,
       repeat: repeat,
-      pattern: pattern ? escapeGroup(pattern) : '[^' + escapeString(delimiter) + ']+?'
+      pattern: pattern
+        ? escapeGroup(pattern)
+        : '[^' + escapeString(delimiter === defaultDelimiter ? delimiter : (delimiter + defaultDelimiter)) + ']+?'
     })
   }
 

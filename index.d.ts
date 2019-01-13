@@ -26,6 +26,10 @@ declare namespace pathToRegexp {
      * List of characters that can also be "end" characters.
      */
     endsWith?: string | string[];
+    /**
+     * List of characters to consider delimiters when parsing. (default: `undefined`, any character)
+     */
+    whitelist?: string | string[];
   }
 
   export interface ParseOptions {

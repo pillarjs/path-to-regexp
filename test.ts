@@ -945,6 +945,31 @@ var TESTS: Test[] = [
       [{ ext: ['xml', 'json'] }, '/route.xml.json']
     ]
   ],
+  [
+    '/route.:ext/test',
+    null,
+    [
+      '/route',
+      {
+        name: 'ext',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\.\\/]+?'
+      },
+      '/test'
+    ],
+    [
+      ['/route', null],
+      ['/route.json', null],
+      ['/route.xml/test', ['/route.xml/test', 'xml']],
+      ['/route.json.gz/test', null]
+    ],
+    [
+      [{ ext: 'xml' }, '/route.xml/test']
+    ]
+  ],
 
   /**
    * Repeated zero or more times parameters.
@@ -1354,7 +1379,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1378,7 +1403,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       },
       {
         name: 'format',
@@ -1386,7 +1411,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1409,7 +1434,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: true,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1435,7 +1460,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1457,7 +1482,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       },
       '.'
     ],
@@ -1492,7 +1517,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1523,7 +1548,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: true,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1557,7 +1582,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: true,
         repeat: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -2479,7 +2504,9 @@ var TESTS: Test[] = [
    */
   [
     '$:foo$:bar?',
-    {},
+    {
+      delimiter: '$'
+    },
     [
       {
         delimiter: '$',
@@ -2552,7 +2579,7 @@ var TESTS: Test[] = [
         delimiter: '-',
         name: 'attr2',
         optional: true,
-        pattern: '[^-]+?',
+        pattern: '[^-\\/]+?',
         prefix: '-',
         repeat: false
       },
@@ -2560,7 +2587,7 @@ var TESTS: Test[] = [
         delimiter: '-',
         name: 'attr3',
         optional: true,
-        pattern: '[^-]+?',
+        pattern: '[^-\\/]+?',
         prefix: '-',
         repeat: false
       }
@@ -2570,11 +2597,51 @@ var TESTS: Test[] = [
       ['name/1', ['name/1', '1', undefined, undefined]],
       ['name/1-2', ['name/1-2', '1', '2', undefined]],
       ['name/1-2-3', ['name/1-2-3', '1', '2', '3']],
+      ['name/foo-bar/route', null],
       ['name/test/route', null]
     ],
     [
       [{}, 'name'],
       [{ attr1: 'test' }, 'name/test'],
+      [{ attr2: 'attr' }, 'name-attr']
+    ]
+  ],
+  [
+    'name/:attr1?-:attr2?',
+    {
+      whitelist: '/'
+    },
+    [
+      'name',
+      {
+        delimiter: '/',
+        name: 'attr1',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '/',
+        repeat: false
+      },
+      '-',
+      {
+        delimiter: '/',
+        name: 'attr2',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '',
+        repeat: false
+      }
+    ],
+    [
+      ['name/1', null],
+      ['name/1-', ['name/1-', '1', undefined]],
+      ['name/1-2', ['name/1-2', '1', '2']],
+      ['name/1-2-3', ['name/1-2-3', '1', '2-3']],
+      ['name/foo-bar/route', null],
+      ['name/test/route', null]
+    ],
+    [
+      [{}, 'name-'],
+      [{ attr1: 'test' }, 'name/test-'],
       [{ attr2: 'attr' }, 'name-attr']
     ]
   ],
