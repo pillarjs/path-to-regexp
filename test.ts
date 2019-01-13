@@ -177,7 +177,7 @@ var TESTS: Test[] = [
     ],
     [
       ['/test', null],
-      ['/test/route', null],
+      ['/test/route', ['/test/']],
       ['/test//', ['/test//']],
       ['/test//route', ['/test/']]
     ],
@@ -244,7 +244,7 @@ var TESTS: Test[] = [
     [
       ['', ['']],
       ['/', ['/']],
-      ['route', null],
+      ['route', ['']],
       ['/route', ['']],
       ['/route/', ['']]
     ],
@@ -397,7 +397,7 @@ var TESTS: Test[] = [
       ['/test', null],
       ['/test/', ['/test/']],
       ['/test//', ['/test/']],
-      ['/test/route', null]
+      ['/test/route', ['/test/']]
     ],
     [
       [null, '/test/']
@@ -503,8 +503,8 @@ var TESTS: Test[] = [
       ['/test', null],
       ['/test/', ['/test/']],
       ['/test//', ['/test//']],
-      ['/test/route', null],
-      ['/route/test/deep', null],
+      ['/test/route', ['/test/']],
+      ['/route/test/deep', ['/test/']],
     ],
     [
       [null, '/test/']
