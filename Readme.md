@@ -18,7 +18,7 @@ npm install path-to-regexp --save
 ## Usage
 
 ```javascript
-var pathToRegexp = require('path-to-regexp')
+const pathToRegexp = require('path-to-regexp')
 
 // pathToRegexp(path, keys?, options?)
 // pathToRegexp.parse(path)
@@ -26,25 +26,24 @@ var pathToRegexp = require('path-to-regexp')
 ```
 
 - **path** A string, array of strings, or a regular expression.
-- **keys** An array to be populated with keys found in the path.
+- **keys** An array to populate with keys found in the path.
 - **options**
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
-  - Advanced options (use for non-pathname strings, e.g. host names):
-    - **delimiter** The default delimiter for segments. (default: `'/'`)
-    - **endsWith** Optional character, or list of characters, to treat as "end" characters.
-    - **delimiters** List of characters to consider delimiters when parsing. (default: `'./'`)
+  - **delimiter** The default delimiter for segments. (default: `'/'`)
+  - **endsWith** Optional character, or list of characters, to treat as "end" characters.
+  - **whitelist** List of characters to consider delimiters when parsing. (default: `undefined`, any character)
 
 ```javascript
-var keys = []
-var re = pathToRegexp('/foo/:bar', keys)
-// re = /^\/foo\/([^\/]+?)\/?$/i
+const keys = []
+const regexp = pathToRegexp('/foo/:bar', keys)
+// regexp = /^\/foo\/([^\/]+?)\/?$/i
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
 
-**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It does not handle arbitrary data (e.g. query strings, URL fragments, JSON, etc).
+**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
 
 ### Parameters
 
@@ -52,17 +51,17 @@ The path argument is used to define parameters and populate the list of keys.
 
 #### Named Parameters
 
-Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the following path segment.
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the next prefix (e.g. `[^/]+`).
 
 ```js
-var re = pathToRegexp('/:foo/:bar')
+const regexp = pathToRegexp('/:foo/:bar')
 // keys = [{ name: 'foo', prefix: '/', ... }, { name: 'bar', prefix: '/', ... }]
 
 re.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
 
-**Please note:** Parameter names must be made up of "word characters" (`[A-Za-z0-9_]`).
+**Please note:** Parameter names must use "word characters" (`[A-Za-z0-9_]`).
 
 #### Parameter Modifiers
 
@@ -71,7 +70,7 @@ re.exec('/test/route')
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
 ```js
-var re = pathToRegexp('/:foo/:bar?')
+const regexp = pathToRegexp('/:foo/:bar?')
 // keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
 re.exec('/test')
@@ -81,14 +80,14 @@ re.exec('/test/route')
 //=> ['/test', 'test', 'route']
 ```
 
-**Tip:** If the parameter is the _only_ value in the segment, the prefix is also optional.
+**Tip:** The prefix is also optional, escape the prefix `\/` to make it required.
 
 ##### Zero or more
 
-Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is taken into account for each match.
+Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is used for each match.
 
 ```js
-var re = pathToRegexp('/:foo*')
+const regexp = pathToRegexp('/:foo*')
 // keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
 re.exec('/')
@@ -100,10 +99,10 @@ re.exec('/bar/baz')
 
 ##### One or more
 
-Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is taken into account for each match.
+Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is used for each match.
 
 ```js
-var re = pathToRegexp('/:foo+')
+const regexp = pathToRegexp('/:foo+')
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
 re.exec('/')
@@ -113,41 +112,50 @@ re.exec('/bar/baz')
 //=> ['/bar/baz', 'bar/baz']
 ```
 
-#### Custom Matching Parameters
-
-All parameters can be provided a custom regexp, which overrides the default match (`[^\/]+`). For example, you can match digits in the path:
-
-```js
-var re = pathToRegexp('/icon-:foo(\\d+).png')
-// keys = [{ name: 'foo', ... }]
-
-re.exec('/icon-123.png')
-//=> ['/icon-123.png', '123']
-
-re.exec('/icon-abc.png')
-//=> null
-```
-
-**Please note:** Backslashes need to be escaped with another backslash in strings.
-
 #### Unnamed Parameters
 
 It is possible to write an unnamed parameter that only consists of a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
 ```js
-var re = pathToRegexp('/:foo/(.*)')
+const regexp = pathToRegexp('/:foo/(.*)')
 // keys = [{ name: 'foo', ... }, { name: 0, ... }]
 
-re.exec('/test/route')
+regexp.exec('/test/route')
 //=> ['/test/route', 'test', 'route']
 ```
+
+#### Custom Matching Parameters
+
+All parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
+
+```js
+const regexpNumbers = pathToRegexp('/icon-:foo(\\d+).png')
+// keys = [{ name: 'foo', ... }]
+
+regexpNumbers.exec('/icon-123.png')
+//=> ['/icon-123.png', '123']
+
+regexpNumbers.exec('/icon-abc.png')
+//=> null
+
+const regexpWord = pathToRegexp('/(user|u)')
+// keys = [{ name: 0, ... }]
+
+regexpWord.exec('/u')
+//=> ['/u', 'u']
+
+regexpWord.exec('/users')
+//=> null
+```
+
+**Tip:** Backslashes need to be escaped with another backslash in JavaScript strings.
 
 ### Parse
 
 The parse function is exposed via `pathToRegexp.parse`. This will return an array of strings and keys.
 
 ```js
-var tokens = pathToRegexp.parse('/route/:foo/(.*)')
+const tokens = pathToRegexp.parse('/route/:foo/(.*)')
 
 console.log(tokens[0])
 //=> "/route"
@@ -166,7 +174,7 @@ console.log(tokens[2])
 Path-To-RegExp exposes a compile function for transforming a string into a valid path.
 
 ```js
-var toPath = pathToRegexp.compile('/user/:id')
+const toPath = pathToRegexp.compile('/user/:id')
 
 toPath({ id: 123 }) //=> "/user/123"
 toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
@@ -175,12 +183,12 @@ toPath({ id: '/' }) //=> "/user/%2F"
 toPath({ id: ':/' }) //=> "/user/%3A%2F"
 toPath({ id: ':/' }, { encode: (value, token) => value }) //=> "/user/:/"
 
-var toPathRepeated = pathToRegexp.compile('/:segment+')
+const toPathRepeated = pathToRegexp.compile('/:segment+')
 
 toPathRepeated({ segment: 'foo' }) //=> "/foo"
 toPathRepeated({ segment: ['a', 'b', 'c'] }) //=> "/a/b/c"
 
-var toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
+const toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
 
 toPathRegexp({ id: 123 }) //=> "/user/123"
 toPathRegexp({ id: '123' }) //=> "/user/123"
@@ -199,11 +207,10 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 #### Token Information
 
 * `name` The name of the token (`string` for named or `number` for index)
-* `prefix` The prefix character for the segment (`/` or `.`)
-* `delimiter` The delimiter for the segment (same as prefix or `/`)
+* `prefix` The prefix character for the segment (e.g. `/`)
+* `delimiter` The delimiter for the segment (same as prefix or default delimiter)
 * `optional` Indicates the token is optional (`boolean`)
 * `repeat` Indicates the token is repeated (`boolean`)
-* `partial` Indicates this token is a partial path segment (`boolean`)
 * `pattern` The RegExp used to match this token (`string`)
 
 ## Compatibility with Express <= 4.x

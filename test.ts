@@ -197,7 +197,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -224,7 +223,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -309,7 +307,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -336,7 +333,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -438,7 +434,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -464,7 +459,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -548,7 +542,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -574,7 +567,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -636,7 +628,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -667,7 +658,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -691,7 +681,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -716,7 +705,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -742,7 +730,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -769,7 +756,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -795,7 +781,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/'
@@ -821,15 +806,16 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       '/bar'
     ],
     [
+      ['/bar', ['/bar', undefined]],
       ['/foo/bar', ['/foo/bar', 'foo']]
     ],
     [
+      [null, '/bar'],
       [{ test: 'foo' }, '/foo/bar']
     ]
   ],
@@ -843,17 +829,17 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '-bar'
     ],
     [
-      ['/-bar', ['/-bar', undefined]],
+      ['-bar', ['-bar', undefined]],
+      ['/-bar', null],
       ['/foo-bar', ['/foo-bar', 'foo']]
     ],
     [
-      [undefined, '/-bar'],
+      [undefined, '-bar'],
       [{ test: 'foo' }, '/foo-bar']
     ]
   ],
@@ -867,13 +853,13 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: true,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '-bar'
     ],
     [
-      ['/-bar', ['/-bar', undefined]],
+      ['-bar', ['-bar', undefined]],
+      ['/-bar', null],
       ['/foo-bar', ['/foo-bar', 'foo']],
       ['/foo/baz-bar', ['/foo/baz-bar', 'foo/baz']],
     ],
@@ -895,7 +881,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: true,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -921,7 +906,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: true,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -946,7 +930,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: true,
-        partial: false,
         pattern: 'json|xml'
       }
     ],
@@ -960,6 +943,31 @@ var TESTS: Test[] = [
       [{ ext: 'foobar' }, null],
       [{ ext: 'xml' }, '/route.xml'],
       [{ ext: ['xml', 'json'] }, '/route.xml.json']
+    ]
+  ],
+  [
+    '/route.:ext/test',
+    null,
+    [
+      '/route',
+      {
+        name: 'ext',
+        prefix: '.',
+        delimiter: '.',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\.\\/]+?'
+      },
+      '/test'
+    ],
+    [
+      ['/route', null],
+      ['/route.json', null],
+      ['/route.xml/test', ['/route.xml/test', 'xml']],
+      ['/route.json.gz/test', null]
+    ],
+    [
+      [{ ext: 'xml' }, '/route.xml/test']
     ]
   ],
 
@@ -976,7 +984,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: true,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1003,7 +1010,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: true,
         repeat: true,
-        partial: false,
         pattern: '[a-z]+'
       }
     ],
@@ -1035,7 +1041,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -1061,7 +1066,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -1084,7 +1088,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '.*'
       }
     ],
@@ -1109,7 +1112,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[a-z]+'
       }
     ],
@@ -1133,7 +1135,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: 'this|that'
       }
     ],
@@ -1158,7 +1159,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: true,
-        partial: false,
         pattern: 'abc|xyz'
       }
     ],
@@ -1206,7 +1206,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1234,7 +1233,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1259,7 +1257,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1283,7 +1280,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1309,7 +1305,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: true,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1354,7 +1349,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '.json'
@@ -1385,8 +1379,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1410,8 +1403,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       },
       {
         name: 'format',
@@ -1419,8 +1411,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1443,8 +1434,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: true,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1470,8 +1460,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1493,8 +1482,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       },
       '.'
     ],
@@ -1521,7 +1509,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       {
@@ -1530,8 +1517,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1554,7 +1540,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       {
@@ -1563,8 +1548,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: true,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1590,7 +1574,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       {
@@ -1599,8 +1582,7 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: true,
         repeat: false,
-        partial: false,
-        pattern: '[^\\.]+?'
+        pattern: '[^\\.\\/]+?'
       }
     ],
     [
@@ -1628,7 +1610,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '.*'
       },
       'z'
@@ -1658,7 +1639,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -1684,7 +1664,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -1708,7 +1687,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       }
     ],
@@ -1731,7 +1709,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '.*'
       }
     ],
@@ -1756,7 +1733,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+\\\\'
       },
       ')'
@@ -1776,7 +1752,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: 'login'
       }
     ],
@@ -1809,7 +1784,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       }
     ],
@@ -1828,7 +1802,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       }
     ],
@@ -1852,7 +1825,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       }
     ],
@@ -1871,7 +1843,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       },
       {
@@ -1880,7 +1851,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       }
     ],
@@ -1904,7 +1874,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       {
@@ -1913,7 +1882,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -1933,7 +1901,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       },
       {
@@ -1942,7 +1909,6 @@ var TESTS: Test[] = [
         delimiter: null,
         optional: false,
         repeat: false,
-        partial: false,
         pattern: null
       }
     ],
@@ -2007,7 +1973,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: 'u\\d+'
       },
       {
@@ -2016,7 +1981,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: 'c\\d+'
       }
     ],
@@ -2037,26 +2001,25 @@ var TESTS: Test[] = [
    * Unnamed group prefix.
    */
   [
-    '/(apple-)?icon-:res(\\d+).png',
+    '\\/(apple-)?icon-:res(\\d+).png',
     null,
     [
+      '/',
       {
         name: 0,
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: true,
         pattern: 'apple-'
       },
-      'icon-',
+      'icon',
       {
         name: 'res',
-        prefix: '',
-        delimiter: '/',
+        prefix: '-',
+        delimiter: '-',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '\\d+'
       },
       '.png'
@@ -2081,7 +2044,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       {
@@ -2090,7 +2052,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -2111,7 +2072,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '(test)/bar'
@@ -2129,7 +2089,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[\\w-.]+'
       },
       {
@@ -2138,7 +2097,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[\\w-]+'
       }
     ],
@@ -2162,7 +2120,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '?'
@@ -2184,7 +2141,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: true,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       'baz'
@@ -2201,16 +2157,16 @@ var TESTS: Test[] = [
     ]
   ],
   [
-    '/:pre?baz',
+    '\\/:pre?baz',
     null,
     [
+      '/',
       {
         name: 'pre',
-        prefix: '/',
+        prefix: '',
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       'baz'
@@ -2234,7 +2190,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: '[^\\/]+?'
       },
       '(',
@@ -2244,7 +2199,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       },
       ')'
@@ -2268,7 +2222,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: true,
         pattern: 'video|audio|text'
       },
       {
@@ -2277,7 +2230,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        partial: false,
         pattern: '\\+.+'
       }
     ],
@@ -2289,6 +2241,74 @@ var TESTS: Test[] = [
     [
       [{ postType: 'video' }, '/video'],
       [{ postType: 'random' }, null]
+    ]
+  ],
+  [
+    '/:foo?/:bar?-ext',
+    null,
+    [
+      {
+        name: 'foo',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'bar',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '-ext'
+    ],
+    [
+      ['/-ext', null],
+      ['-ext', ['-ext', undefined, undefined]],
+      ['/foo-ext', ['/foo-ext', 'foo', undefined]],
+      ['/foo/bar-ext', ['/foo/bar-ext', 'foo', 'bar']],
+      ['/foo/-ext', null]
+    ],
+    [
+      [{}, '-ext'],
+      [{ foo: 'foo' }, '/foo-ext'],
+      [{ bar: 'bar' }, '/bar-ext'],
+      [{ foo: 'foo', bar: 'bar' }, '/foo/bar-ext'],
+    ]
+  ],
+  [
+    '/:required/:optional?-ext',
+    null,
+    [
+      {
+        name: 'required',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      {
+        name: 'optional',
+        prefix: '/',
+        delimiter: '/',
+        optional: true,
+        repeat: false,
+        pattern: '[^\\/]+?'
+      },
+      '-ext'
+    ],
+    [
+      ['/foo-ext', ['/foo-ext', 'foo', undefined]],
+      ['/foo/bar-ext', ['/foo/bar-ext', 'foo', 'bar']],
+      ['/foo/-ext', null]
+    ],
+    [
+      [{ required: 'foo' }, '/foo-ext'],
+      [{ required: 'foo', optional: 'baz' }, '/foo/baz-ext']
     ]
   ],
 
@@ -2305,7 +2325,6 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\/]+?'
       }
     ],
@@ -2359,7 +2378,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\.]+?'
       },
       '.com'
@@ -2386,7 +2404,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\.]+?'
       },
       '.com'
@@ -2413,7 +2430,6 @@ var TESTS: Test[] = [
         delimiter: '.',
         optional: false,
         repeat: false,
-        partial: false,
         pattern: '[^\\.]+?'
       }
     ],
@@ -2489,14 +2505,13 @@ var TESTS: Test[] = [
   [
     '$:foo$:bar?',
     {
-      delimiters: '$'
+      delimiter: '$'
     },
     [
       {
         delimiter: '$',
         name: 'foo',
         optional: false,
-        partial: false,
         pattern: '[^\\$]+?',
         prefix: '$',
         repeat: false
@@ -2505,7 +2520,6 @@ var TESTS: Test[] = [
         delimiter: '$',
         name: 'bar',
         optional: true,
-        partial: false,
         pattern: '[^\\$]+?',
         prefix: '$',
         repeat: false
@@ -2523,8 +2537,7 @@ var TESTS: Test[] = [
   [
     ':test+',
     {
-      delimiter: ' ',
-      delimiters: ' '
+      delimiter: ' '
     },
     [
       {
@@ -2533,7 +2546,6 @@ var TESTS: Test[] = [
         delimiter: ' ',
         optional: false,
         repeat: true,
-        partial: false,
         pattern: '[^ ]+?'
       }
     ],
@@ -2550,6 +2562,89 @@ var TESTS: Test[] = [
       [{ test: ['hello', 'world'] }, 'hello world']
     ]
   ],
+  [
+    'name/:attr1?-:attr2?-:attr3?',
+    {},
+    [
+      'name',
+      {
+        delimiter: '/',
+        name: 'attr1',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '/',
+        repeat: false
+      },
+      {
+        delimiter: '-',
+        name: 'attr2',
+        optional: true,
+        pattern: '[^-\\/]+?',
+        prefix: '-',
+        repeat: false
+      },
+      {
+        delimiter: '-',
+        name: 'attr3',
+        optional: true,
+        pattern: '[^-\\/]+?',
+        prefix: '-',
+        repeat: false
+      }
+    ],
+    [
+      ['name/test', ['name/test', 'test', undefined, undefined]],
+      ['name/1', ['name/1', '1', undefined, undefined]],
+      ['name/1-2', ['name/1-2', '1', '2', undefined]],
+      ['name/1-2-3', ['name/1-2-3', '1', '2', '3']],
+      ['name/foo-bar/route', null],
+      ['name/test/route', null]
+    ],
+    [
+      [{}, 'name'],
+      [{ attr1: 'test' }, 'name/test'],
+      [{ attr2: 'attr' }, 'name-attr']
+    ]
+  ],
+  [
+    'name/:attr1?-:attr2?',
+    {
+      whitelist: '/'
+    },
+    [
+      'name',
+      {
+        delimiter: '/',
+        name: 'attr1',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '/',
+        repeat: false
+      },
+      '-',
+      {
+        delimiter: '/',
+        name: 'attr2',
+        optional: true,
+        pattern: '[^\\/]+?',
+        prefix: '',
+        repeat: false
+      }
+    ],
+    [
+      ['name/1', null],
+      ['name/1-', ['name/1-', '1', undefined]],
+      ['name/1-2', ['name/1-2', '1', '2']],
+      ['name/1-2-3', ['name/1-2-3', '1', '2-3']],
+      ['name/foo-bar/route', null],
+      ['name/test/route', null]
+    ],
+    [
+      [{}, 'name-'],
+      [{ attr1: 'test' }, 'name/test-'],
+      [{ attr2: 'attr' }, 'name-attr']
+    ]
+  ],
 ]
 
 /**
@@ -2564,7 +2659,6 @@ describe('path-to-regexp', function () {
     delimiter: '/',
     optional: false,
     repeat: false,
-    partial: false,
     pattern: '[^\\/]+?'
   }
 

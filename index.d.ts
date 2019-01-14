@@ -26,6 +26,10 @@ declare namespace pathToRegexp {
      * List of characters that can also be "end" characters.
      */
     endsWith?: string | string[];
+    /**
+     * List of characters to consider delimiters when parsing. (default: `undefined`, any character)
+     */
+    whitelist?: string | string[];
   }
 
   export interface ParseOptions {
@@ -33,10 +37,6 @@ declare namespace pathToRegexp {
      * Set the default delimiter for repeat parameters. (default: `'/'`)
      */
     delimiter?: string;
-    /**
-     * List of valid delimiter characters. (default: `'./'`)
-     */
-    delimiters?: string | string[];
   }
 
   /**
@@ -66,7 +66,6 @@ declare namespace pathToRegexp {
     optional: boolean;
     repeat: boolean;
     pattern: string;
-    partial: boolean;
   }
 
   interface PathFunctionOptions {
