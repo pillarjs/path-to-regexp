@@ -1,3 +1,9 @@
+3.0.0 / 2019-01-13
+==================
+
+  * Always use prefix character as delimiter token, allowing any character to be a delimiter (e.g. `/:att1-:att2-:att3-:att4-:att5`)
+  * Remove `partial` support, prefer escaping the prefix delimiter explicitly (e.g. `\\/(apple-)?icon-:res(\\d+).png`)
+
 2.4.0 / 2018-08-26
 ==================
 
