@@ -1051,6 +1051,7 @@ var TESTS: Test[] = [
     ],
     [
       [{ test: 'abc' }, null],
+      [{ test: 'abc' }, '/abc', { skipMatch: true }],
       [{ test: '123' }, '/123']
     ]
   ],
@@ -1121,7 +1122,9 @@ var TESTS: Test[] = [
     ],
     [
       [{ route: '' }, null],
+      [{ route: '' }, '/', { skipMatch: true }],
       [{ route: '123' }, null],
+      [{ route: '123' }, '/123', { skipMatch: true }],
       [{ route: 'abc' }, '/abc']
     ]
   ],
@@ -1146,6 +1149,7 @@ var TESTS: Test[] = [
     [
       [{ route: 'this' }, '/this'],
       [{ route: 'foo' }, null],
+      [{ route: 'foo' }, '/foo', { skipMatch: true }],
       [{ route: 'that' }, '/that']
     ]
   ],
@@ -1175,7 +1179,9 @@ var TESTS: Test[] = [
       [{ path: ['abc', 'xyz'] }, '/abc/xyz'],
       [{ path: ['xyz', 'abc', 'xyz'] }, '/xyz/abc/xyz'],
       [{ path: 'abc123' }, null],
-      [{ path: 'abcxyz' }, null]
+      [{ path: 'abc123' }, '/abc123', { skipMatch: true }],
+      [{ path: 'abcxyz' }, null],
+      [{ path: 'abcxyz' }, '/abcxyz', { skipMatch: true }],
     ]
   ],
 

@@ -73,6 +73,7 @@ declare namespace pathToRegexp {
      * Function for encoding input strings for output.
      */
     encode?: (value: string, token: Key) => string;
+    skipMatch?: boolean;
   }
 
   export type Token = string | Key;
