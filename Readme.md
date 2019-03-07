@@ -57,8 +57,8 @@ Named parameters are defined by prefixing a colon to the parameter name (`:foo`)
 const regexp = pathToRegexp('/:foo/:bar')
 // keys = [{ name: 'foo', prefix: '/', ... }, { name: 'bar', prefix: '/', ... }]
 
-re.exec('/test/route')
-//=> ['/test/route', 'test', 'route']
+regexp.exec('/test/route')
+//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
 **Please note:** Parameter names must use "word characters" (`[A-Za-z0-9_]`).
@@ -73,11 +73,11 @@ Parameters can be suffixed with a question mark (`?`) to make the parameter opti
 const regexp = pathToRegexp('/:foo/:bar?')
 // keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
-re.exec('/test')
-//=> ['/test', 'test', undefined]
+regexp.exec('/test')
+//=> [ '/test', 'test', undefined, index: 0, input: '/test', groups: undefined ]
 
-re.exec('/test/route')
-//=> ['/test', 'test', 'route']
+regexp.exec('/test/route')
+//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
 **Tip:** The prefix is also optional, escape the prefix `\/` to make it required.
@@ -90,11 +90,11 @@ Parameters can be suffixed with an asterisk (`*`) to denote a zero or more param
 const regexp = pathToRegexp('/:foo*')
 // keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
-re.exec('/')
-//=> ['/', undefined]
+regexp.exec('/')
+//=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
 
-re.exec('/bar/baz')
-//=> ['/bar/baz', 'bar/baz']
+regexp.exec('/bar/baz')
+//=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
 ##### One or more
@@ -105,11 +105,11 @@ Parameters can be suffixed with a plus sign (`+`) to denote a one or more parame
 const regexp = pathToRegexp('/:foo+')
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
-re.exec('/')
+regexp.exec('/')
 //=> null
 
-re.exec('/bar/baz')
-//=> ['/bar/baz', 'bar/baz']
+regexp.exec('/bar/baz')
+//=> [ '/bar/baz','bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
 #### Unnamed Parameters
@@ -121,7 +121,7 @@ const regexp = pathToRegexp('/:foo/(.*)')
 // keys = [{ name: 'foo', ... }, { name: 0, ... }]
 
 regexp.exec('/test/route')
-//=> ['/test/route', 'test', 'route']
+//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
 #### Custom Matching Parameters
