@@ -105,10 +105,10 @@ Parameters can be suffixed with a plus sign (`+`) to denote a one or more parame
 const regexp = pathToRegexp('/:foo+')
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
-re.exec('/')
+regexp.exec('/')
 //=> null
 
-re.exec('/bar/baz')
+regexp.exec('/bar/baz')
 //=> ['/bar/baz', 'bar/baz']
 ```
 
