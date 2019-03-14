@@ -110,7 +110,6 @@ regexp.exec('/')
 
 regexp.exec('/bar/baz')
 //=> [ '/bar/baz','bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
-```
 
 #### Unnamed Parameters
 
