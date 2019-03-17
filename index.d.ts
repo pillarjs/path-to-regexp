@@ -73,7 +73,10 @@ declare namespace pathToRegexp {
      * Function for encoding input strings for output.
      */
     encode?: (value: string, token: Key) => string;
-    skipMatch?: boolean;
+    /**
+     * When `true` the path generator will skip token validate.
+     */
+    noValidate?: boolean;
   }
 
   export type Token = string | Key;
