@@ -137,6 +137,7 @@ function tokensToFunction (tokens) {
   return function (data, options) {
     var path = ''
     var encode = (options && options.encode) || encodeURIComponent
+    var noValidate = (options && options.noValidate) || false
 
     for (var i = 0; i < tokens.length; i++) {
       var token = tokens[i]
@@ -163,7 +164,7 @@ function tokensToFunction (tokens) {
         for (var j = 0; j < value.length; j++) {
           segment = encode(value[j], token)
 
-          if (!matches[i].test(segment)) {
+          if (!noValidate && !matches[i].test(segment)) {
             throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '"')
           }
 
@@ -176,7 +177,7 @@ function tokensToFunction (tokens) {
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
         segment = encode(String(value), token)
 
-        if (!matches[i].test(segment)) {
+        if (!noValidate && !matches[i].test(segment)) {
           throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '", but got "' + segment + '"')
         }
 

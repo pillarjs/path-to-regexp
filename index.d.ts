@@ -73,6 +73,10 @@ declare namespace pathToRegexp {
      * Function for encoding input strings for output.
      */
     encode?: (value: string, token: Key) => string;
+    /**
+     * When `true` the function can produce an invalid (unmatched) path. (default: `false`)
+     */
+    noValidate?: boolean;
   }
 
   export type Token = string | Key;
