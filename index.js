@@ -126,7 +126,7 @@ function compile (str, options) {
 function tokensToFunction (tokens, options) {
   // Compile all the tokens into regexps.
   var matches = new Array(tokens.length)
-  
+
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
