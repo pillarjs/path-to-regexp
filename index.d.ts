@@ -1,4 +1,4 @@
-declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): RegExp;
+declare function pathToRegexp(path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): RegExp;
 
 declare namespace pathToRegexp {
   export interface RegExpOptions {
@@ -39,25 +39,32 @@ declare namespace pathToRegexp {
     delimiter?: string;
   }
 
+  export interface TokensToFunctionOptions {
+    /**
+     * When `true` the regexp will be case sensitive. (default: `false`)
+     */
+    sensitive?: boolean;
+  }
+
   /**
    * Parse an Express-style path into an array of tokens.
    */
-  export function parse (path: string, options?: ParseOptions): Token[];
+  export function parse(path: string, options?: ParseOptions): Token[];
 
   /**
    * Transforming an Express-style path into a valid path.
    */
-  export function compile <P extends object = object> (path: string, options?: ParseOptions): PathFunction<P>;
+  export function compile<P extends object = object>(path: string, options?: ParseOptions & TokensToFunctionOptions): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a path generator function.
    */
-  export function tokensToFunction <P extends object = object> (tokens: Token[]): PathFunction<P>;
+  export function tokensToFunction<P extends object = object>(tokens: Token[], options?: TokensToFunctionOptions): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a matching regular expression.
    */
-  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp;
+  export function tokensToRegExp(tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp;
 
   export interface Key {
     name: string | number;
@@ -81,7 +88,7 @@ declare namespace pathToRegexp {
 
   export type Token = string | Key;
   export type Path = string | RegExp | Array<string | RegExp>;
-  export type PathFunction <P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
+  export type PathFunction<P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
 }
 
 export = pathToRegexp;
