@@ -6,4 +6,4 @@ const cjsSource = fs.readFileSync('index.js', { encoding: 'utf8' })
 
 const esmSource = cjsSource.replace(exportRegex, 'export default pathToRegexp')
 
-fs.writeFileSync('index.esm.js', esmSource)
+fs.writeFileSync('index.mjs', esmSource)

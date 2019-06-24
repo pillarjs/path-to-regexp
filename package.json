@@ -3,12 +3,12 @@
   "description": "Express style path to RegExp utility",
   "version": "3.0.0",
   "main": "index.js",
-  "module": "index.esm.js",
+  "module": "index.mjs",
   "typings": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts",
-    "index.esm.js",
+    "index.mjs",
     "LICENSE"
   ],
   "scripts": {
