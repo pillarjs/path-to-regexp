@@ -3,14 +3,18 @@
   "description": "Express style path to RegExp utility",
   "version": "3.0.0",
   "main": "index.js",
+  "module": "index.esm.js",
   "typings": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts",
+    "index.esm.js",
     "LICENSE"
   ],
   "scripts": {
+    "create-esm": "node tools/create-esm.js",
     "lint": "standard",
+    "prepublishOnly": "npm run create-esm",
     "test-spec": "mocha --require ts-node/register -R spec --bail test.ts",
     "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --require ts-node/register -R spec test.ts",
     "test": "npm run lint && npm run test-cov"

@@ -2,3 +2,4 @@ node_modules
 coverage
 components
 typings
+index.esm.js

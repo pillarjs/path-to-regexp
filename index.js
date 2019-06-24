@@ -2,10 +2,10 @@
  * Expose `pathToRegexp`.
  */
 module.exports = pathToRegexp
-module.exports.parse = parse
-module.exports.compile = compile
-module.exports.tokensToFunction = tokensToFunction
-module.exports.tokensToRegExp = tokensToRegExp
+pathToRegexp.parse = parse
+pathToRegexp.compile = compile
+pathToRegexp.tokensToFunction = tokensToFunction
+pathToRegexp.tokensToRegExp = tokensToRegExp
 
 /**
  * Default configs.
