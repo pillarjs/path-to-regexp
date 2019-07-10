@@ -39,6 +39,13 @@ declare namespace pathToRegexp {
     delimiter?: string;
   }
 
+  export interface TokensToFunctionOptions {
+    /**
+     * When `true` the regexp will be case sensitive. (default: `false`)
+     */
+    sensitive?: boolean;
+  }
+
   /**
    * Parse an Express-style path into an array of tokens.
    */
@@ -47,12 +54,12 @@ declare namespace pathToRegexp {
   /**
    * Transforming an Express-style path into a valid path.
    */
-  export function compile <P extends object = object> (path: string, options?: ParseOptions): PathFunction<P>;
+  export function compile <P extends object = object> (path: string, options?: ParseOptions & TokensToFunctionOptions): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a path generator function.
    */
-  export function tokensToFunction <P extends object = object> (tokens: Token[]): PathFunction<P>;
+  export function tokensToFunction <P extends object = object> (tokens: Token[], options?: TokensToFunctionOptions): PathFunction<P>;
 
   /**
    * Transform an array of tokens into a matching regular expression.

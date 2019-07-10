@@ -2651,6 +2651,58 @@ var TESTS: Test[] = [
       [{ attr2: 'attr' }, 'name-attr']
     ]
   ],
+
+  /**
+   * Case-sensitive compile tokensToFunction params.
+   */
+  [
+    '/:test(abc)',
+    {
+      sensitive: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: 'abc'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/ABC', null]
+    ],
+    [
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'ABC' }, null]
+    ]
+  ],
+  [
+    '/:test(abc)',
+    {
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        pattern: 'abc'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/ABC', ['/ABC', 'ABC']]
+    ],
+    [
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'ABC' }, '/ABC']
+    ]
+  ],
+  
 ]
 
 /**
