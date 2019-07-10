@@ -1,4 +1,4 @@
-declare function pathToRegexp (path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): RegExp;
+declare function pathToRegexp(path: pathToRegexp.Path, keys?: pathToRegexp.Key[], options?: pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions): RegExp;
 
 declare namespace pathToRegexp {
   export interface RegExpOptions {
@@ -49,7 +49,7 @@ declare namespace pathToRegexp {
   /**
    * Parse an Express-style path into an array of tokens.
    */
-  export function parse (path: string, options?: ParseOptions): Token[];
+  export function parse(path: string, options?: ParseOptions): Token[];
 
   /**
    * Transforming an Express-style path into a valid path.
@@ -64,7 +64,7 @@ declare namespace pathToRegexp {
   /**
    * Transform an array of tokens into a matching regular expression.
    */
-  export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp;
+  export function tokensToRegExp(tokens: Token[], keys?: Key[], options?: RegExpOptions): RegExp;
 
   export interface Key {
     name: string | number;
@@ -88,7 +88,7 @@ declare namespace pathToRegexp {
 
   export type Token = string | Key;
   export type Path = string | RegExp | Array<string | RegExp>;
-  export type PathFunction <P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
+  export type PathFunction<P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
 }
 
 export = pathToRegexp;
