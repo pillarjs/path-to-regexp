@@ -193,7 +193,7 @@ const toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
 toPathRegexp({ id: 123 }) //=> "/user/123"
 toPathRegexp({ id: '123' }) //=> "/user/123"
 toPathRegexp({ id: 'abc' }) //=> Throws `TypeError`.
-toPathRegexp({ id: 'abc' }, { noValidate: true }) //=> "/user/abc"
+toPathRegexp({ id: 'abc' }, { validate: true }) //=> "/user/abc"
 ```
 
 **Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.

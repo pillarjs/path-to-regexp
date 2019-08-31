@@ -81,9 +81,9 @@ declare namespace pathToRegexp {
      */
     encode?: (value: string, token: Key) => string;
     /**
-     * When `true` the function can produce an invalid (unmatched) path. (default: `false`)
+     * When `false` the function can produce an invalid (unmatched) path. (default: `true`)
      */
-    noValidate?: boolean;
+    validate?: boolean;
   }
 
   export type Token = string | Key;

@@ -1051,7 +1051,7 @@ var TESTS: Test[] = [
     ],
     [
       [{ test: 'abc' }, null],
-      [{ test: 'abc' }, '/abc', { noValidate: true }],
+      [{ test: 'abc' }, '/abc', { validate: false }],
       [{ test: '123' }, '/123']
     ]
   ],
@@ -1122,9 +1122,9 @@ var TESTS: Test[] = [
     ],
     [
       [{ route: '' }, null],
-      [{ route: '' }, '/', { noValidate: true }],
+      [{ route: '' }, '/', { validate: false }],
       [{ route: '123' }, null],
-      [{ route: '123' }, '/123', { noValidate: true }],
+      [{ route: '123' }, '/123', { validate: false }],
       [{ route: 'abc' }, '/abc']
     ]
   ],
@@ -1149,7 +1149,7 @@ var TESTS: Test[] = [
     [
       [{ route: 'this' }, '/this'],
       [{ route: 'foo' }, null],
-      [{ route: 'foo' }, '/foo', { noValidate: true }],
+      [{ route: 'foo' }, '/foo', { validate: false }],
       [{ route: 'that' }, '/that']
     ]
   ],
@@ -1179,9 +1179,9 @@ var TESTS: Test[] = [
       [{ path: ['abc', 'xyz'] }, '/abc/xyz'],
       [{ path: ['xyz', 'abc', 'xyz'] }, '/xyz/abc/xyz'],
       [{ path: 'abc123' }, null],
-      [{ path: 'abc123' }, '/abc123', { noValidate: true }],
+      [{ path: 'abc123' }, '/abc123', { validate: false }],
       [{ path: 'abcxyz' }, null],
-      [{ path: 'abcxyz' }, '/abcxyz', { noValidate: true }],
+      [{ path: 'abcxyz' }, '/abcxyz', { validate: false }],
     ]
   ],
 
@@ -2702,7 +2702,7 @@ var TESTS: Test[] = [
       [{ test: 'ABC' }, '/ABC']
     ]
   ],
-  
+
 ]
 
 /**
