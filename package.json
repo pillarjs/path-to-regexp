@@ -34,12 +34,12 @@
   "devDependencies": {
     "@types/chai": "^4.0.4",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.7.1",
+    "@types/node": "^12.7.3",
     "chai": "^4.1.1",
     "istanbul": "^0.4.5",
-    "mocha": "^5.2.0",
-    "standard": "^12.0.1",
-    "ts-node": "^7.0.1",
+    "mocha": "^6.2.0",
+    "standard": "^14.1.0",
+    "ts-node": "^8.3.0",
     "typescript": "^3.0.1"
   }
 }
