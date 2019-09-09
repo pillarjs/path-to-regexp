@@ -2238,6 +2238,60 @@ var TESTS: Test[] = [
     [
       [null, 'this is']
     ]
+  ],
+  /**
+   * Case-sensitive compile tokensToFunction params.
+   */
+  [
+    '/:test(abc)',
+    {
+      sensitive: true
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: 'abc'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/ABC', null]
+    ],
+    [
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'ABC' }, null]
+    ]
+  ],
+  [
+    '/:test(abc)',
+    {
+    },
+    [
+      {
+        name: 'test',
+        prefix: '/',
+        delimiter: '/',
+        optional: false,
+        repeat: false,
+        partial: false,
+        asterisk: false,
+        pattern: 'abc'
+      }
+    ],
+    [
+      ['/abc', ['/abc', 'abc']],
+      ['/ABC', ['/ABC', 'ABC']]
+    ],
+    [
+      [{ test: 'abc' }, '/abc'],
+      [{ test: 'ABC' }, '/ABC']
+    ]
   ]
 ]
 
@@ -2322,7 +2376,7 @@ describe('path-to-regexp', function () {
       })
 
       describe(util.inspect(path), function () {
-        var re = pathToRegexp(path, opts)
+        var re = pathToRegexp(path as string, opts)
 
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {
@@ -2331,7 +2385,7 @@ describe('path-to-regexp', function () {
           })
 
           describe('compile', function () {
-            var toPath = pathToRegexp.compile(path)
+            var toPath = pathToRegexp.compile(path as string, opts)
 
             compileCases.forEach(function (io) {
               var input = io[0]
