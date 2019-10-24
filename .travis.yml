@@ -5,4 +5,4 @@ node_js:
   - "6"
   - "stable"
 
-after_script: "npm install coveralls@2 && cat ./coverage/lcov.info | coveralls"
+after_script: "npm install coveralls@3 && npm run coverage | coveralls"
