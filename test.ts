@@ -2,7 +2,7 @@
 
 import util = require('util')
 import chai = require('chai')
-import pathToRegexp = require('./index')
+import pathToRegexp = require('./')
 
 const expect = chai.expect
 
@@ -2722,22 +2722,22 @@ describe('path-to-regexp', function () {
 
   describe('arguments', function () {
     it('should work without different call combinations', function () {
-      pathToRegexp('/test')
-      pathToRegexp('/test', [])
-      pathToRegexp('/test', undefined, {})
+      pathToRegexp.pathToRegexp('/test')
+      pathToRegexp.pathToRegexp('/test', [])
+      pathToRegexp.pathToRegexp('/test', undefined, {})
 
-      pathToRegexp(/^\/test/)
-      pathToRegexp(/^\/test/, [])
-      pathToRegexp(/^\/test/, null, {})
+      pathToRegexp.pathToRegexp(/^\/test/)
+      pathToRegexp.pathToRegexp(/^\/test/, [])
+      pathToRegexp.pathToRegexp(/^\/test/, null, {})
 
-      pathToRegexp(['/a', '/b'])
-      pathToRegexp(['/a', '/b'], [])
-      pathToRegexp(['/a', '/b'], null, {})
+      pathToRegexp.pathToRegexp(['/a', '/b'])
+      pathToRegexp.pathToRegexp(['/a', '/b'], [])
+      pathToRegexp.pathToRegexp(['/a', '/b'], null, {})
     })
 
     it('should accept an array of keys as the second argument', function () {
       var keys = []
-      var re = pathToRegexp(TEST_PATH, keys, { end: false })
+      var re = pathToRegexp.pathToRegexp(TEST_PATH, keys, { end: false })
 
       expect(keys).to.deep.equal([TEST_PARAM])
       expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
@@ -2770,7 +2770,7 @@ describe('path-to-regexp', function () {
 
       describe(util.inspect(path), function () {
         var keys = []
-        var re = pathToRegexp(path, keys, opts)
+        var re = pathToRegexp.pathToRegexp(path, keys, opts)
 
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {

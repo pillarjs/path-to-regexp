@@ -1,11 +1,11 @@
 /**
  * Expose `pathToRegexp`.
  */
-module.exports = pathToRegexp
-module.exports.parse = parse
-module.exports.compile = compile
-module.exports.tokensToFunction = tokensToFunction
-module.exports.tokensToRegExp = tokensToRegExp
+export { pathToRegexp }
+export { parse }
+export { compile }
+export { tokensToFunction }
+export { tokensToRegExp }
 
 /**
  * Default configs.

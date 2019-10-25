@@ -1,3 +1,9 @@
+4.0.0 / Unreleased
+==================
+
+  * Use ES2015 module syntax to enable tree shaking
+    (see [#197](https://github.com/pillarjs/path-to-regexp/pull/197))
+
 3.0.0 / 2019-01-13
 ==================
 

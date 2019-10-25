@@ -3,3 +3,4 @@ node_modules
 coverage
 components
 typings
+index.node.js
