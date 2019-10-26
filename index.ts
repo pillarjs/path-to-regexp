@@ -1,13 +1,4 @@
 /**
- * Expose `pathToRegexp`.
- */
-module.exports = pathToRegexp
-module.exports.parse = parse
-module.exports.compile = compile
-module.exports.tokensToFunction = tokensToFunction
-module.exports.tokensToRegExp = tokensToRegExp
-
-/**
  * Default configs.
  */
 var DEFAULT_DELIMITER = '/'
@@ -29,6 +20,17 @@ var PATH_REGEXP = new RegExp([
   '(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?'
 ].join('|'), 'g')
 
+export interface ParseOptions {
+  /**
+   * Set the default delimiter for repeat parameters. (default: `'/'`)
+   */
+  delimiter?: string;
+  /**
+   * List of characters to consider delimiters when parsing. (default: `undefined`, any character)
+   */
+  whitelist?: string | string[];
+}
+
 /**
  * Parse a string for the raw tokens.
  *
@@ -36,7 +38,7 @@ var PATH_REGEXP = new RegExp([
  * @param  {Object=} options
  * @return {!Array}
  */
-function parse (str, options) {
+export function parse (str: string, options?: ParseOptions): Token[] {
   var tokens = []
   var key = 0
   var index = 0
@@ -109,6 +111,13 @@ function parse (str, options) {
   return tokens
 }
 
+export interface TokensToFunctionOptions {
+  /**
+   * When `true` the regexp will be case sensitive. (default: `false`)
+   */
+  sensitive?: boolean;
+}
+
 /**
  * Compile a string to a template function for the path.
  *
@@ -116,25 +125,39 @@ function parse (str, options) {
  * @param  {Object=}            options
  * @return {!function(Object=, Object=)}
  */
-function compile (str, options) {
-  return tokensToFunction(parse(str, options), options)
+export function compile <P extends object = object> (str: string, options?: ParseOptions & TokensToFunctionOptions) {
+  return tokensToFunction<P>(parse(str, options), options)
 }
+
+export interface PathFunctionOptions {
+  /**
+   * Function for encoding input strings for output.
+   */
+  encode?: (value: string, token: Key) => string;
+  /**
+   * When `false` the function can produce an invalid (unmatched) path. (default: `true`)
+   */
+  validate?: boolean;
+}
+
+export type PathFunction <P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
 
 /**
  * Expose a method for transforming tokens into the path function.
  */
-function tokensToFunction (tokens, options) {
+export function tokensToFunction <P extends object = object> (tokens: Token[], options?: TokensToFunctionOptions): PathFunction<P> {
   // Compile all the tokens into regexps.
   var matches = new Array(tokens.length)
 
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
-    if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$', flags(options))
+    var token = tokens[i]
+    if (typeof token === 'object') {
+      matches[i] = new RegExp('^(?:' + token.pattern + ')$', flags(options))
     }
   }
 
-  return function (data, options) {
+  return function (data: any, options) {
     var path = ''
     var encode = (options && options.encode) || encodeURIComponent
     var validate = options ? options.validate !== false : true
@@ -200,7 +223,7 @@ function tokensToFunction (tokens, options) {
  * @param  {string} str
  * @return {string}
  */
-function escapeString (str) {
+function escapeString (str: string) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1')
 }
 
@@ -210,7 +233,7 @@ function escapeString (str) {
  * @param  {string} group
  * @return {string}
  */
-function escapeGroup (group) {
+function escapeGroup (group: string) {
   return group.replace(/([=!:$/()])/g, '\\$1')
 }
 
@@ -220,9 +243,20 @@ function escapeGroup (group) {
  * @param  {Object} options
  * @return {string}
  */
-function flags (options) {
+function flags (options?: { sensitive?: boolean }) {
   return options && options.sensitive ? '' : 'i'
 }
+
+export interface Key {
+  name: string | number;
+  prefix: string;
+  delimiter: string;
+  optional: boolean;
+  repeat: boolean;
+  pattern: string;
+}
+
+export type Token = string | Key;
 
 /**
  * Pull out keys from a regexp.
@@ -231,7 +265,7 @@ function flags (options) {
  * @param  {Array=}  keys
  * @return {!RegExp}
  */
-function regexpToRegexp (path, keys) {
+function regexpToRegexp (path: RegExp, keys?: Key[]): RegExp {
   if (!keys) return path
 
   // Use a negative lookahead to match only capturing groups.
@@ -241,11 +275,11 @@ function regexpToRegexp (path, keys) {
     for (var i = 0; i < groups.length; i++) {
       keys.push({
         name: i,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       })
     }
   }
@@ -261,7 +295,7 @@ function regexpToRegexp (path, keys) {
  * @param  {Object=} options
  * @return {!RegExp}
  */
-function arrayToRegexp (path, keys, options) {
+function arrayToRegexp (path: Array<string | RegExp>, keys?: Key[], options?: RegExpOptions & ParseOptions): RegExp {
   var parts = []
 
   for (var i = 0; i < path.length; i++) {
@@ -279,7 +313,7 @@ function arrayToRegexp (path, keys, options) {
  * @param  {Object=} options
  * @return {!RegExp}
  */
-function stringToRegexp (path, keys, options) {
+function stringToRegexp (path: string, keys?: Key[], options?: RegExpOptions & ParseOptions) {
   return tokensToRegExp(parse(path, options), keys, options)
 }
 
@@ -291,14 +325,14 @@ function stringToRegexp (path, keys, options) {
  * @param  {Object=} options
  * @return {!RegExp}
  */
-function tokensToRegExp (tokens, keys, options) {
+export function tokensToRegExp (tokens: Token[], keys?: Key[], options?: RegExpOptions) {
   options = options || {}
 
   var strict = options.strict
   var start = options.start !== false
   var end = options.end !== false
   var delimiter = options.delimiter || DEFAULT_DELIMITER
-  var endsWith = [].concat(options.endsWith || []).map(escapeString).concat('$').join('|')
+  var endsWith = (typeof options.endsWith === 'string' ? options.endsWith.split('') : (options.endsWith || [])).map(escapeString).concat('$').join('|')
   var route = start ? '^' : ''
 
   // Iterate over the tokens and create our regexp string.
@@ -343,6 +377,42 @@ function tokensToRegExp (tokens, keys, options) {
   return new RegExp(route, flags(options))
 }
 
+export type Path = string | RegExp | Array<string | RegExp>;
+
+export interface RegExpOptions {
+  /**
+   * When `true` the regexp will be case sensitive. (default: `false`)
+   */
+  sensitive?: boolean;
+  /**
+   * When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
+   */
+  strict?: boolean;
+  /**
+   * When `true` the regexp will match to the end of the string. (default: `true`)
+   */
+  end?: boolean;
+  /**
+   * When `true` the regexp will match from the beginning of the string. (default: `true`)
+   */
+  start?: boolean;
+  /**
+   * Sets the final character for non-ending optimistic matches. (default: `/`)
+   */
+  delimiter?: string;
+  /**
+   * List of characters that can also be "end" characters.
+   */
+  endsWith?: string | string[];
+}
+
+export interface ParseOptions {
+  /**
+   * Set the default delimiter for repeat parameters. (default: `'/'`)
+   */
+  delimiter?: string;
+}
+
 /**
  * Normalize the given path string, returning a regular expression.
  *
@@ -355,7 +425,7 @@ function tokensToRegExp (tokens, keys, options) {
  * @param  {Object=}               options
  * @return {!RegExp}
  */
-function pathToRegexp (path, keys, options) {
+export function pathToRegexp (path: Path, keys?: Key[], options?: RegExpOptions & ParseOptions) {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys)
   }
