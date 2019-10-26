@@ -2,16 +2,16 @@
 
 import util = require('util')
 import chai = require('chai')
-import pathToRegexp = require('./index')
+import * as pathToRegexp from './index'
 
 const expect = chai.expect
 
 type Test = [
   pathToRegexp.Path,
-  pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions,
+  (pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions) | null,
   pathToRegexp.Token[],
-  Array<[string, string[], pathToRegexp.Match?]>,
-  Array<[any, string] | [any, string, pathToRegexp.PathFunctionOptions]>
+  Array<[string, (string | undefined)[] | null, pathToRegexp.Match?]>,
+  Array<[any, string | null] | [any, string | null, pathToRegexp.PathFunctionOptions]>
 ]
 
 /**
@@ -1787,11 +1787,11 @@ var TESTS: Test[] = [
     [
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       }
     ],
     [
@@ -1805,11 +1805,11 @@ var TESTS: Test[] = [
     [
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       }
     ],
     [
@@ -1828,11 +1828,11 @@ var TESTS: Test[] = [
     [
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       }
     ],
     [
@@ -1854,11 +1854,11 @@ var TESTS: Test[] = [
       },
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       }
     ],
     [
@@ -1904,19 +1904,19 @@ var TESTS: Test[] = [
     [
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       },
       {
         name: 0,
-        prefix: null,
-        delimiter: null,
+        prefix: '',
+        delimiter: '',
         optional: false,
         repeat: false,
-        pattern: null
+        pattern: ''
       }
     ],
     [
@@ -2723,22 +2723,22 @@ describe('path-to-regexp', function () {
 
   describe('arguments', function () {
     it('should work without different call combinations', function () {
-      pathToRegexp('/test')
-      pathToRegexp('/test', [])
-      pathToRegexp('/test', undefined, {})
+      pathToRegexp.pathToRegexp('/test')
+      pathToRegexp.pathToRegexp('/test', [])
+      pathToRegexp.pathToRegexp('/test', undefined, {})
 
-      pathToRegexp(/^\/test/)
-      pathToRegexp(/^\/test/, [])
-      pathToRegexp(/^\/test/, null, {})
+      pathToRegexp.pathToRegexp(/^\/test/)
+      pathToRegexp.pathToRegexp(/^\/test/, [])
+      pathToRegexp.pathToRegexp(/^\/test/, undefined, {})
 
-      pathToRegexp(['/a', '/b'])
-      pathToRegexp(['/a', '/b'], [])
-      pathToRegexp(['/a', '/b'], null, {})
+      pathToRegexp.pathToRegexp(['/a', '/b'])
+      pathToRegexp.pathToRegexp(['/a', '/b'], [])
+      pathToRegexp.pathToRegexp(['/a', '/b'], undefined, {})
     })
 
     it('should accept an array of keys as the second argument', function () {
-      var keys = []
-      var re = pathToRegexp(TEST_PATH, keys, { end: false })
+      var keys: pathToRegexp.Key[] = []
+      var re = pathToRegexp.pathToRegexp(TEST_PATH, keys, { end: false })
 
       expect(keys).to.deep.equal([TEST_PARAM])
       expect(exec(re, '/user/123/show')).to.deep.equal(['/user/123', '123'])
@@ -2764,14 +2764,14 @@ describe('path-to-regexp', function () {
   describe('rules', function () {
     TESTS.forEach(function (test) {
       var path = test[0]
-      var opts = test[1]
+      var opts = test[1] || {}
       var tokens = test[2]
       var matchCases = test[3]
       var compileCases = test[4]
 
       describe(util.inspect(path), function () {
-        var keys = []
-        var re = pathToRegexp(path, keys, opts)
+        var keys: pathToRegexp.Key[] = []
+        var re = pathToRegexp.pathToRegexp(path, keys, opts)
 
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {
@@ -2882,7 +2882,7 @@ describe('path-to-regexp', function () {
  * @param  {String} str
  * @return {Array}
  */
-function exec (re, str) {
+function exec (re: RegExp, str: string) {
   var match = re.exec(str)
 
   return match && Array.prototype.slice.call(match)
