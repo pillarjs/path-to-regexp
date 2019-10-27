@@ -2,4 +2,6 @@ node_modules
 .nyc_output
 coverage
 components
+dist
+dist.es2015
 typings

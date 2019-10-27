@@ -20,7 +20,7 @@ npm install path-to-regexp --save
 ```javascript
 const pathToRegexp = require('path-to-regexp')
 
-// pathToRegexp(path, keys?, options?)
+// pathToRegexp.pathToRegexp(path, keys?, options?)
 // pathToRegexp.parse(path)
 // pathToRegexp.compile(path)
 ```
@@ -38,7 +38,7 @@ const pathToRegexp = require('path-to-regexp')
 
 ```javascript
 const keys = []
-const regexp = pathToRegexp('/foo/:bar', keys)
+const regexp = pathToRegexp.pathToRegexp('/foo/:bar', keys)
 // regexp = /^\/foo\/([^\/]+?)\/?$/i
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
@@ -54,7 +54,7 @@ The path argument is used to define parameters and populate the list of keys.
 Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the next prefix (e.g. `[^/]+`).
 
 ```js
-const regexp = pathToRegexp('/:foo/:bar')
+const regexp = pathToRegexp.pathToRegexp('/:foo/:bar')
 // keys = [{ name: 'foo', prefix: '/', ... }, { name: 'bar', prefix: '/', ... }]
 
 regexp.exec('/test/route')
@@ -70,7 +70,7 @@ regexp.exec('/test/route')
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
 ```js
-const regexp = pathToRegexp('/:foo/:bar?')
+const regexp = pathToRegexp.pathToRegexp('/:foo/:bar?')
 // keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
 regexp.exec('/test')
@@ -87,7 +87,7 @@ regexp.exec('/test/route')
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is used for each match.
 
 ```js
-const regexp = pathToRegexp('/:foo*')
+const regexp = pathToRegexp.pathToRegexp('/:foo*')
 // keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
 regexp.exec('/')
@@ -102,7 +102,7 @@ regexp.exec('/bar/baz')
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is used for each match.
 
 ```js
-const regexp = pathToRegexp('/:foo+')
+const regexp = pathToRegexp.pathToRegexp('/:foo+')
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
 regexp.exec('/')
@@ -117,7 +117,7 @@ regexp.exec('/bar/baz')
 It is possible to write an unnamed parameter that only consists of a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
 ```js
-const regexp = pathToRegexp('/:foo/(.*)')
+const regexp = pathToRegexp.pathToRegexp('/:foo/(.*)')
 // keys = [{ name: 'foo', ... }, { name: 0, ... }]
 
 regexp.exec('/test/route')
@@ -129,7 +129,7 @@ regexp.exec('/test/route')
 All parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
 
 ```js
-const regexpNumbers = pathToRegexp('/icon-:foo(\\d+).png')
+const regexpNumbers = pathToRegexp.pathToRegexp('/icon-:foo(\\d+).png')
 // keys = [{ name: 'foo', ... }]
 
 regexpNumbers.exec('/icon-123.png')
@@ -138,7 +138,7 @@ regexpNumbers.exec('/icon-123.png')
 regexpNumbers.exec('/icon-abc.png')
 //=> null
 
-const regexpWord = pathToRegexp('/(user|u)')
+const regexpWord = pathToRegexp.pathToRegexp('/(user|u)')
 // keys = [{ name: 0, ... }]
 
 regexpWord.exec('/u')

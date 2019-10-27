@@ -2,19 +2,23 @@
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
   "version": "3.1.0",
-  "main": "index.js",
-  "typings": "index.d.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist.es2015/index.js",
   "files": [
-    "index.js",
-    "index.d.ts",
+    "dist/",
+    "dist.es2015/",
+    "index.ts",
     "LICENSE"
   ],
   "scripts": {
     "lint": "standard",
+    "build": "rimraf dist/ dist.es2015/ && tsc && tsc -P tsconfig.es2015.json",
     "test-spec": "mocha --require ts-node/register -R spec --bail test.ts",
     "test-cov": "nyc --reporter=lcov mocha -- --require ts-node/register -R spec test.ts",
     "coverage": "nyc report --reporter=text-lcov",
-    "test": "npm run lint && npm run test-cov"
+    "test": "npm run build && npm run lint && npm run test-cov",
+    "prepare": "npm run build"
   },
   "keywords": [
     "express",
@@ -39,6 +43,7 @@
     "chai": "^4.1.1",
     "mocha": "^6.2.0",
     "nyc": "^14.1.1",
+    "rimraf": "^3.0.0",
     "standard": "^14.1.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.0.1"
