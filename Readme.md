@@ -21,6 +21,7 @@ npm install path-to-regexp --save
 const pathToRegexp = require('path-to-regexp')
 
 // pathToRegexp(path, keys?, options?)
+// pathToRegexp.match(path)
 // pathToRegexp.parse(path)
 // pathToRegexp.compile(path)
 ```
@@ -150,9 +151,20 @@ regexpWord.exec('/users')
 
 **Tip:** Backslashes need to be escaped with another backslash in JavaScript strings.
 
+### Match
+
+The `match` function will return a function for transforming paths into parameters:
+
+```js
+const match = pathToRegexp.match('/user/:id')
+
+match('/user/123') //=> { path: '/user/123', index: 0, params: { id: '123' } }
+match('/invalid') //=> false
+```
+
 ### Parse
 
-The parse function is exposed via `pathToRegexp.parse`. This will return an array of strings and keys.
+The `parse` function will return a list of strings and keys from a path string:
 
 ```js
 const tokens = pathToRegexp.parse('/route/:foo/(.*)')
@@ -171,7 +183,7 @@ console.log(tokens[2])
 
 ### Compile ("Reverse" Path-To-RegExp)
 
-Path-To-RegExp exposes a compile function for transforming a string into a valid path.
+The `compile` function will return a function for transforming parameters into a valid path:
 
 ```js
 const toPath = pathToRegexp.compile('/user/:id')

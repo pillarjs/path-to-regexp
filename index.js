@@ -2,6 +2,8 @@
  * Expose `pathToRegexp`.
  */
 module.exports = pathToRegexp
+module.exports.match = match
+module.exports.regexpToFunction = regexpToFunction
 module.exports.parse = parse
 module.exports.compile = compile
 module.exports.tokensToFunction = tokensToFunction
@@ -118,6 +120,46 @@ function parse (str, options) {
  */
 function compile (str, options) {
   return tokensToFunction(parse(str, options), options)
+}
+
+/**
+ * Create path match function from `path-to-regexp` spec.
+ */
+function match (str, options) {
+  var keys = []
+  var re = pathToRegexp(str, keys, options)
+  return regexpToFunction(re, keys)
+}
+
+/**
+ * Create a path match function from `path-to-regexp` output.
+ */
+function regexpToFunction (re, keys) {
+  return function (pathname, options) {
+    var m = re.exec(pathname)
+    if (!m) return false
+
+    var path = m[0]
+    var index = m.index
+    var params = {}
+    var decode = (options && options.decode) || decodeURIComponent
+
+    for (var i = 1; i < m.length; i++) {
+      if (m[i] === undefined) continue
+
+      var key = keys[i - 1]
+
+      if (key.repeat) {
+        params[key.name] = m[i].split(key.delimiter).map(function (value) {
+          return decode(value, key)
+        })
+      } else {
+        params[key.name] = decode(m[i], key)
+      }
+    }
+
+    return { path: path, index: index, params: params }
+  }
 }
 
 /**

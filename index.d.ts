@@ -52,6 +52,16 @@ declare namespace pathToRegexp {
   export function parse (path: string, options?: ParseOptions): Token[];
 
   /**
+   * Create path match function from `path-to-regexp` spec.
+   */
+  export function match <P extends object = object> (path: string, options?: ParseOptions): MatchFunction<P>;
+
+  /**
+   * Create a path match function from `path-to-regexp` output.
+   */
+  export function regexpToFunction <P extends object = object> (re: RegExp, keys: Key[]): MatchFunction<P>;
+
+  /**
    * Transforming an Express-style path into a valid path.
    */
   export function compile <P extends object = object> (path: string, options?: ParseOptions & TokensToFunctionOptions): PathFunction<P>;
@@ -86,9 +96,25 @@ declare namespace pathToRegexp {
     validate?: boolean;
   }
 
+  interface MatchFunctionOptions {
+    /**
+     * Function for decoding strings for params.
+     */
+    decode?: (value: string, token: Key) => string;
+  }
+
+  interface MatchResult <P extends object = object> {
+    path: string;
+    index: number;
+    params: P;
+  }
+
+  type Match <P extends object = object> = false | MatchResult<P>;
+
   export type Token = string | Key;
   export type Path = string | RegExp | Array<string | RegExp>;
   export type PathFunction <P extends object = object> = (data?: P, options?: PathFunctionOptions) => string;
+  export type MatchFunction <P extends object = object> = (path: string, options?: MatchFunctionOptions) => Match<P>;
 }
 
 export = pathToRegexp;

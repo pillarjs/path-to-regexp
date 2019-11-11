@@ -41,6 +41,6 @@
     "nyc": "^14.1.1",
     "standard": "^14.1.0",
     "ts-node": "^8.3.0",
-    "typescript": "^3.0.1"
+    "typescript": "^3.7.2"
   }
 }

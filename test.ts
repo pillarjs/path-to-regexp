@@ -10,7 +10,7 @@ type Test = [
   pathToRegexp.Path,
   pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions,
   pathToRegexp.Token[],
-  Array<[string, string[]]>,
+  Array<[string, string[], pathToRegexp.Match?]>,
   Array<[any, string] | [any, string, pathToRegexp.PathFunctionOptions]>
 ]
 
@@ -30,8 +30,8 @@ var TESTS: Test[] = [
       '/'
     ],
     [
-      ['/', ['/']],
-      ['/route', null]
+      ['/', ['/'], { path: '/', index: 0, params: {} }],
+      ['/route', null, false]
     ],
     [
       [null, '/'],
@@ -46,10 +46,10 @@ var TESTS: Test[] = [
       '/test'
     ],
     [
-      ['/test', ['/test']],
-      ['/route', null],
-      ['/test/route', null],
-      ['/test/', ['/test/']]
+      ['/test', ['/test'], { path: '/test', index: 0, params: {} }],
+      ['/route', null, false],
+      ['/test/route', null, false],
+      ['/test/', ['/test/'], { path: '/test/', index: 0, params: {} }]
     ],
     [
       [null, '/test'],
@@ -201,7 +201,7 @@ var TESTS: Test[] = [
       }
     ],
     [
-      ['/route', ['/route', 'route']]
+      ['/route', ['/route', 'route'], { path: '/route', index: 0, params: { test: 'route' } }]
     ],
     [
       [{}, null],
@@ -734,9 +734,9 @@ var TESTS: Test[] = [
       }
     ],
     [
-      ['/route', ['/route', 'route']],
-      ['/route/nested', null],
-      ['/', ['/', undefined]],
+      ['/route', ['/route', 'route'], { path: '/route', index: 0, params: { test: 'route' } }],
+      ['/route/nested', null, false],
+      ['/', ['/', undefined], { path: '/', index: 0, params: {} }],
       ['//', null]
     ],
     [
@@ -885,10 +885,10 @@ var TESTS: Test[] = [
       }
     ],
     [
-      ['/', null],
-      ['/route', ['/route', 'route']],
-      ['/some/basic/route', ['/some/basic/route', 'some/basic/route']],
-      ['//', null]
+      ['/', null, false],
+      ['/route', ['/route', 'route'], { path: '/route', index: 0, params: { test: ['route'] } }],
+      ['/some/basic/route', ['/some/basic/route', 'some/basic/route'], { path: '/some/basic/route', index: 0, params: { test: ['some', 'basic', 'route'] } }],
+      ['//', null, false]
     ],
     [
       [{}, null],
@@ -988,13 +988,14 @@ var TESTS: Test[] = [
       }
     ],
     [
-      ['/', ['/', undefined]],
-      ['//', null],
-      ['/route', ['/route', 'route']],
-      ['/some/basic/route', ['/some/basic/route', 'some/basic/route']]
+      ['/', ['/', undefined], { path: '/', index: 0, params: {} }],
+      ['//', null, false],
+      ['/route', ['/route', 'route'], { path: '/route', index: 0, params: { test: ['route'] } }],
+      ['/some/basic/route', ['/some/basic/route', 'some/basic/route'], { path: '/some/basic/route', index: 0, params: { test: ['some', 'basic', 'route'] } }]
     ],
     [
       [{}, ''],
+      [{ test: [] }, ''],
       [{ test: 'foobar' }, '/foobar'],
       [{ test: ['foo', 'bar'] }, '/foo/bar']
     ]
@@ -2782,18 +2783,18 @@ describe('path-to-regexp', function () {
             var toPath = pathToRegexp.compile(path as string, opts)
 
             compileCases.forEach(function (io) {
-              var input = io[0]
-              var output = io[1]
+              var params = io[0]
+              var path = io[1]
               var options = io[2]
 
-              if (output != null) {
-                it('should compile using ' + util.inspect(input), function () {
-                  expect(toPath(input, options)).to.equal(output)
+              if (path != null) {
+                it('should compile using ' + util.inspect(params), function () {
+                  expect(toPath(params, options)).to.equal(path)
                 })
               } else {
-                it('should not compile using ' + util.inspect(input), function () {
+                it('should not compile using ' + util.inspect(params), function () {
                   expect(function () {
-                    toPath(input, options)
+                    toPath(params, options)
                   }).to.throw(TypeError)
                 })
               }
@@ -2809,13 +2810,22 @@ describe('path-to-regexp', function () {
 
         describe('match' + (opts ? ' using ' + util.inspect(opts) : ''), function () {
           matchCases.forEach(function (io) {
-            var input = io[0]
-            var output = io[1]
-            var message = 'should' + (output ? ' ' : ' not ') + 'match ' + util.inspect(input)
+            var pathname = io[0]
+            var matches = io[1]
+            var params = io[2]
+            var message = 'should' + (matches ? ' ' : ' not ') + 'match ' + util.inspect(pathname)
 
             it(message, function () {
-              expect(exec(re, input)).to.deep.equal(output)
+              expect(exec(re, pathname)).to.deep.equal(matches)
             })
+
+            if (typeof path === "string" && params !== undefined) {
+              var match = pathToRegexp.match(path)
+
+              it(message + ' params', function () {
+                expect(match(pathname)).to.deep.equal(params)
+              })
+            }
           })
         })
       })
