@@ -3,24 +3,6 @@
  */
 const DEFAULT_DELIMITER = "/";
 
-/**
- * The main path matching regexp utility.
- */
-const PATH_REGEXP = new RegExp(
-  [
-    // Match escaped characters that would otherwise appear in future matches.
-    // This allows the user to escape special characters that won't transform.
-    "(\\\\.)",
-    // Match Express-style parameters and un-named parameters with a prefix
-    // and optional suffixes. Matches appear as:
-    //
-    // ":test(\\d+)?" => ["test", "\d+", undefined, "?"]
-    // "(\\d+)"  => [undefined, undefined, "\d+", undefined]
-    "(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?"
-  ].join("|"),
-  "g"
-);
-
 export interface ParseOptions {
   /**
    * Set the default delimiter for repeat parameters. (default: `'/'`)
@@ -39,70 +21,149 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = [];
   const defaultDelimiter = options.delimiter ?? DEFAULT_DELIMITER;
   const whitelist = options.whitelist ?? undefined;
+  let i = 0;
   let key = 0;
-  let index = 0;
   let path = "";
-  let isPathEscaped = false;
-  let res: RegExpExecArray | null;
+  let isEscaped = false;
 
   // tslint:disable-next-line
-  while ((res = PATH_REGEXP.exec(str)) !== null) {
-    const [m, escaped, name, capture, group, modifier] = res;
-    let prev = "";
+  while (i < str.length) {
+    let prefix = "";
+    let name = "";
+    let pattern = "";
 
-    path += str.slice(index, res.index);
-    index = res.index + m.length;
-
-    // Ignore already escaped sequences.
-    if (escaped) {
-      path += escaped[1];
-      isPathEscaped = true;
+    // Ignore escaped sequences.
+    if (str[i] === "\\") {
+      i++;
+      path += str[i++];
+      isEscaped = true;
       continue;
     }
 
-    if (!isPathEscaped && path.length) {
-      const k = path.length - 1;
-      const c = path[k];
-      const matches = whitelist ? whitelist.indexOf(c) > -1 : true;
+    if (str[i] === ":") {
+      while (++i < str.length) {
+        const code = str.charCodeAt(i);
 
-      if (matches) {
-        prev = c;
-        path = path.slice(0, k);
+        if (
+          // `0-9`
+          (code >= 48 && code <= 57) ||
+          // `A-Z`
+          (code >= 65 && code <= 90) ||
+          // `a-z`
+          (code >= 97 && code <= 122) ||
+          // `_`
+          code === 95
+        ) {
+          name += str[i];
+          continue;
+        }
+
+        break;
+      }
+
+      // False positive on param name.
+      if (!name) i--;
+    }
+
+    if (str[i] === "(") {
+      const prev = i;
+      let balanced = 1;
+      let invalidGroup = false;
+
+      if (str[i + 1] === "?") {
+        throw new TypeError("Path pattern must be a capturing group");
+      }
+
+      while (++i < str.length) {
+        if (str[i] === "\\") {
+          pattern += str.substr(i, 2);
+          i++;
+          continue;
+        }
+
+        if (str[i] === ")") {
+          balanced--;
+
+          if (balanced === 0) {
+            i++;
+            break;
+          }
+        }
+
+        pattern += str[i];
+
+        if (str[i] === "(") {
+          balanced++;
+
+          // Better errors on nested capturing groups.
+          if (str[i + 1] !== "?") {
+            pattern += "?:";
+            invalidGroup = true;
+          }
+        }
+      }
+
+      if (invalidGroup) {
+        throw new TypeError(
+          `Capturing groups are not allowed in pattern, use a non-capturing group: (${pattern})`
+        );
+      }
+
+      // False positive.
+      if (balanced > 0) {
+        i = prev;
+        pattern = "";
       }
     }
 
-    // Push the current path onto the tokens.
-    if (path) {
-      tokens.push(path);
-      path = "";
-      isPathEscaped = false;
+    // Add regular characters to the path string.
+    if (name === "" && pattern === "") {
+      path += str[i++];
+      isEscaped = false;
+      continue;
     }
 
-    const repeat = modifier === "+" || modifier === "*";
-    const optional = modifier === "?" || modifier === "*";
-    const pattern = capture || group;
-    const delimiter = prev || defaultDelimiter;
+    // Extract the final character from `path` for the prefix.
+    if (path.length && !isEscaped) {
+      const char = path[path.length - 1];
+      const matches = whitelist ? whitelist.indexOf(char) > -1 : true;
+
+      if (matches) {
+        prefix = char;
+        path = path.slice(0, -1);
+      }
+    }
+
+    // Push the current path onto the list of tokens.
+    if (path.length) {
+      tokens.push(path);
+      path = "";
+    }
+
+    const repeat = str[i] === "+" || str[i] === "*";
+    const optional = str[i] === "?" || str[i] === "*";
+    const delimiter = prefix || defaultDelimiter;
+
+    // Increment `i` past modifier token.
+    if (repeat || optional) i++;
 
     tokens.push({
       name: name || key++,
-      prefix: prev,
-      delimiter: delimiter,
-      optional: optional,
-      repeat: repeat,
-      pattern: pattern
-        ? escapeGroup(pattern)
-        : `[^${escapeString(
-            delimiter === defaultDelimiter
-              ? delimiter
-              : delimiter + defaultDelimiter
-          )}]+?`
+      prefix,
+      delimiter,
+      optional,
+      repeat,
+      pattern:
+        pattern ||
+        `[^${escapeString(
+          delimiter === defaultDelimiter
+            ? delimiter
+            : delimiter + defaultDelimiter
+        )}]+?`
     });
   }
 
-  // Push any remaining characters.
-  if (path || index < str.length) {
-    tokens.push(path + str.substr(index));
-  }
+  if (path.length) tokens.push(path);
 
   return tokens;
 }
@@ -296,13 +357,6 @@ export function regexpToFunction<P extends object = object>(
  */
 function escapeString(str: string) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
-}
-
-/**
- * Escape the capturing group by escaping special characters and meaning.
- */
-function escapeGroup(group: string) {
-  return group.replace(/([=!:$/()])/g, "\\$1");
 }
 
 /**

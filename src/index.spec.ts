@@ -2551,6 +2551,33 @@ const TESTS: Test[] = [
       [{ test: "abc" }, "/abc"],
       [{ test: "ABC" }, "/ABC"]
     ]
+  ],
+
+  /**
+   * Nested parenthesis.
+   */
+  [
+    "/:foo(\\d+(?:\\.\\d+)?)",
+    {},
+    [
+      {
+        name: "foo",
+        prefix: "/",
+        delimiter: "/",
+        optional: false,
+        repeat: false,
+        pattern: "\\d+(?:\\.\\d+)?"
+      }
+    ],
+    [
+      ["/123", ["/123", "123"]],
+      ["/123.123", ["/123.123", "123.123"]]
+    ],
+    [
+      [{ foo: 123 }, "/123"],
+      [{ foo: 123.123 }, "/123.123"],
+      [{ foo: "123" }, "/123"]
+    ]
   ]
 ];
 
@@ -2590,6 +2617,22 @@ describe("path-to-regexp", function() {
 
       expect(keys).toEqual([TEST_PARAM]);
       expect(exec(re, "/user/123/show")).toEqual(["/user/123", "123"]);
+    });
+
+    it("should throw on non-capturing pattern group", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/:foo(?:\\d+(\\.\\d+)?)");
+      }).toThrow(new TypeError("Path pattern must be a capturing group"));
+    });
+
+    it("should throw on nested capturing regexp groups", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/:foo(\\d+(\\.\\d+)?)");
+      }).toThrow(
+        new TypeError(
+          "Capturing groups are not allowed in pattern, use a non-capturing group: (\\d+(?:\\.\\d+)?)"
+        )
+      );
     });
   });
 
