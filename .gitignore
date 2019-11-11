@@ -1,7 +1,5 @@
-node_modules
-.nyc_output
-coverage
-components
-dist
-dist.es2015
-typings
+.vscode/
+node_modules/
+coverage/
+dist/
+dist.es2015/

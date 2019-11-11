@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["es2015"],
+    "lib": ["es5"],
+    "rootDir": "src",
     "outDir": "dist",
     "module": "commonjs",
+    "moduleResolution": "node",
     "strict": true,
     "declaration": true,
     "noUnusedLocals": true,
@@ -11,5 +13,5 @@
     "sourceMap": true,
     "inlineSources": true
   },
-  "files": ["index.ts", "test.ts"]
+  "include": ["src/**/*"]
 }

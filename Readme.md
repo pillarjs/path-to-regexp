@@ -18,12 +18,12 @@ npm install path-to-regexp --save
 ## Usage
 
 ```javascript
-const pathToRegexp = require('path-to-regexp')
+const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 
-// pathToRegexp.pathToRegexp(path, keys?, options?)
-// pathToRegexp.match(path)
-// pathToRegexp.parse(path)
-// pathToRegexp.compile(path)
+// pathToRegexp(path, keys?, options?)
+// match(path)
+// parse(path)
+// compile(path)
 ```
 
 - **path** A string, array of strings, or a regular expression.
@@ -38,8 +38,8 @@ const pathToRegexp = require('path-to-regexp')
   - **whitelist** List of characters to consider delimiters when parsing. (default: `undefined`, any character)
 
 ```javascript
-const keys = []
-const regexp = pathToRegexp.pathToRegexp('/foo/:bar', keys)
+const keys = [];
+const regexp = pathToRegexp("/foo/:bar", keys);
 // regexp = /^\/foo\/([^\/]+?)\/?$/i
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
@@ -55,10 +55,10 @@ The path argument is used to define parameters and populate the list of keys.
 Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the next prefix (e.g. `[^/]+`).
 
 ```js
-const regexp = pathToRegexp.pathToRegexp('/:foo/:bar')
+const regexp = pathToRegexp("/:foo/:bar");
 // keys = [{ name: 'foo', prefix: '/', ... }, { name: 'bar', prefix: '/', ... }]
 
-regexp.exec('/test/route')
+regexp.exec("/test/route");
 //=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
@@ -71,13 +71,13 @@ regexp.exec('/test/route')
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
 ```js
-const regexp = pathToRegexp.pathToRegexp('/:foo/:bar?')
+const regexp = pathToRegexp("/:foo/:bar?");
 // keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
 
-regexp.exec('/test')
+regexp.exec("/test");
 //=> [ '/test', 'test', undefined, index: 0, input: '/test', groups: undefined ]
 
-regexp.exec('/test/route')
+regexp.exec("/test/route");
 //=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
@@ -88,13 +88,13 @@ regexp.exec('/test/route')
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is used for each match.
 
 ```js
-const regexp = pathToRegexp.pathToRegexp('/:foo*')
+const regexp = pathToRegexp("/:foo*");
 // keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
 
-regexp.exec('/')
+regexp.exec("/");
 //=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
 
-regexp.exec('/bar/baz')
+regexp.exec("/bar/baz");
 //=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
@@ -103,13 +103,13 @@ regexp.exec('/bar/baz')
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is used for each match.
 
 ```js
-const regexp = pathToRegexp.pathToRegexp('/:foo+')
+const regexp = pathToRegexp("/:foo+");
 // keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
 
-regexp.exec('/')
+regexp.exec("/");
 //=> null
 
-regexp.exec('/bar/baz')
+regexp.exec("/bar/baz");
 //=> [ '/bar/baz','bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
@@ -118,10 +118,10 @@ regexp.exec('/bar/baz')
 It is possible to write an unnamed parameter that only consists of a matching group. It works the same as a named parameter, except it will be numerically indexed.
 
 ```js
-const regexp = pathToRegexp.pathToRegexp('/:foo/(.*)')
+const regexp = pathToRegexp("/:foo/(.*)");
 // keys = [{ name: 'foo', ... }, { name: 0, ... }]
 
-regexp.exec('/test/route')
+regexp.exec("/test/route");
 //=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
@@ -130,22 +130,22 @@ regexp.exec('/test/route')
 All parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
 
 ```js
-const regexpNumbers = pathToRegexp.pathToRegexp('/icon-:foo(\\d+).png')
+const regexpNumbers = pathToRegexp("/icon-:foo(\\d+).png");
 // keys = [{ name: 'foo', ... }]
 
-regexpNumbers.exec('/icon-123.png')
+regexpNumbers.exec("/icon-123.png");
 //=> ['/icon-123.png', '123']
 
-regexpNumbers.exec('/icon-abc.png')
+regexpNumbers.exec("/icon-abc.png");
 //=> null
 
-const regexpWord = pathToRegexp.pathToRegexp('/(user|u)')
+const regexpWord = pathToRegexp("/(user|u)");
 // keys = [{ name: 0, ... }]
 
-regexpWord.exec('/u')
+regexpWord.exec("/u");
 //=> ['/u', 'u']
 
-regexpWord.exec('/users')
+regexpWord.exec("/users");
 //=> null
 ```
 
@@ -156,10 +156,10 @@ regexpWord.exec('/users')
 The `match` function will return a function for transforming paths into parameters:
 
 ```js
-const match = pathToRegexp.match('/user/:id')
+const match = match("/user/:id");
 
-match('/user/123') //=> { path: '/user/123', index: 0, params: { id: '123' } }
-match('/invalid') //=> false
+match("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
+match("/invalid"); //=> false
 ```
 
 ### Parse
@@ -167,15 +167,15 @@ match('/invalid') //=> false
 The `parse` function will return a list of strings and keys from a path string:
 
 ```js
-const tokens = pathToRegexp.parse('/route/:foo/(.*)')
+const tokens = parse("/route/:foo/(.*)");
 
-console.log(tokens[0])
+console.log(tokens[0]);
 //=> "/route"
 
-console.log(tokens[1])
+console.log(tokens[1]);
 //=> { name: 'foo', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
 
-console.log(tokens[2])
+console.log(tokens[2]);
 //=> { name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }
 ```
 
@@ -186,26 +186,26 @@ console.log(tokens[2])
 The `compile` function will return a function for transforming parameters into a valid path:
 
 ```js
-const toPath = pathToRegexp.compile('/user/:id')
+const toPath = compile("/user/:id");
 
-toPath({ id: 123 }) //=> "/user/123"
-toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
-toPath({ id: '/' }) //=> "/user/%2F"
+toPath({ id: 123 }); //=> "/user/123"
+toPath({ id: "café" }); //=> "/user/caf%C3%A9"
+toPath({ id: "/" }); //=> "/user/%2F"
 
-toPath({ id: ':/' }) //=> "/user/%3A%2F"
-toPath({ id: ':/' }, { encode: (value, token) => value, validate: false }) //=> "/user/:/"
+toPath({ id: ":/" }); //=> "/user/%3A%2F"
+toPath({ id: ":/" }, { encode: (value, token) => value, validate: false }); //=> "/user/:/"
 
-const toPathRepeated = pathToRegexp.compile('/:segment+')
+const toPathRepeated = compile("/:segment+");
 
-toPathRepeated({ segment: 'foo' }) //=> "/foo"
-toPathRepeated({ segment: ['a', 'b', 'c'] }) //=> "/a/b/c"
+toPathRepeated({ segment: "foo" }); //=> "/foo"
+toPathRepeated({ segment: ["a", "b", "c"] }); //=> "/a/b/c"
 
-const toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
+const toPathRegexp = compile("/user/:id(\\d+)");
 
-toPathRegexp({ id: 123 }) //=> "/user/123"
-toPathRegexp({ id: '123' }) //=> "/user/123"
-toPathRegexp({ id: 'abc' }) //=> Throws `TypeError`.
-toPathRegexp({ id: 'abc' }, { validate: false }) //=> "/user/abc"
+toPathRegexp({ id: 123 }); //=> "/user/123"
+toPathRegexp({ id: "123" }); //=> "/user/123"
+toPathRegexp({ id: "abc" }); //=> Throws `TypeError`.
+toPathRegexp({ id: "abc" }, { validate: false }); //=> "/user/abc"
 ```
 
 **Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.
@@ -214,26 +214,26 @@ toPathRegexp({ id: 'abc' }, { validate: false }) //=> "/user/abc"
 
 Path-To-RegExp exposes the two functions used internally that accept an array of tokens.
 
-* `pathToRegexp.tokensToRegExp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
-* `pathToRegexp.tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
+- `tokensToRegExp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
+- `tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
 
 #### Token Information
 
-* `name` The name of the token (`string` for named or `number` for index)
-* `prefix` The prefix character for the segment (e.g. `/`)
-* `delimiter` The delimiter for the segment (same as prefix or default delimiter)
-* `optional` Indicates the token is optional (`boolean`)
-* `repeat` Indicates the token is repeated (`boolean`)
-* `pattern` The RegExp used to match this token (`string`)
+- `name` The name of the token (`string` for named or `number` for unnamed index)
+- `prefix` The prefix character for the segment (e.g. `/`)
+- `delimiter` The delimiter for the segment (same as prefix or default delimiter)
+- `optional` Indicates the token is optional (`boolean`)
+- `repeat` Indicates the token is repeated (`boolean`)
+- `pattern` The RegExp used to match this token (`string`)
 
 ## Compatibility with Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= `4.x`:
 
-* RegExp special characters can only be used in a parameter
-  * Express.js 4.x used all `RegExp` special characters regardless of position - this considered a bug
-* Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
-* No wildcard asterisk (`*`) - use parameters instead (`(.*)`)
+- RegExp special characters can only be used in a parameter
+  - Express.js 4.x used all `RegExp` special characters regardless of position - this considered a bug
+- Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
+- No wildcard asterisk (`*`) - use parameters instead (`(.*)`)
 
 ## TypeScript
 

@@ -2,7 +2,7 @@ sudo: false
 language: node_js
 
 node_js:
-  - "6"
+  - "8"
   - "stable"
 
 after_script: "npm install coveralls@3 && npm run coverage | coveralls"
