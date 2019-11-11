@@ -235,10 +235,6 @@ Path-To-RegExp breaks compatibility with Express <= `4.x`:
 - Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
 - No wildcard asterisk (`*`) - use parameters instead (`(.*)`)
 
-## TypeScript
-
-Includes a [`.d.ts`](index.d.ts) file for TypeScript users.
-
 ## Live Demo
 
 You can see a live demo of this library in use at [express-route-tester](http://forbeslindesay.github.com/express-route-tester/).
