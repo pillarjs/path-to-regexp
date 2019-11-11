@@ -181,7 +181,7 @@ toPath({ id: 'café' }) //=> "/user/caf%C3%A9"
 toPath({ id: '/' }) //=> "/user/%2F"
 
 toPath({ id: ':/' }) //=> "/user/%3A%2F"
-toPath({ id: ':/' }, { encode: (value, token) => value }) //=> "/user/:/"
+toPath({ id: ':/' }, { encode: (value, token) => value, validate: false }) //=> "/user/:/"
 
 const toPathRepeated = pathToRegexp.compile('/:segment+')
 
@@ -193,7 +193,7 @@ const toPathRegexp = pathToRegexp.compile('/user/:id(\\d+)')
 toPathRegexp({ id: 123 }) //=> "/user/123"
 toPathRegexp({ id: '123' }) //=> "/user/123"
 toPathRegexp({ id: 'abc' }) //=> Throws `TypeError`.
-toPathRegexp({ id: 'abc' }, { validate: true }) //=> "/user/abc"
+toPathRegexp({ id: 'abc' }, { validate: false }) //=> "/user/abc"
 ```
 
 **Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.
