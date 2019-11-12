@@ -321,7 +321,7 @@ export type MatchFunction<P extends object = object> = (
  */
 export function match<P extends object = object>(
   str: Path,
-  options?: ParseOptions & RegexpToFunctionOptions
+  options?: ParseOptions & RegexpOptions & RegexpToFunctionOptions
 ) {
   const keys: Key[] = [];
   const re = pathToRegexp(str, keys, options);
