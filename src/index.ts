@@ -15,15 +15,6 @@ export interface ParseOptions {
 }
 
 /**
- * Normalize a pathname for matching, replaces multiple slashes with a single
- * slash and normalizes unicode characters to "NFC". When using this method,
- * `decode` should be an identity function so you don't decode strings twice.
- */
-export function normalizePathname(pathname: string) {
-  return decodeURI(pathname).replace(/\/+/g, "/");
-}
-
-/**
  * Balanced bracket helper function.
  */
 function balanced(open: string, close: string, str: string, index: number) {

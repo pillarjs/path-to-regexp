@@ -162,21 +162,35 @@ match("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 match("/invalid"); //=> false
 ```
 
-### Normalize Pathname
+#### Normalize Pathname
 
-The `normalizePathname` function will return a normalized string for matching with `pathToRegexp`:
+You should make sure variations of the same path to match your input `path`. Here's one possible solution:
 
 ```js
+/**
+ * Normalize a pathname for matching, replaces multiple slashes with a single
+ * slash and normalizes unicode characters to "NFC". When using this method,
+ * `decode` should be an identity function so you don't decode strings twice.
+ */
+function normalizePathname(pathname: string) {
+  return (
+    decodeURI(pathname)
+      // Replaces repeated slashes in the URL.
+      .replace(/\/+/g, "/")
+      // Reference: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
+      // Note: Missing native IE support, may want to skip this step.
+      .normalize()
+  );
+}
+
 const re = pathToRegexp("/caf\u00E9");
-const input = encodeURI("/caf\u00E9");
+const input = encodeURI("/cafe\u0301");
 
 re.test(input); //=> false
 re.test(normalizePathname(input)); //=> true
 ```
 
-**Note:** It may be preferable to implement something in your own library that normalizes the pathname for matching. E.g. [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically URI encodes paths for you, which would result in a consistent match.
-
-**Tip:** Consider using [`String.prototype.normalize`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize) to resolve unicode variants of the same string.
+**Note:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically encodes pathnames for you, which would result in a consistent match if you use `encodeURI` in `pathToRegexp` options.
 
 ### Parse
 

@@ -2842,30 +2842,6 @@ describe("path-to-regexp", function() {
       );
     });
   });
-
-  describe("normalize pathname", function() {
-    it("should match normalized pathnames", function() {
-      const re = pathToRegexp.pathToRegexp("/caf\u00E9");
-      const input = encodeURI("/cafe\u0301");
-
-      expect(exec(re, input)).toEqual(null);
-      expect(
-        exec(re, pathToRegexp.normalizePathname(input).normalize())
-      ).toEqual(["/caf\u00E9"]);
-    });
-
-    it("should not normalize encoded slash", function() {
-      const input = "/test/route%2F";
-
-      expect(pathToRegexp.normalizePathname(input)).toEqual("/test/route%2F");
-    });
-
-    it("should fix repeated slashes", function() {
-      const input = encodeURI("/test///route");
-
-      expect(pathToRegexp.normalizePathname(input)).toEqual("/test/route");
-    });
-  });
 });
 
 /**
