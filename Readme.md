@@ -36,6 +36,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
   - **delimiter** The default delimiter for segments. (default: `'/'`)
   - **endsWith** Optional character, or list of characters, to treat as "end" characters.
   - **whitelist** List of characters to consider delimiters when parsing. (default: `undefined`, any character)
+  - **encode** A function to encode strings before inserting into `RegExp`. (default: `x => x`)
 
 ```javascript
 const keys = [];
@@ -156,10 +157,12 @@ regexpWord.exec("/users");
 The `match` function will return a function for transforming paths into parameters:
 
 ```js
-const match = match("/user/:id");
+// Make sure you consistently `decode` segments.
+const match = match("/user/:id", { decode: decodeURIComponent });
 
 match("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 match("/invalid"); //=> false
+match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
 ```
 
 #### Normalize Pathname
@@ -216,14 +219,20 @@ console.log(tokens[2]);
 The `compile` function will return a function for transforming parameters into a valid path:
 
 ```js
-const toPath = compile("/user/:id");
+// Make sure you encode your path segments consistently.
+const toPath = compile("/user/:id", { encode: encodeURIComponent });
 
 toPath({ id: 123 }); //=> "/user/123"
 toPath({ id: "café" }); //=> "/user/caf%C3%A9"
 toPath({ id: "/" }); //=> "/user/%2F"
 
 toPath({ id: ":/" }); //=> "/user/%3A%2F"
-toPath({ id: ":/" }, { encode: (value, token) => value, validate: false }); //=> "/user/:/"
+
+// Without `encode`, you need to make sure inputs are encoded correctly.
+const toPathRaw = compile("/user/:id");
+
+toPathRaw({ id: "%3A%2F" }); //=> "/user/%3A%2F"
+toPathRaw({ id: ":/" }, { validate: false }); //=> "/user/:/"
 
 const toPathRepeated = compile("/:segment+");
 
