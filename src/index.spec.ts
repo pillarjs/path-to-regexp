@@ -189,9 +189,9 @@ const TESTS: Test[] = [
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b", { encode: value => value }],
+      [{ test: "a+b" }, "/a+b"],
       [{ test: "a+b" }, "/test", { encode: (_, token) => String(token.name) }],
-      [{ test: "a+b" }, "/a%2Bb"]
+      [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }]
     ]
   ],
   [
@@ -285,9 +285,9 @@ const TESTS: Test[] = [
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b", { encode: value => value }],
+      [{ test: "a+b" }, "/a+b"],
       [{ test: "a+b" }, "/test", { encode: (_, token) => String(token.name) }],
-      [{ test: "a+b" }, "/a%2Bb"]
+      [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }]
     ]
   ],
   [
@@ -576,8 +576,16 @@ const TESTS: Test[] = [
     ],
     [
       [{ test: "route" }, "/route"],
-      [{ test: "something/else" }, "/something%2Felse"],
-      [{ test: "something/else/more" }, "/something%2Felse%2Fmore"]
+      [
+        { test: "something/else" },
+        "/something%2Felse",
+        { encode: encodeURIComponent }
+      ],
+      [
+        { test: "something/else/more" },
+        "/something%2Felse%2Fmore",
+        { encode: encodeURIComponent }
+      ]
     ]
   ],
   [
@@ -1050,8 +1058,12 @@ const TESTS: Test[] = [
     [
       [{ test: "" }, "/"],
       [{ test: "abc" }, "/abc"],
-      [{ test: "abc/123" }, "/abc%2F123"],
-      [{ test: "abc/123/456" }, "/abc%2F123%2F456"]
+      [{ test: "abc/123" }, "/abc%2F123", { encode: encodeURIComponent }],
+      [
+        { test: "abc/123/456" },
+        "/abc%2F123%2F456",
+        { encode: encodeURIComponent }
+      ]
     ]
   ],
   [
@@ -2059,7 +2071,7 @@ const TESTS: Test[] = [
     ],
     [
       [{ foo: "foo" }, "/foobaz"],
-      [{ foo: "foo/bar" }, "/foo%2Fbarbaz"],
+      [{ foo: "foo/bar" }, "/foo%2Fbarbaz", { encode: encodeURIComponent }],
       [{ foo: ["foo", "bar"] }, "/foo/barbaz"]
     ]
   ],
@@ -2236,7 +2248,10 @@ const TESTS: Test[] = [
       }
     ],
     [["/café", ["/café", "café"]]],
-    [[{ foo: "café" }, "/caf%C3%A9"]]
+    [
+      [{ foo: "café" }, "/café"],
+      [{ foo: "café" }, "/caf%C3%A9", { encode: encodeURIComponent }]
+    ]
   ],
   ["/café", undefined, ["/café"], [["/café", ["/café"]]], [[null, "/café"]]],
   [

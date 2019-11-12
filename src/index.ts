@@ -212,7 +212,7 @@ export function tokensToFunction<P extends object = object>(
   options: TokensToFunctionOptions = {}
 ): PathFunction<P> {
   const reFlags = flags(options);
-  const { encode = encodeURIComponent, validate = true } = options;
+  const { encode = (x: string) => x, validate = true } = options;
 
   // Compile all the tokens into regexps.
   const matches = tokens.map(token => {
@@ -452,7 +452,8 @@ export function tokensToRegexp(
     strict,
     start = true,
     end = true,
-    delimiter = DEFAULT_DELIMITER
+    delimiter = DEFAULT_DELIMITER,
+    encode = (x: string) => x
   } = options;
   const endsWith = (typeof options.endsWith === "string"
     ? options.endsWith.split("")
@@ -466,7 +467,7 @@ export function tokensToRegexp(
   // Iterate over the tokens and create our regexp string.
   for (const token of tokens) {
     if (typeof token === "string") {
-      route += escapeString(token);
+      route += escapeString(encode(token));
     } else {
       const capture = token.repeat
         ? `(?:${token.pattern})(?:${escapeString(token.delimiter)}(?:${
@@ -537,6 +538,10 @@ export interface RegexpOptions {
    * List of characters that can also be "end" characters.
    */
   endsWith?: string | string[];
+  /**
+   * Encode path tokens for use in the `RegExp`.
+   */
+  encode?: (value: string) => string;
 }
 
 export interface ParseOptions {
