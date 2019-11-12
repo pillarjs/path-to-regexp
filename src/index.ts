@@ -318,7 +318,7 @@ export type MatchFunction<P extends object = object> = (
  */
 export function match<P extends object = object>(
   str: Path,
-  options?: ParseOptions & RegexpOptions & RegexpToFunctionOptions
+  options?: ParseOptions & TokensToRegexpOptions & RegexpToFunctionOptions
 ) {
   const keys: Key[] = [];
   const re = pathToRegexp(str, keys, options);
@@ -423,7 +423,7 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
 function arrayToRegexp(
   paths: Array<string | RegExp>,
   keys?: Key[],
-  options?: RegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions
 ): RegExp {
   const parts = paths.map(path => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
@@ -435,9 +435,40 @@ function arrayToRegexp(
 function stringToRegexp(
   path: string,
   keys?: Key[],
-  options?: RegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions
 ) {
   return tokensToRegexp(parse(path, options), keys, options);
+}
+
+export interface TokensToRegexpOptions {
+  /**
+   * When `true` the regexp will be case sensitive. (default: `false`)
+   */
+  sensitive?: boolean;
+  /**
+   * When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
+   */
+  strict?: boolean;
+  /**
+   * When `true` the regexp will match to the end of the string. (default: `true`)
+   */
+  end?: boolean;
+  /**
+   * When `true` the regexp will match from the beginning of the string. (default: `true`)
+   */
+  start?: boolean;
+  /**
+   * Sets the final character for non-ending optimistic matches. (default: `/`)
+   */
+  delimiter?: string;
+  /**
+   * List of characters that can also be "end" characters.
+   */
+  endsWith?: string | string[];
+  /**
+   * Encode path tokens for use in the `RegExp`.
+   */
+  encode?: (value: string) => string;
 }
 
 /**
@@ -446,7 +477,7 @@ function stringToRegexp(
 export function tokensToRegexp(
   tokens: Token[],
   keys?: Key[],
-  options: RegexpOptions = {}
+  options: TokensToRegexpOptions = {}
 ) {
   const {
     strict,
@@ -513,44 +544,6 @@ export function tokensToRegexp(
   return new RegExp(route, flags(options));
 }
 
-export interface RegexpOptions {
-  /**
-   * When `true` the regexp will be case sensitive. (default: `false`)
-   */
-  sensitive?: boolean;
-  /**
-   * When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
-   */
-  strict?: boolean;
-  /**
-   * When `true` the regexp will match to the end of the string. (default: `true`)
-   */
-  end?: boolean;
-  /**
-   * When `true` the regexp will match from the beginning of the string. (default: `true`)
-   */
-  start?: boolean;
-  /**
-   * Sets the final character for non-ending optimistic matches. (default: `/`)
-   */
-  delimiter?: string;
-  /**
-   * List of characters that can also be "end" characters.
-   */
-  endsWith?: string | string[];
-  /**
-   * Encode path tokens for use in the `RegExp`.
-   */
-  encode?: (value: string) => string;
-}
-
-export interface ParseOptions {
-  /**
-   * Set the default delimiter for repeat parameters. (default: `'/'`)
-   */
-  delimiter?: string;
-}
-
 /**
  * Supported `path-to-regexp` input types.
  */
@@ -566,7 +559,7 @@ export type Path = string | RegExp | Array<string | RegExp>;
 export function pathToRegexp(
   path: Path,
   keys?: Key[],
-  options?: RegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions
 ) {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys);

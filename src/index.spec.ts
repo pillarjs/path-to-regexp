@@ -3,7 +3,7 @@ import * as pathToRegexp from "./index";
 
 type Test = [
   pathToRegexp.Path,
-  (pathToRegexp.RegexpOptions & pathToRegexp.ParseOptions) | undefined,
+  (pathToRegexp.TokensToRegexpOptions & pathToRegexp.ParseOptions) | undefined,
   pathToRegexp.Token[],
   Array<
     [
