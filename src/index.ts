@@ -27,13 +27,12 @@ export function normalizePathname(
     .replace(/\/+/g, "/")
     .replace(
       /(?:%[ef][0-9a-f](?:%[0-9a-f]{2}){2}|%[cd][0-9a-f]%[0-9a-f]{2}|%[0-9a-f]{2})/gi,
-      function(m) {
+      m => {
         const char = decodeURIComponent(m);
         if (whitelist.indexOf(char) > -1) return m;
         return char;
       }
-    )
-    .normalize();
+    );
 }
 
 /**
@@ -68,8 +67,7 @@ function balanced(open: string, close: string, str: string, index: number) {
 /**
  * Parse a string for the raw tokens.
  */
-export function parse(input: string, options: ParseOptions = {}): Token[] {
-  const str = input.normalize();
+export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = [];
   const defaultDelimiter = options.delimiter ?? DEFAULT_DELIMITER;
   const whitelist = options.whitelist ?? undefined;

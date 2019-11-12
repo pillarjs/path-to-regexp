@@ -2827,9 +2827,9 @@ describe("path-to-regexp", function() {
       const input = encodeURI("/cafe\u0301");
 
       expect(exec(re, input)).toEqual(null);
-      expect(exec(re, pathToRegexp.normalizePathname(input))).toEqual([
-        "/caf\u00E9"
-      ]);
+      expect(
+        exec(re, pathToRegexp.normalizePathname(input).normalize())
+      ).toEqual(["/caf\u00E9"]);
     });
 
     it("should not normalize whitelisted characters", function() {
