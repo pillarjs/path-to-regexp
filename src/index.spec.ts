@@ -2554,7 +2554,7 @@ const TESTS: Test[] = [
   ],
 
   /**
-   * Nested parenthesis.
+   * Nested parentheses.
    */
   [
     "/:test(\\d+(?:\\.\\d+)?)",

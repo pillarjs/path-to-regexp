@@ -15,6 +15,35 @@ export interface ParseOptions {
 }
 
 /**
+ * Balanced bracket helper function.
+ */
+function balanced(open: string, close: string, str: string, index: number) {
+  let count = 0;
+  let i = index;
+
+  while (i < str.length) {
+    if (str[i] === "\\") {
+      i += 2;
+      continue;
+    }
+
+    if (str[i] === close) {
+      count--;
+
+      if (count === 0) return i + 1;
+    }
+
+    if (str[i] === open) {
+      count++;
+    }
+
+    i++;
+  }
+
+  return -1;
+}
+
+/**
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
@@ -66,53 +95,23 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     }
 
     if (str[i] === "(") {
-      const prev = i;
-      let balanced = 1;
-      let invalidGroup = false;
+      const end = balanced("(", ")", str, i);
 
-      if (str[i + 1] === "?") {
-        throw new TypeError("Path pattern must be a capturing group");
-      }
+      if (end > -1) {
+        pattern = str.slice(i + 1, end - 1);
+        i = end;
 
-      while (++i < str.length) {
-        if (str[i] === "\\") {
-          pattern += str.substr(i, 2);
-          i++;
-          continue;
+        if (pattern[0] === "?") {
+          throw new TypeError("Path pattern must be a capturing group");
         }
 
-        if (str[i] === ")") {
-          balanced--;
+        if (/\((?=[^?])/.test(pattern)) {
+          const validPattern = pattern.replace(/\((?=[^?])/, "(?:");
 
-          if (balanced === 0) {
-            i++;
-            break;
-          }
+          throw new TypeError(
+            `Capturing groups are not allowed in pattern, use a non-capturing group: (${validPattern})`
+          );
         }
-
-        pattern += str[i];
-
-        if (str[i] === "(") {
-          balanced++;
-
-          // Better errors on nested capturing groups.
-          if (str[i + 1] !== "?") {
-            pattern += "?:";
-            invalidGroup = true;
-          }
-        }
-      }
-
-      if (invalidGroup) {
-        throw new TypeError(
-          `Capturing groups are not allowed in pattern, use a non-capturing group: (${pattern})`
-        );
-      }
-
-      // False positive.
-      if (balanced > 0) {
-        i = prev;
-        pattern = "";
       }
     }
 
