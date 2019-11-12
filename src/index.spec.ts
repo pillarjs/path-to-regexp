@@ -2832,12 +2832,10 @@ describe("path-to-regexp", function() {
       ).toEqual(["/caf\u00E9"]);
     });
 
-    it("should not normalize whitelisted characters", function() {
-      const input = "/test/route%2F%25";
+    it("should not normalize encoded slash", function() {
+      const input = "/test/route%2F";
 
-      expect(pathToRegexp.normalizePathname(input)).toEqual(
-        "/test/route%2F%25"
-      );
+      expect(pathToRegexp.normalizePathname(input)).toEqual("/test/route%2F");
     });
 
     it("should fix repeated slashes", function() {

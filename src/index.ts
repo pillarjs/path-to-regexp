@@ -19,20 +19,8 @@ export interface ParseOptions {
  * slash and normalizes unicode characters to "NFC". When using this method,
  * `decode` should be an identity function so you don't decode strings twice.
  */
-export function normalizePathname(
-  pathname: string,
-  whitelist: string | string[] = "%/-."
-) {
-  return pathname
-    .replace(/\/+/g, "/")
-    .replace(
-      /(?:%[ef][0-9a-f](?:%[0-9a-f]{2}){2}|%[cd][0-9a-f]%[0-9a-f]{2}|%[0-9a-f]{2})/gi,
-      m => {
-        const char = decodeURIComponent(m);
-        if (whitelist.indexOf(char) > -1) return m;
-        return char;
-      }
-    );
+export function normalizePathname(pathname: string) {
+  return decodeURI(pathname).replace(/\/+/g, "/");
 }
 
 /**

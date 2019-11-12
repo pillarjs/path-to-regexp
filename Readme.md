@@ -18,19 +18,12 @@ npm install path-to-regexp --save
 ## Usage
 
 ```javascript
-const {
-  pathToRegexp,
-  match,
-  parse,
-  compile,
-  normalizePathname
-} = require("path-to-regexp");
+const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 
 // pathToRegexp(path, keys?, options?)
 // match(path)
 // parse(path)
 // compile(path)
-// normalizePathname(path)
 ```
 
 - **path** A string, array of strings, or a regular expression.
@@ -171,15 +164,19 @@ match("/invalid"); //=> false
 
 ### Normalize Pathname
 
-The `normalizePathname` function will return a normalized string for matching with `pathToRegexp`.
+The `normalizePathname` function will return a normalized string for matching with `pathToRegexp`:
 
 ```js
 const re = pathToRegexp("/caf\u00E9");
-const input = encodeURI("/cafe\u0301");
+const input = encodeURI("/caf\u00E9");
 
 re.test(input); //=> false
 re.test(normalizePathname(input)); //=> true
 ```
+
+**Note:** It may be preferable to implement something in your own library that normalizes the pathname for matching. E.g. [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically URI encodes paths for you, which would result in a consistent match.
+
+**Tip:** Consider using [`String.prototype.normalize`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize) to resolve unicode variants of the same string.
 
 ### Parse
 
