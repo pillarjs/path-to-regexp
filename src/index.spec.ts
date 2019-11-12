@@ -2255,6 +2255,13 @@ const TESTS: Test[] = [
   ],
   ["/café", undefined, ["/café"], [["/café", ["/café"]]], [[null, "/café"]]],
   [
+    "/café",
+    { encode: encodeURI },
+    ["/café"],
+    [["/caf%C3%A9", ["/caf%C3%A9"]]],
+    [[null, "/café"]]
+  ],
+  [
     "packages/",
     undefined,
     ["packages/"],
