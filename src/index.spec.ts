@@ -2832,6 +2832,14 @@ describe("path-to-regexp", function() {
       ]);
     });
 
+    it("should not normalize whitelisted characters", function() {
+      const input = "/test/route%2F%25";
+
+      expect(pathToRegexp.normalizePathname(input)).toEqual(
+        "/test/route%2F%25"
+      );
+    });
+
     it("should fix repeated slashes", function() {
       const input = encodeURI("/test///route");
 
