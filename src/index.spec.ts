@@ -2826,6 +2826,7 @@ describe("path-to-regexp", function() {
       const re = pathToRegexp.pathToRegexp("/caf\u00E9");
       const input = encodeURI("/cafe\u0301");
 
+      expect(exec(re, input)).toEqual(null);
       expect(exec(re, pathToRegexp.normalizePathname(input))).toEqual([
         "/caf\u00E9"
       ]);

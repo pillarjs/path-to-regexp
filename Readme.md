@@ -177,6 +177,7 @@ The `normalizePathname` function will return a normalized string for matching wi
 const re = pathToRegexp("/caf\u00E9");
 const input = encodeURI("/cafe\u0301");
 
+re.test(input); //=> false
 re.test(normalizePathname(input)); //=> true
 ```
 
