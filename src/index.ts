@@ -426,7 +426,7 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
 function arrayToRegexp(
   paths: Array<string | RegExp>,
   keys?: Key[],
-  options?: RegExpOptions & ParseOptions
+  options?: RegexpOptions & ParseOptions
 ): RegExp {
   const parts = paths.map(path => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
@@ -438,18 +438,18 @@ function arrayToRegexp(
 function stringToRegexp(
   path: string,
   keys?: Key[],
-  options?: RegExpOptions & ParseOptions
+  options?: RegexpOptions & ParseOptions
 ) {
-  return tokensToRegExp(parse(path, options), keys, options);
+  return tokensToRegexp(parse(path, options), keys, options);
 }
 
 /**
  * Expose a function for taking tokens and returning a RegExp.
  */
-export function tokensToRegExp(
+export function tokensToRegexp(
   tokens: Token[],
   keys?: Key[],
-  options: RegExpOptions = {}
+  options: RegexpOptions = {}
 ) {
   const {
     strict,
@@ -515,7 +515,7 @@ export function tokensToRegExp(
   return new RegExp(route, flags(options));
 }
 
-export interface RegExpOptions {
+export interface RegexpOptions {
   /**
    * When `true` the regexp will be case sensitive. (default: `false`)
    */
@@ -564,7 +564,7 @@ export type Path = string | RegExp | Array<string | RegExp>;
 export function pathToRegexp(
   path: Path,
   keys?: Key[],
-  options?: RegExpOptions & ParseOptions
+  options?: RegexpOptions & ParseOptions
 ) {
   if (path instanceof RegExp) {
     return regexpToRegexp(path, keys);

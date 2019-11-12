@@ -3,7 +3,7 @@ import * as pathToRegexp from "./index";
 
 type Test = [
   pathToRegexp.Path,
-  (pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions) | undefined,
+  (pathToRegexp.RegexpOptions & pathToRegexp.ParseOptions) | undefined,
   pathToRegexp.Token[],
   Array<
     [
@@ -2686,7 +2686,7 @@ describe("path-to-regexp", function() {
     const tokens = pathToRegexp.parse(TEST_PATH);
 
     it("should expose method to compile tokens to regexp", function() {
-      const re = pathToRegexp.tokensToRegExp(tokens);
+      const re = pathToRegexp.tokensToRegexp(tokens);
 
       expect(exec(re, "/user/123")).toEqual(["/user/123", "123"]);
     });

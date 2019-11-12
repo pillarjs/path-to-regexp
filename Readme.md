@@ -233,7 +233,7 @@ toPathRegexp({ id: "abc" }, { validate: false }); //=> "/user/abc"
 
 Path-To-RegExp exposes the two functions used internally that accept an array of tokens.
 
-- `tokensToRegExp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
+- `tokensToRegexp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
 - `tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
 
 #### Token Information
