@@ -18,12 +18,19 @@ npm install path-to-regexp --save
 ## Usage
 
 ```javascript
-const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
+const {
+  pathToRegexp,
+  match,
+  parse,
+  compile,
+  normalizePathname
+} = require("path-to-regexp");
 
 // pathToRegexp(path, keys?, options?)
 // match(path)
 // parse(path)
 // compile(path)
+// normalizePathname(path)
 ```
 
 - **path** A string, array of strings, or a regular expression.
@@ -162,6 +169,17 @@ match("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 match("/invalid"); //=> false
 ```
 
+### Normalize Pathname
+
+The `normalizePathname` function will return a normalized string for matching with `pathToRegexp`.
+
+```js
+const re = pathToRegexp("/caf\u00E9");
+const input = encodeURI("/cafe\u0301");
+
+re.test(normalizePathname(input)); //=> true
+```
+
 ### Parse
 
 The `parse` function will return a list of strings and keys from a path string:
@@ -231,9 +249,9 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 Path-To-RegExp breaks compatibility with Express <= `4.x`:
 
 - RegExp special characters can only be used in a parameter
-  - Express.js 4.x used all `RegExp` special characters regardless of position - this considered a bug
+  - Express.js 4.x supported `RegExp` special characters regardless of position - this is considered a bug
 - Parameters have suffixes that augment meaning - `*`, `+` and `?`. E.g. `/:user*`
-- No wildcard asterisk (`*`) - use parameters instead (`(.*)`)
+- No wildcard asterisk (`*`) - use parameters instead (`(.*)` or `:splat*`)
 
 ## Live Demo
 

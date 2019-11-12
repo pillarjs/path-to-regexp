@@ -5,7 +5,14 @@ type Test = [
   pathToRegexp.Path,
   (pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions) | undefined,
   pathToRegexp.Token[],
-  Array<[string, (string | undefined)[] | null, pathToRegexp.Match?]>,
+  Array<
+    [
+      string,
+      (string | undefined)[] | null,
+      pathToRegexp.Match?,
+      pathToRegexp.RegexpToFunctionOptions?
+    ]
+  >,
   Array<[any, string | null, pathToRegexp.TokensToFunctionOptions?]>
 ];
 
@@ -166,6 +173,17 @@ const TESTS: Test[] = [
         "/route",
         ["/route", "route"],
         { path: "/route", index: 0, params: { test: "route" } }
+      ],
+      [
+        "/caf%C3%A9",
+        ["/caf%C3%A9", "caf%C3%A9"],
+        { path: "/caf%C3%A9", index: 0, params: { test: "caf%C3%A9" } }
+      ],
+      [
+        "/caf%C3%A9",
+        ["/caf%C3%A9", "caf%C3%A9"],
+        { path: "/caf%C3%A9", index: 0, params: { test: "café" } },
+        { decode: decodeURIComponent }
       ]
     ],
     [
@@ -2732,7 +2750,7 @@ describe("path-to-regexp", function() {
           "match" + (opts ? " using " + util.inspect(opts) : ""),
           function() {
             matchCases.forEach(function(io) {
-              const [pathname, matches, params] = io;
+              const [pathname, matches, params, options] = io;
               const message = `should ${
                 matches ? "" : "not "
               }match ${util.inspect(pathname)}`;
@@ -2742,7 +2760,7 @@ describe("path-to-regexp", function() {
               });
 
               if (typeof path === "string" && params !== undefined) {
-                const match = pathToRegexp.match(path);
+                const match = pathToRegexp.match(path, options);
 
                 it(message + " params", function() {
                   expect(match(pathname)).toEqual(params);
@@ -2800,6 +2818,23 @@ describe("path-to-regexp", function() {
       }).toThrow(
         new TypeError('Expected all "foo" to match "\\d+", but got "a"')
       );
+    });
+  });
+
+  describe("normalize pathname", function() {
+    it("should match normalized pathnames", function() {
+      const re = pathToRegexp.pathToRegexp("/caf\u00E9");
+      const input = encodeURI("/cafe\u0301");
+
+      expect(exec(re, pathToRegexp.normalizePathname(input))).toEqual([
+        "/caf\u00E9"
+      ]);
+    });
+
+    it("should fix repeated slashes", function() {
+      const input = encodeURI("/test///route");
+
+      expect(pathToRegexp.normalizePathname(input)).toEqual("/test/route");
     });
   });
 });

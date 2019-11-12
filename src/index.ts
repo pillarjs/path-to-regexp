@@ -15,6 +15,17 @@ export interface ParseOptions {
 }
 
 /**
+ * Normalize a pathname for matching, replaces multiple slashes with a single
+ * slash and normalizes unicode characters to "NFC". When using this method,
+ * `decode` should be an identity function so you don't decode strings twice.
+ */
+export function normalizePathname(pathname: string) {
+  return decodeURIComponent(pathname)
+    .replace(/\/+/g, "/")
+    .normalize();
+}
+
+/**
  * Balanced bracket helper function.
  */
 function balanced(open: string, close: string, str: string, index: number) {
@@ -46,7 +57,8 @@ function balanced(open: string, close: string, str: string, index: number) {
 /**
  * Parse a string for the raw tokens.
  */
-export function parse(str: string, options: ParseOptions = {}): Token[] {
+export function parse(input: string, options: ParseOptions = {}): Token[] {
+  const str = input.normalize();
   const tokens = [];
   const defaultDelimiter = options.delimiter ?? DEFAULT_DELIMITER;
   const whitelist = options.whitelist ?? undefined;
@@ -97,6 +109,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (str[i] === "(") {
       const end = balanced("(", ")", str, i);
 
+      // False positive on matching brackets.
       if (end > -1) {
         pattern = str.slice(i + 1, end - 1);
         i = end;
@@ -312,7 +325,7 @@ export function match<P extends object = object>(
 ) {
   const keys: Key[] = [];
   const re = pathToRegexp(str, keys, options);
-  return regexpToFunction<P>(re, keys);
+  return regexpToFunction<P>(re, keys, options);
 }
 
 /**
@@ -323,7 +336,7 @@ export function regexpToFunction<P extends object = object>(
   keys: Key[],
   options: RegexpToFunctionOptions = {}
 ): MatchFunction<P> {
-  const { decode = decodeURIComponent } = options;
+  const { decode = (x: string) => x } = options;
 
   return function(pathname: string) {
     const m = re.exec(pathname);
