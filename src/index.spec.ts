@@ -2584,6 +2584,28 @@ const TESTS: Test[] = [
       [{ test: "123.123" }, "/123.123"],
       [{ test: "123.abc" }, null]
     ]
+  ],
+  [
+    "/:test((?!login)[^/]+)",
+    undefined,
+    [
+      {
+        name: "test",
+        prefix: "/",
+        delimiter: "/",
+        optional: false,
+        repeat: false,
+        pattern: "(?!login)[^/]+"
+      }
+    ],
+    [
+      ["/route", ["/route", "route"]],
+      ["/login", null]
+    ],
+    [
+      [{ test: "route" }, "/route"],
+      [{ test: "login" }, null]
+    ]
   ]
 ];
 
