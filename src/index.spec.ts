@@ -159,12 +159,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -200,12 +200,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -272,12 +272,12 @@ const TESTS: Test[] = [
       start: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -296,12 +296,12 @@ const TESTS: Test[] = [
       start: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -381,12 +381,12 @@ const TESTS: Test[] = [
       strict: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -406,12 +406,12 @@ const TESTS: Test[] = [
       strict: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -475,12 +475,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -500,12 +500,12 @@ const TESTS: Test[] = [
       strict: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -553,12 +553,12 @@ const TESTS: Test[] = [
     "/:test",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -594,12 +594,12 @@ const TESTS: Test[] = [
       strict: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -615,12 +615,12 @@ const TESTS: Test[] = [
       strict: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -637,12 +637,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -657,15 +657,14 @@ const TESTS: Test[] = [
    * Optional named parameter.
    */
   [
-    "/:test?",
+    "{/:test}?",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       }
     ],
@@ -685,7 +684,7 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test?",
+    "{/:test}?",
     {
       strict: true
     },
@@ -693,9 +692,8 @@ const TESTS: Test[] = [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       }
     ],
@@ -710,7 +708,7 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test?/",
+    "{/:test}?/",
     {
       strict: true
     },
@@ -718,9 +716,8 @@ const TESTS: Test[] = [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "/"
@@ -737,15 +734,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test?/bar",
+    "{/:test}?/bar",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "/bar"
@@ -760,15 +756,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test?-bar",
+    "{/:test}?-bar",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "-bar"
@@ -784,15 +779,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test*-bar",
+    "{/:test}*-bar",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: true,
+        suffix: "",
+        modifier: "*",
         pattern: "[^\\/]+?"
       },
       "-bar"
@@ -810,15 +804,14 @@ const TESTS: Test[] = [
    * Repeated one or more times parameters.
    */
   [
-    "/:test+",
+    "{/:test}+",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: true,
+        suffix: "",
+        modifier: "+",
         pattern: "[^\\/]+?"
       }
     ],
@@ -847,15 +840,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test(\\d+)+",
+    "{/:test(\\d+)}+",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: true,
+        suffix: "",
+        modifier: "+",
         pattern: "\\d+"
       }
     ],
@@ -870,16 +862,15 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/route.:ext(json|xml)+",
+    "/route{.:ext(json|xml)}+",
     undefined,
     [
       "/route",
       {
         name: "ext",
         prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: true,
+        suffix: "",
+        modifier: "+",
         pattern: "json|xml"
       }
     ],
@@ -896,17 +887,16 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/route.:ext/test",
+    "/route.:ext(\\w+)/test",
     undefined,
     [
-      "/route",
+      "/route.",
       {
         name: "ext",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "\\w+"
       },
       "/test"
     ],
@@ -923,15 +913,14 @@ const TESTS: Test[] = [
    * Repeated zero or more times parameters.
    */
   [
-    "/:test*",
+    "{/:test}*",
     undefined,
     [
       {
         name: "test",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: true,
+        suffix: "",
+        modifier: "*",
         pattern: "[^\\/]+?"
       }
     ],
@@ -961,16 +950,15 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/route.:ext([a-z]+)*",
+    "/route{.:ext([a-z]+)}*",
     undefined,
     [
       "/route",
       {
         name: "ext",
         prefix: ".",
-        delimiter: ".",
-        optional: true,
-        repeat: true,
+        suffix: "",
+        modifier: "*",
         pattern: "[a-z]+"
       }
     ],
@@ -996,12 +984,12 @@ const TESTS: Test[] = [
     "/:test(\\d+)",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       }
     ],
@@ -1022,12 +1010,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       }
     ],
@@ -1042,12 +1030,12 @@ const TESTS: Test[] = [
     "/:test(.*)",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: ".*"
       }
     ],
@@ -1070,12 +1058,12 @@ const TESTS: Test[] = [
     "/:route([a-z]+)",
     undefined,
     [
+      "/",
       {
         name: "route",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[a-z]+"
       }
     ],
@@ -1095,12 +1083,12 @@ const TESTS: Test[] = [
     "/:route(this|that)",
     undefined,
     [
+      "/",
       {
         name: "route",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "this|that"
       }
     ],
@@ -1117,15 +1105,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:path(abc|xyz)*",
+    "{/:path(abc|xyz)}*",
     undefined,
     [
       {
         name: "path",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: true,
+        suffix: "",
+        modifier: "*",
         pattern: "abc|xyz"
       }
     ],
@@ -1168,9 +1155,8 @@ const TESTS: Test[] = [
       {
         name: "test",
         prefix: "",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1195,9 +1181,8 @@ const TESTS: Test[] = [
       {
         name: "test",
         prefix: "",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1217,9 +1202,8 @@ const TESTS: Test[] = [
       {
         name: "test",
         prefix: "",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1232,15 +1216,14 @@ const TESTS: Test[] = [
     [[{ test: "route" }, "route"]]
   ],
   [
-    ":test?",
+    "{:test}?",
     undefined,
     [
       {
         name: "test",
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1257,29 +1240,28 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    ":test+",
+    "{:test/}+",
     undefined,
     [
       {
         name: "test",
         prefix: "",
-        delimiter: "/",
-        optional: false,
-        repeat: true,
+        suffix: "/",
+        modifier: "+",
         pattern: "[^\\/]+?"
       }
     ],
     [
-      ["route", ["route", "route"]],
+      ["route/", ["route/", "route"]],
       ["/route", null],
       ["", null],
-      ["foo/bar", ["foo/bar", "foo/bar"]]
+      ["foo/bar/", ["foo/bar/", "foo/bar"]]
     ],
     [
       [{}, null],
       [{ test: "" }, null],
-      [{ test: ["route"] }, "route"],
-      [{ test: ["foo", "bar"] }, "foo/bar"]
+      [{ test: ["route"] }, "route/"],
+      [{ test: ["foo", "bar"] }, "foo/bar/"]
     ]
   ],
 
@@ -1300,12 +1282,12 @@ const TESTS: Test[] = [
     "/:test.json",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       ".json"
@@ -1326,17 +1308,16 @@ const TESTS: Test[] = [
    * Format params.
    */
   [
-    "/test.:format",
+    "/test.:format(\\w+)",
     undefined,
     [
-      "/test",
+      "/test.",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "\\w+"
       }
     ],
     [
@@ -1350,25 +1331,24 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/test.:format.:format",
+    "/test.:format(\\w+).:format(\\w+)",
     undefined,
     [
-      "/test",
+      "/test.",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "\\w+"
       },
+      ".",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "\\w+"
       }
     ],
     [
@@ -1381,17 +1361,16 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/test.:format+",
+    "/test{.:format}+",
     undefined,
     [
       "/test",
       {
         name: "format",
         prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: true,
-        pattern: "[^\\.\\/]+?"
+        suffix: "",
+        modifier: "+",
+        pattern: "[^\\/]+?"
       }
     ],
     [
@@ -1405,19 +1384,18 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/test.:format",
+    "/test.:format(\\w+)",
     {
       end: false
     },
     [
-      "/test",
+      "/test.",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "\\w+"
       }
     ],
     [
@@ -1430,14 +1408,13 @@ const TESTS: Test[] = [
     "/test.:format.",
     undefined,
     [
-      "/test",
+      "/test.",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "[^\\/]+?"
       },
       "."
     ],
@@ -1458,27 +1435,27 @@ const TESTS: Test[] = [
     "/:test.:format",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
+      ".",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "[^\\/]+?"
       }
     ],
     [
       ["/route.html", ["/route.html", "route", "html"]],
       ["/route", null],
-      ["/route.html.json", ["/route.html.json", "route.html", "json"]]
+      ["/route.html.json", ["/route.html.json", "route", "html.json"]]
     ],
     [
       [{}, null],
@@ -1486,30 +1463,29 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test.:format?",
+    "/:test{.:format}?",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       {
         name: "format",
         prefix: ".",
-        delimiter: ".",
-        optional: true,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        suffix: "",
+        modifier: "?",
+        pattern: "[^\\/]+?"
       }
     ],
     [
       ["/route", ["/route", "route", undefined]],
       ["/route.json", ["/route.json", "route", "json"]],
-      ["/route.json.html", ["/route.json.html", "route.json", "html"]]
+      ["/route.json.html", ["/route.json.html", "route", "json.html"]]
     ],
     [
       [{ test: "route" }, "/route"],
@@ -1518,32 +1494,31 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:test.:format?",
+    "/:test{.:format}?",
     {
       end: false
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       {
         name: "format",
         prefix: ".",
-        delimiter: ".",
-        optional: true,
-        repeat: false,
-        pattern: "[^\\.\\/]+?"
+        suffix: "",
+        modifier: "?",
+        pattern: "[^\\/]+?"
       }
     ],
     [
       ["/route", ["/route", "route", undefined]],
       ["/route.json", ["/route.json", "route", "json"]],
-      ["/route.json.html", ["/route.json.html", "route.json", "html"]]
+      ["/route.json.html", ["/route.json.html", "route", "json.html"]]
     ],
     [
       [{ test: "route" }, "/route"],
@@ -1558,13 +1533,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
-      "/test",
+      "/test.",
       {
         name: "format",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: ".*"
       },
       "z"
@@ -1588,12 +1562,12 @@ const TESTS: Test[] = [
     "/(\\d+)",
     undefined,
     [
+      "/",
       {
         name: 0,
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       }
     ],
@@ -1613,12 +1587,12 @@ const TESTS: Test[] = [
       end: false
     },
     [
+      "/",
       {
         name: 0,
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       }
     ],
@@ -1631,15 +1605,14 @@ const TESTS: Test[] = [
     [[{ "0": "123" }, "/123"]]
   ],
   [
-    "/(\\d+)?",
+    "{/(\\d+)}?",
     undefined,
     [
       {
         name: 0,
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "\\d+"
       }
     ],
@@ -1656,12 +1629,12 @@ const TESTS: Test[] = [
     "/(.*)",
     undefined,
     [
+      "/",
       {
         name: 0,
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: ".*"
       }
     ],
@@ -1683,9 +1656,8 @@ const TESTS: Test[] = [
       {
         name: 0,
         prefix: "",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "\\d+\\\\"
       },
       ")"
@@ -1694,23 +1666,43 @@ const TESTS: Test[] = [
     []
   ],
   [
-    "/(login)?",
+    "{/login}?",
     undefined,
     [
       {
-        name: 0,
-        prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
-        pattern: "login"
+        name: "",
+        prefix: "/login",
+        suffix: "",
+        modifier: "?",
+        pattern: ""
       }
     ],
     [
-      ["/", ["/", undefined]],
-      ["/login", ["/login", "login"]]
+      ["/", ["/"]],
+      ["/login", ["/login"]]
     ],
-    []
+    [
+      [null, ""],
+      [{ "": "" }, "/login"]
+    ]
+  ],
+  [
+    "{/login}",
+    undefined,
+    [
+      {
+        name: "",
+        prefix: "/login",
+        suffix: "",
+        modifier: "",
+        pattern: ""
+      }
+    ],
+    [
+      ["/", null],
+      ["/login", ["/login"]]
+    ],
+    [[{ "": "" }, "/login"]]
   ],
 
   /**
@@ -1724,9 +1716,8 @@ const TESTS: Test[] = [
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       }
     ],
@@ -1740,9 +1731,8 @@ const TESTS: Test[] = [
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       }
     ],
@@ -1763,9 +1753,8 @@ const TESTS: Test[] = [
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       }
     ],
@@ -1778,18 +1767,16 @@ const TESTS: Test[] = [
     [
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       },
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       }
     ],
@@ -1809,18 +1796,16 @@ const TESTS: Test[] = [
     [
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1837,17 +1822,15 @@ const TESTS: Test[] = [
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       },
       {
         name: 0,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       }
     ],
@@ -1883,31 +1866,29 @@ const TESTS: Test[] = [
     [[null, "/(testing)"]]
   ],
   [
-    "/.+*?=^!:${}[]|",
+    "/.+*?=^!:$[]|",
     undefined,
-    ["/.+*?=^!:${}[]|"],
-    [["/.+*?=^!:${}[]|", ["/.+*?=^!:${}[]|"]]],
-    [[null, "/.+*?=^!:${}[]|"]]
+    ["/.+*?=^!:$[]|"],
+    [["/.+*?=^!:$[]|", ["/.+*?=^!:$[]|"]]],
+    [[null, "/.+*?=^!:$[]|"]]
   ],
   [
-    "/test\\/:uid(u\\d+)?:cid(c\\d+)?",
+    "/test/{:uid(u\\d+)}?{:cid(c\\d+)}?",
     undefined,
     [
       "/test/",
       {
         name: "uid",
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "u\\d+"
       },
       {
         name: "cid",
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "c\\d+"
       }
     ],
@@ -1928,32 +1909,30 @@ const TESTS: Test[] = [
    * Unnamed group prefix.
    */
   [
-    "\\/(apple-)?icon-:res(\\d+).png",
+    "/{apple-}?icon-:res(\\d+).png",
     undefined,
     [
       "/",
       {
-        name: 0,
-        prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
-        pattern: "apple-"
+        name: "",
+        prefix: "apple-",
+        suffix: "",
+        modifier: "?",
+        pattern: ""
       },
-      "icon",
+      "icon-",
       {
         name: "res",
-        prefix: "-",
-        delimiter: "-",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+"
       },
       ".png"
     ],
     [
-      ["/icon-240.png", ["/icon-240.png", undefined, "240"]],
-      ["/apple-icon-240.png", ["/apple-icon-240.png", "apple-", "240"]]
+      ["/icon-240.png", ["/icon-240.png", "240"]],
+      ["/apple-icon-240.png", ["/apple-icon-240.png", "240"]]
     ],
     []
   ],
@@ -1965,20 +1944,20 @@ const TESTS: Test[] = [
     "/:foo/:bar",
     undefined,
     [
+      "/",
       {
         name: "foo",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
+      "/",
       {
         name: "bar",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -1989,12 +1968,12 @@ const TESTS: Test[] = [
     "/:foo(test\\)/bar",
     undefined,
     [
+      "/",
       {
         name: "foo",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "(test)/bar"
@@ -2006,20 +1985,20 @@ const TESTS: Test[] = [
     "/:remote([\\w-.]+)/:user([\\w-]+)",
     undefined,
     [
+      "/",
       {
         name: "remote",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[\\w-.]+"
       },
+      "/",
       {
         name: "user",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[\\w-]+"
       }
     ],
@@ -2034,15 +2013,14 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:foo\\?",
+    "{/:foo}\\?",
     undefined,
     [
       {
         name: "foo",
         prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "?"
@@ -2051,15 +2029,14 @@ const TESTS: Test[] = [
     [[{ foo: "bar" }, "/bar?"]]
   ],
   [
-    "/:foo+baz",
+    "{/:foo}+baz",
     undefined,
     [
       {
         name: "foo",
         prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: true,
+        suffix: "",
+        modifier: "+",
         pattern: "[^\\/]+?"
       },
       "baz"
@@ -2076,16 +2053,15 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "\\/:pre?baz",
+    "/{:pre}?baz",
     undefined,
     [
       "/",
       {
         name: "pre",
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "baz"
@@ -2100,24 +2076,23 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:foo\\(:bar?\\)",
+    "/:foo\\({:bar}?\\)",
     undefined,
     [
+      "/",
       {
         name: "foo",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       "(",
       {
         name: "bar",
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       ")"
@@ -2132,23 +2107,22 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:postType(video|audio|text)(\\+.+)?",
+    "/:postType(video|audio|text){(\\+.+)}?",
     undefined,
     [
+      "/",
       {
         name: "postType",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "video|audio|text"
       },
       {
         name: 0,
         prefix: "",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "\\+.+"
       }
     ],
@@ -2163,23 +2137,21 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:foo?/:bar?-ext",
+    "{/:foo}?{/:bar}?-ext",
     undefined,
     [
       {
         name: "foo",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       {
         name: "bar",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "-ext"
@@ -2199,23 +2171,22 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:required/:optional?-ext",
+    "/:required{/:optional}?-ext",
     undefined,
     [
+      "/",
       {
         name: "required",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       },
       {
         name: "optional",
         prefix: "/",
-        delimiter: "/",
-        optional: true,
-        repeat: false,
+        suffix: "",
+        modifier: "?",
         pattern: "[^\\/]+?"
       },
       "-ext"
@@ -2225,10 +2196,7 @@ const TESTS: Test[] = [
       ["/foo/bar-ext", ["/foo/bar-ext", "foo", "bar"]],
       ["/foo/-ext", null]
     ],
-    [
-      [{ required: "foo" }, "/foo-ext"],
-      [{ required: "foo", optional: "baz" }, "/foo/baz-ext"]
-    ]
+    [[{ required: "foo" }, "/foo-ext"]]
   ],
 
   /**
@@ -2238,12 +2206,12 @@ const TESTS: Test[] = [
     "/:foo",
     undefined,
     [
+      "/",
       {
         name: "foo",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\/]+?"
       }
     ],
@@ -2284,9 +2252,8 @@ const TESTS: Test[] = [
       {
         name: "domain",
         prefix: "",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: "[^\\.]+?"
       },
       ".com"
@@ -2306,13 +2273,12 @@ const TESTS: Test[] = [
       delimiter: "."
     },
     [
-      "mail",
+      "mail.",
       {
         name: "domain",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "[^\\.]+?"
       },
       ".com"
@@ -2328,18 +2294,15 @@ const TESTS: Test[] = [
   ],
   [
     "example.:ext",
-    {
-      delimiter: "."
-    },
+    {},
     [
-      "example",
+      "example.",
       {
         name: "ext",
-        prefix: ".",
-        delimiter: ".",
-        optional: false,
-        repeat: false,
-        pattern: "[^\\.]+?"
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "[^\\/]+?"
       }
     ],
     [
@@ -2397,29 +2360,25 @@ const TESTS: Test[] = [
   ],
 
   /**
-   * Custom delimiters.
+   * Custom prefixes.
    */
   [
-    "$:foo$:bar?",
-    {
-      delimiter: "$"
-    },
+    "{$:foo}{$:bar}?",
+    {},
     [
       {
-        delimiter: "$",
         name: "foo",
-        optional: false,
-        pattern: "[^\\$]+?",
+        pattern: "[^\\/]+?",
         prefix: "$",
-        repeat: false
+        suffix: "",
+        modifier: ""
       },
       {
-        delimiter: "$",
         name: "bar",
-        optional: true,
-        pattern: "[^\\$]+?",
+        pattern: "[^\\/]+?",
         prefix: "$",
-        repeat: false
+        suffix: "",
+        modifier: "?"
       }
     ],
     [
@@ -2432,61 +2391,30 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    ":test+",
-    {
-      delimiter: " "
-    },
-    [
-      {
-        name: "test",
-        prefix: "",
-        delimiter: " ",
-        optional: false,
-        repeat: true,
-        pattern: "[^ ]+?"
-      }
-    ],
-    [
-      ["hello", ["hello", "hello"]],
-      [" hello ", null],
-      ["", null],
-      ["hello world", ["hello world", "hello world"]]
-    ],
-    [
-      [{}, null],
-      [{ test: "" }, null],
-      [{ test: ["hello"] }, "hello"],
-      [{ test: ["hello", "world"] }, "hello world"]
-    ]
-  ],
-  [
-    "name/:attr1?-:attr2?-:attr3?",
+    "name{/:attr1}?{-:attr2}?{-:attr3}?",
     {},
     [
       "name",
       {
-        delimiter: "/",
         name: "attr1",
-        optional: true,
         pattern: "[^\\/]+?",
         prefix: "/",
-        repeat: false
+        suffix: "",
+        modifier: "?"
       },
       {
-        delimiter: "-",
         name: "attr2",
-        optional: true,
-        pattern: "[^-\\/]+?",
+        pattern: "[^\\/]+?",
         prefix: "-",
-        repeat: false
+        suffix: "",
+        modifier: "?"
       },
       {
-        delimiter: "-",
         name: "attr3",
-        optional: true,
-        pattern: "[^-\\/]+?",
+        pattern: "[^\\/]+?",
         prefix: "-",
-        repeat: false
+        suffix: "",
+        modifier: "?"
       }
     ],
     [
@@ -2503,45 +2431,6 @@ const TESTS: Test[] = [
       [{ attr2: "attr" }, "name-attr"]
     ]
   ],
-  [
-    "name/:attr1?-:attr2?",
-    {
-      whitelist: "/"
-    },
-    [
-      "name",
-      {
-        delimiter: "/",
-        name: "attr1",
-        optional: true,
-        pattern: "[^\\/]+?",
-        prefix: "/",
-        repeat: false
-      },
-      "-",
-      {
-        delimiter: "/",
-        name: "attr2",
-        optional: true,
-        pattern: "[^\\/]+?",
-        prefix: "",
-        repeat: false
-      }
-    ],
-    [
-      ["name/1", null],
-      ["name/1-", ["name/1-", "1", undefined]],
-      ["name/1-2", ["name/1-2", "1", "2"]],
-      ["name/1-2-3", ["name/1-2-3", "1", "2-3"]],
-      ["name/foo-bar/route", null],
-      ["name/test/route", null]
-    ],
-    [
-      [{}, "name-"],
-      [{ attr1: "test" }, "name/test-"],
-      [{ attr2: "attr" }, "name-attr"]
-    ]
-  ],
 
   /**
    * Case-sensitive compile tokensToFunction params.
@@ -2552,12 +2441,12 @@ const TESTS: Test[] = [
       sensitive: true
     },
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "abc"
       }
     ],
@@ -2574,12 +2463,12 @@ const TESTS: Test[] = [
     "/:test(abc)",
     {},
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "abc"
       }
     ],
@@ -2600,12 +2489,12 @@ const TESTS: Test[] = [
     "/:test(\\d+(?:\\.\\d+)?)",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "\\d+(?:\\.\\d+)?"
       }
     ],
@@ -2629,12 +2518,12 @@ const TESTS: Test[] = [
     "/:test((?!login)[^/]+)",
     undefined,
     [
+      "/",
       {
         name: "test",
-        prefix: "/",
-        delimiter: "/",
-        optional: false,
-        repeat: false,
+        prefix: "",
+        suffix: "",
+        modifier: "",
         pattern: "(?!login)[^/]+"
       }
     ],
@@ -2657,10 +2546,9 @@ describe("path-to-regexp", function() {
 
   const TEST_PARAM = {
     name: "id",
-    prefix: "/",
-    delimiter: "/",
-    optional: false,
-    repeat: false,
+    prefix: "",
+    suffix: "",
+    modifier: "",
     pattern: "[^\\/]+?"
   };
 
@@ -2815,7 +2703,7 @@ describe("path-to-regexp", function() {
     });
 
     it("should throw when expecting a repeated value", function() {
-      const toPath = pathToRegexp.compile("/:foo+");
+      const toPath = pathToRegexp.compile("{/:foo}+");
 
       expect(function() {
         toPath({ foo: [] });
@@ -2833,7 +2721,7 @@ describe("path-to-regexp", function() {
     });
 
     it("should throw when repeated value does not match", function() {
-      const toPath = pathToRegexp.compile("/:foo(\\d+)+");
+      const toPath = pathToRegexp.compile("{/:foo(\\d+)}+");
 
       expect(function() {
         toPath({ foo: [1, 2, 3, "a"] });

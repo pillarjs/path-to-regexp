@@ -8,164 +8,207 @@ export interface ParseOptions {
    * Set the default delimiter for repeat parameters. (default: `'/'`)
    */
   delimiter?: string;
-  /**
-   * List of characters to consider delimiters when parsing. (default: `undefined`, any character)
-   */
-  whitelist?: string | string[];
 }
 
 /**
- * Balanced bracket helper function.
+ * Tokenizer results.
  */
-function balanced(open: string, close: string, str: string, index: number) {
-  let count = 0;
-  let i = index;
+export interface Lex {
+  type: "OPEN" | "CLOSE" | "PATTERN" | "NAME" | "TEXT" | "MODIFIER";
+  index: number;
+  value: string;
+}
+
+/**
+ * Tokenize input string.
+ */
+export function lexer(str: string): Lex[] {
+  const tokens: Lex[] = [];
+  let token: Lex = { type: "TEXT", index: 0, value: "" };
+  let group = 0;
+  let i = 0;
+
+  const next = (type: Lex["type"], index: number, value = "") => {
+    if (token.value) tokens.push(token);
+    token = { type, index, value };
+    return token;
+  };
 
   while (i < str.length) {
-    if (str[i] === "\\") {
-      i += 2;
-      continue;
+    if (token.type === "TEXT") {
+      // Ignore escaped characters in text.
+      if (str[i] === "\\") {
+        i++;
+        token.value += str[i++];
+        continue;
+      }
+
+      if (str[i] === "{") {
+        group++;
+        if (group === 1) {
+          next("OPEN", i, str[i++]);
+          next("TEXT", i);
+          continue;
+        }
+      } else if (str[i] === "}") {
+        group--;
+        if (group === 0) {
+          next("CLOSE", i, str[i++]);
+
+          if (str[i] === "?" || str[i] === "+" || str[i] === "*") {
+            next("MODIFIER", i, str[i++]);
+          }
+
+          next("TEXT", i);
+          continue;
+        }
+      } else if (str[i] === ":") {
+        let name = "";
+        let j = i;
+
+        while (++j < str.length) {
+          const code = str.charCodeAt(j);
+
+          if (
+            // `0-9`
+            (code >= 48 && code <= 57) ||
+            // `A-Z`
+            (code >= 65 && code <= 90) ||
+            // `a-z`
+            (code >= 97 && code <= 122) ||
+            // `_`
+            code === 95
+          ) {
+            name += str[j];
+            continue;
+          }
+
+          break;
+        }
+
+        if (name) {
+          next("NAME", i, name);
+          next("TEXT", j);
+          i = j;
+          continue;
+        }
+      } else if (str[i] === "(") {
+        let count = 1;
+        let pattern = "";
+        let j = i;
+
+        while (++j < str.length) {
+          if (str[j] === "\\") {
+            pattern += str[j++] + str[j];
+            continue;
+          }
+
+          if (str[j] === ")") {
+            count--;
+            if (count === 0) break;
+          } else if (str[j] === "(") {
+            count++;
+          }
+
+          pattern += str[j];
+        }
+
+        if (count === 0 && pattern) {
+          if (pattern[0] === "?") {
+            throw new TypeError("Path pattern must be a capturing group");
+          }
+
+          if (/\((?=[^?])/.test(pattern)) {
+            const validPattern = pattern.replace(/\((?=[^?])/, "(?:");
+
+            throw new TypeError(
+              `Capturing groups are not allowed in pattern, use a non-capturing group: (${validPattern})`
+            );
+          }
+
+          j++;
+          next("PATTERN", i, pattern);
+          next("TEXT", j);
+          i = j;
+          continue;
+        }
+      }
     }
 
-    if (str[i] === close) {
-      count--;
-
-      if (count === 0) return i + 1;
-    }
-
-    if (str[i] === open) {
-      count++;
-    }
-
-    i++;
+    token.value += str[i++];
   }
 
-  return -1;
+  next("TEXT", i);
+
+  return tokens;
 }
 
 /**
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
-  const tokens = [];
-  const defaultDelimiter = options.delimiter ?? DEFAULT_DELIMITER;
-  const whitelist = options.whitelist ?? undefined;
-  let i = 0;
+  const tokens = lexer(str);
+  const delimiter = options.delimiter || DEFAULT_DELIMITER;
+  const defaultPattern = `[^${escapeString(delimiter)}]+?`;
+  const result: Token[] = [];
   let key = 0;
-  let path = "";
-  let isEscaped = false;
+  let i = 0;
 
-  // tslint:disable-next-line
-  while (i < str.length) {
-    let prefix = "";
-    let name = "";
-    let pattern = "";
+  const tryConsume = (type: Lex["type"]): string | undefined => {
+    if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
+  };
 
-    // Ignore escaped sequences.
-    if (str[i] === "\\") {
-      i++;
-      path += str[i++];
-      isEscaped = true;
-      continue;
+  const mustConsume = (type: Lex["type"]) => {
+    const value = tryConsume(type);
+    if (value !== undefined) return value;
+
+    const { type: nextType, index } = tokens[i];
+
+    throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
+  };
+
+  while (i < tokens.length) {
+    const token = tokens[i++];
+
+    if (token.type === "TEXT") {
+      if (token.value) result.push(token.value);
+    } else if (token.type === "NAME") {
+      result.push({
+        name: token.value,
+        pattern: tryConsume("PATTERN") || defaultPattern,
+        prefix: "",
+        suffix: "",
+        modifier: ""
+      });
+    } else if (token.type === "PATTERN") {
+      result.push({
+        name: key++,
+        pattern: token.value,
+        prefix: "",
+        suffix: "",
+        modifier: ""
+      });
+    } else if (token.type === "OPEN") {
+      const prefix = tryConsume("TEXT") || "";
+      const name = tryConsume("NAME") || "";
+      const pattern = tryConsume("PATTERN") || "";
+      const suffix = tryConsume("TEXT") || "";
+
+      mustConsume("CLOSE");
+
+      const modifier = tryConsume("MODIFIER") || "";
+
+      result.push({
+        name: name || (pattern ? key++ : ""),
+        pattern: name && !pattern ? defaultPattern : pattern,
+        prefix,
+        suffix,
+        modifier
+      });
     }
-
-    if (str[i] === ":") {
-      while (++i < str.length) {
-        const code = str.charCodeAt(i);
-
-        if (
-          // `0-9`
-          (code >= 48 && code <= 57) ||
-          // `A-Z`
-          (code >= 65 && code <= 90) ||
-          // `a-z`
-          (code >= 97 && code <= 122) ||
-          // `_`
-          code === 95
-        ) {
-          name += str[i];
-          continue;
-        }
-
-        break;
-      }
-
-      // False positive on param name.
-      if (!name) i--;
-    }
-
-    if (str[i] === "(") {
-      const end = balanced("(", ")", str, i);
-
-      // False positive on matching brackets.
-      if (end > -1) {
-        pattern = str.slice(i + 1, end - 1);
-        i = end;
-
-        if (pattern[0] === "?") {
-          throw new TypeError("Path pattern must be a capturing group");
-        }
-
-        if (/\((?=[^?])/.test(pattern)) {
-          const validPattern = pattern.replace(/\((?=[^?])/, "(?:");
-
-          throw new TypeError(
-            `Capturing groups are not allowed in pattern, use a non-capturing group: (${validPattern})`
-          );
-        }
-      }
-    }
-
-    // Add regular characters to the path string.
-    if (name === "" && pattern === "") {
-      path += str[i++];
-      isEscaped = false;
-      continue;
-    }
-
-    // Extract the final character from `path` for the prefix.
-    if (path.length && !isEscaped) {
-      const char = path[path.length - 1];
-      const matches = whitelist ? whitelist.indexOf(char) > -1 : true;
-
-      if (matches) {
-        prefix = char;
-        path = path.slice(0, -1);
-      }
-    }
-
-    // Push the current path onto the list of tokens.
-    if (path.length) {
-      tokens.push(path);
-      path = "";
-    }
-
-    const repeat = str[i] === "+" || str[i] === "*";
-    const optional = str[i] === "?" || str[i] === "*";
-    const delimiter = prefix || defaultDelimiter;
-
-    // Increment `i` past modifier token.
-    if (repeat || optional) i++;
-
-    tokens.push({
-      name: name || key++,
-      prefix,
-      delimiter,
-      optional,
-      repeat,
-      pattern:
-        pattern ||
-        `[^${escapeString(
-          delimiter === defaultDelimiter
-            ? delimiter
-            : delimiter + defaultDelimiter
-        )}]+?`
-    });
   }
 
-  if (path.length) tokens.push(path);
-
-  return tokens;
+  return result;
 }
 
 export interface TokensToFunctionOptions {
@@ -224,16 +267,18 @@ export function tokensToFunction<P extends object = object>(
       }
 
       const value = data ? data[token.name] : undefined;
+      const optional = token.modifier === "?" || token.modifier === "*";
+      const repeat = token.modifier === "*" || token.modifier === "+";
 
       if (Array.isArray(value)) {
-        if (!token.repeat) {
+        if (!repeat) {
           throw new TypeError(
             `Expected "${token.name}" to not repeat, but got an array`
           );
         }
 
         if (value.length === 0) {
-          if (token.optional) continue;
+          if (optional) continue;
 
           throw new TypeError(`Expected "${token.name}" to not be empty`);
         }
@@ -247,7 +292,7 @@ export function tokensToFunction<P extends object = object>(
             );
           }
 
-          path += (j === 0 ? token.prefix : token.delimiter) + segment;
+          path += token.prefix + segment + token.suffix;
         }
 
         continue;
@@ -262,13 +307,13 @@ export function tokensToFunction<P extends object = object>(
           );
         }
 
-        path += token.prefix + segment;
+        path += token.prefix + segment + token.suffix;
         continue;
       }
 
-      if (token.optional) continue;
+      if (optional) continue;
 
-      const typeOfMessage = token.repeat ? "an array" : "a string";
+      const typeOfMessage = repeat ? "an array" : "a string";
       throw new TypeError(`Expected "${token.name}" to be ${typeOfMessage}`);
     }
 
@@ -339,8 +384,8 @@ export function regexpToFunction<P extends object = object>(
 
       const key = keys[i - 1];
 
-      if (key.repeat) {
-        params[key.name] = m[i].split(key.delimiter).map(value => {
+      if (key.modifier === "*" || key.modifier === "+") {
+        params[key.name] = m[i].split(key.prefix + key.suffix).map(value => {
           return decode(value, key);
         });
       } else {
@@ -372,10 +417,9 @@ function flags(options?: { sensitive?: boolean }) {
 export interface Key {
   name: string | number;
   prefix: string;
-  delimiter: string;
-  optional: boolean;
-  repeat: boolean;
+  suffix: string;
   pattern: string;
+  modifier: string;
 }
 
 /**
@@ -397,9 +441,8 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
       keys.push({
         name: i,
         prefix: "",
-        delimiter: "",
-        optional: false,
-        repeat: false,
+        suffix: "",
+        modifier: "",
         pattern: ""
       });
     }
@@ -491,44 +534,46 @@ export function tokensToRegexp(
     if (typeof token === "string") {
       route += escapeString(encode(token));
     } else {
-      const capture = token.repeat
-        ? `(?:${token.pattern})(?:${escapeString(token.delimiter)}(?:${
-            token.pattern
-          }))*`
-        : token.pattern;
+      const prefix = escapeString(encode(token.prefix));
+      const suffix = escapeString(encode(token.suffix));
 
-      if (keys) keys.push(token);
+      if (token.pattern) {
+        if (keys) keys.push(token);
 
-      if (token.optional) {
-        if (!token.prefix) {
-          route += `(${capture})?`;
+        if (prefix || suffix) {
+          if (token.modifier === "+" || token.modifier === "*") {
+            const mod = token.modifier === "*" ? "?" : "";
+            route += `(?:${prefix}((?:${token.pattern})(?:${suffix}${prefix}(?:${token.pattern}))*)${suffix})${mod}`;
+          } else {
+            route += `(?:${prefix}(${token.pattern})${suffix})?`;
+          }
         } else {
-          route += `(?:${escapeString(token.prefix)}(${capture}))?`;
+          route += `(${token.pattern})${token.modifier}`;
         }
       } else {
-        route += `${escapeString(token.prefix)}(${capture})`;
+        route += `(?:${prefix}${suffix})${token.modifier}`;
       }
     }
   }
 
   if (end) {
-    if (!strict) route += `(?:${escapeString(delimiter)})?`;
+    if (!strict) route += `(?:[${escapeString(delimiter)}])?`;
 
     route += endsWith === "$" ? "$" : `(?=${endsWith})`;
   } else {
     const endToken = tokens[tokens.length - 1];
     const isEndDelimited =
       typeof endToken === "string"
-        ? endToken[endToken.length - 1] === delimiter
+        ? delimiter.indexOf(endToken[endToken.length - 1]) > -1
         : // tslint:disable-next-line
           endToken === undefined;
 
     if (!strict) {
-      route += `(?:${escapeString(delimiter)}(?=${endsWith}))?`;
+      route += `(?:[${escapeString(delimiter)}](?=${endsWith}))?`;
     }
 
     if (!isEndDelimited) {
-      route += `(?=${escapeString(delimiter)}|${endsWith})`;
+      route += `(?=[${escapeString(delimiter)}]|${endsWith})`;
     }
   }
 
