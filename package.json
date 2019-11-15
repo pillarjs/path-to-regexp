@@ -34,7 +34,7 @@
   "size-limit": [
     {
       "path": "dist/index.js",
-      "limit": "1.75 kB"
+      "limit": "2 kB"
     }
   ],
   "jest": {
