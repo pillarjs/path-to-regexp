@@ -152,6 +152,21 @@ regexpWord.exec("/users");
 
 **Tip:** Backslashes need to be escaped with another backslash in JavaScript strings.
 
+##### Modified Custom Matching Parameters
+
+When using a modifier whith a custom regexp, the modifier is added after the regexp:
+
+```js
+const regexp = pathToRegexp("/:foo(\\d+)?");
+// keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: false }]
+
+regexp.exec("/");
+//=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
+
+regexp.exec("/123");
+//=> [ '/123', '123', index: 0, input: '/123', groups: undefined ]
+```
+
 ### Match
 
 The `match` function will return a function for transforming paths into parameters:
