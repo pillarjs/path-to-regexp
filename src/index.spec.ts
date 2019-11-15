@@ -2496,6 +2496,36 @@ const TESTS: Test[] = [
       [{ test: "route" }, "/route"],
       [{ test: "login" }, null]
     ]
+  ],
+
+  /**
+   * https://github.com/pillarjs/path-to-regexp/issues/206
+   */
+  [
+    "/user(s)?/:user",
+    undefined,
+    [
+      "/user",
+      {
+        name: 0,
+        prefix: "",
+        suffix: "",
+        modifier: "?",
+        pattern: "s"
+      },
+      {
+        name: "user",
+        prefix: "/",
+        suffix: "",
+        modifier: "",
+        pattern: "[^\\/]+?"
+      }
+    ],
+    [
+      ["/user/123", ["/user/123", undefined, "123"]],
+      ["/users/123", ["/users/123", "s", "123"]]
+    ],
+    [[{ user: "123" }, "/user/123"]]
   ]
 ];
 
