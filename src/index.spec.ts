@@ -1873,7 +1873,7 @@ const TESTS: Test[] = [
     [[null, "/.+*?=^!:$[]|"]]
   ],
   [
-    "/test/{:uid(u\\d+)}?{:cid(c\\d+)}?",
+    "/test/:uid(u\\d+)?:cid(c\\d+)?",
     undefined,
     [
       "/test/",
@@ -2013,12 +2013,13 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "{/:foo}\\?",
+    "/:foo\\?",
     undefined,
     [
+      "/",
       {
         name: "foo",
-        prefix: "/",
+        prefix: "",
         suffix: "",
         modifier: "",
         pattern: "[^\\/]+?"
@@ -2107,7 +2108,7 @@ const TESTS: Test[] = [
     ]
   ],
   [
-    "/:postType(video|audio|text){(\\+.+)}?",
+    "/:postType(video|audio|text)(\\+.+)?",
     undefined,
     [
       "/",

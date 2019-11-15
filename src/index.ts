@@ -1,16 +1,4 @@
 /**
- * Default configs.
- */
-const DEFAULT_DELIMITER = "/";
-
-export interface ParseOptions {
-  /**
-   * Set the default delimiter for repeat parameters. (default: `'/'`)
-   */
-  delimiter?: string;
-}
-
-/**
  * Tokenizer results.
  */
 export interface Lex {
@@ -18,6 +6,11 @@ export interface Lex {
   index: number;
   value: string;
 }
+
+/**
+ * Modifier tokens.
+ */
+const MODIFIERS = "*+?";
 
 /**
  * Tokenize input string.
@@ -54,19 +47,15 @@ export function lexer(str: string): Lex[] {
         group--;
         if (group === 0) {
           next("CLOSE", i, str[i++]);
-
-          if (str[i] === "?" || str[i] === "+" || str[i] === "*") {
-            next("MODIFIER", i, str[i++]);
-          }
-
+          if (MODIFIERS.indexOf(str[i]) > -1) next("MODIFIER", i, str[i++]);
           next("TEXT", i);
           continue;
         }
       } else if (str[i] === ":") {
         let name = "";
-        let j = i;
+        let j = i + 1;
 
-        while (++j < str.length) {
+        while (j < str.length) {
           const code = str.charCodeAt(j);
 
           if (
@@ -79,7 +68,7 @@ export function lexer(str: string): Lex[] {
             // `_`
             code === 95
           ) {
-            name += str[j];
+            name += str[j++];
             continue;
           }
 
@@ -88,29 +77,32 @@ export function lexer(str: string): Lex[] {
 
         if (name) {
           next("NAME", i, name);
-          next("TEXT", j);
           i = j;
+          next("TEXT", i);
           continue;
         }
       } else if (str[i] === "(") {
         let count = 1;
         let pattern = "";
-        let j = i;
+        let j = i + 1;
 
-        while (++j < str.length) {
+        while (j < str.length) {
           if (str[j] === "\\") {
-            pattern += str[j++] + str[j];
+            pattern += str[j++] + str[j++];
             continue;
           }
 
           if (str[j] === ")") {
             count--;
-            if (count === 0) break;
+            if (count === 0) {
+              j++;
+              break;
+            }
           } else if (str[j] === "(") {
             count++;
           }
 
-          pattern += str[j];
+          pattern += str[j++];
         }
 
         if (count === 0 && pattern) {
@@ -126,10 +118,10 @@ export function lexer(str: string): Lex[] {
             );
           }
 
-          j++;
           next("PATTERN", i, pattern);
-          next("TEXT", j);
           i = j;
+          if (MODIFIERS.indexOf(str[j]) > -1) next("MODIFIER", i, str[i++]);
+          next("TEXT", i);
           continue;
         }
       }
@@ -143,12 +135,19 @@ export function lexer(str: string): Lex[] {
   return tokens;
 }
 
+export interface ParseOptions {
+  /**
+   * Set the default delimiter for repeat parameters. (default: `'/'`)
+   */
+  delimiter?: string;
+}
+
 /**
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
-  const delimiter = options.delimiter || DEFAULT_DELIMITER;
+  const delimiter = options.delimiter || "/";
   const defaultPattern = `[^${escapeString(delimiter)}]+?`;
   const result: Token[] = [];
   let key = 0;
@@ -161,9 +160,9 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   const mustConsume = (type: Lex["type"]) => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
+    if (i >= tokens.length) throw new TypeError("Unexpected end of string");
 
     const { type: nextType, index } = tokens[i];
-
     throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
   };
 
@@ -171,14 +170,14 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     const token = tokens[i++];
 
     if (token.type === "TEXT") {
-      if (token.value) result.push(token.value);
+      result.push(token.value);
     } else if (token.type === "NAME") {
       result.push({
         name: token.value,
         pattern: tryConsume("PATTERN") || defaultPattern,
         prefix: "",
         suffix: "",
-        modifier: ""
+        modifier: tryConsume("MODIFIER") || ""
       });
     } else if (token.type === "PATTERN") {
       result.push({
@@ -186,7 +185,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         pattern: token.value,
         prefix: "",
         suffix: "",
-        modifier: ""
+        modifier: tryConsume("MODIFIER") || ""
       });
     } else if (token.type === "OPEN") {
       const prefix = tryConsume("TEXT") || "";
@@ -498,7 +497,7 @@ export interface TokensToRegexpOptions {
   /**
    * List of characters that can also be "end" characters.
    */
-  endsWith?: string | string[];
+  endsWith?: string;
   /**
    * Encode path tokens for use in the `RegExp`.
    */
@@ -517,13 +516,11 @@ export function tokensToRegexp(
     strict,
     start = true,
     end = true,
-    delimiter = DEFAULT_DELIMITER,
+    delimiter = "/",
     encode = (x: string) => x
   } = options;
-  const endsWith = (typeof options.endsWith === "string"
-    ? options.endsWith.split("")
-    : options.endsWith || []
-  )
+  const endsWith = (options.endsWith || "")
+    .split("")
     .map(escapeString)
     .concat("$")
     .join("|");
