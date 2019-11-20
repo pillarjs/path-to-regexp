@@ -33,7 +33,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
-  - **delimiter** The default delimiter for segments. (default: `'/'`)
+  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` patterns. (default: `'/'`)
   - **endsWith** Optional character, or list of characters, to treat as "end" characters.
   - **encode** A function to encode strings before inserting into `RegExp`. (default: `x => x`)
   - **prefixes** List of characters to automatically consider prefixes when parsing. (default: `./`)
@@ -49,11 +49,11 @@ const regexp = pathToRegexp("/foo/:bar", keys);
 
 ### Parameters
 
-The path argument is used to define parameters and populate the list of keys.
+The path argument is used to define parameters and populate keys.
 
 #### Named Parameters
 
-Named parameters are defined by prefixing a colon to the parameter name (`:foo`). By default, the parameter will match until the next prefix (e.g. `[^/]+`).
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`).
 
 ```js
 const regexp = pathToRegexp("/:foo/:bar");
@@ -65,70 +65,9 @@ regexp.exec("/test/route");
 
 **Please note:** Parameter names must use "word characters" (`[A-Za-z0-9_]`).
 
-#### Parameter Modifiers
+##### Custom Matching Parameters
 
-##### Optional
-
-Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
-
-```js
-const regexp = pathToRegexp("/:foo/:bar?");
-// keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
-
-regexp.exec("/test");
-//=> [ '/test', 'test', undefined, index: 0, input: '/test', groups: undefined ]
-
-regexp.exec("/test/route");
-//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
-```
-
-**Tip:** The prefix is also optional, escape the prefix `\/` to make it required.
-
-##### Zero or more
-
-Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches. The prefix is used for each match.
-
-```js
-const regexp = pathToRegexp("/:foo*");
-// keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
-
-regexp.exec("/");
-//=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
-
-regexp.exec("/bar/baz");
-//=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
-```
-
-##### One or more
-
-Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches. The prefix is used for each match.
-
-```js
-const regexp = pathToRegexp("/:foo+");
-// keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
-
-regexp.exec("/");
-//=> null
-
-regexp.exec("/bar/baz");
-//=> [ '/bar/baz','bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
-```
-
-#### Unnamed Parameters
-
-It is possible to write an unnamed parameter that only consists of a matching group. It works the same as a named parameter, except it will be numerically indexed.
-
-```js
-const regexp = pathToRegexp("/:foo/(.*)");
-// keys = [{ name: 'foo', ... }, { name: 0, ... }]
-
-regexp.exec("/test/route");
-//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
-```
-
-#### Custom Matching Parameters
-
-All parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
+Parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
 
 ```js
 const regexpNumbers = pathToRegexp("/icon-:foo(\\d+).png");
@@ -151,6 +90,83 @@ regexpWord.exec("/users");
 ```
 
 **Tip:** Backslashes need to be escaped with another backslash in JavaScript strings.
+
+##### Custom Prefix and Suffix
+
+Parameters can be wrapped in `{}` to create custom prefixes or suffixes for your segment:
+
+```js
+const regexp = pathToRegexp("/:attr1?{-:attr2}?{-:attr3}?");
+
+regexp.exec("/test");
+// => ['/test', 'test', undefined, undefined]
+
+regexp.exec("/test-test");
+// => ['/test', 'test', 'test', undefined]
+```
+
+#### Unnamed Parameters
+
+It is possible to write an unnamed parameter that only consists of a regexp. It works the same the named parameter, except it will be numerically indexed:
+
+```js
+const regexp = pathToRegexp("/:foo/(.*)");
+// keys = [{ name: 'foo', ... }, { name: 0, ... }]
+
+regexp.exec("/test/route");
+//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
+```
+
+#### Modifiers
+
+All modifiers must be placed after the parameter.
+
+##### Optional
+
+Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
+
+```js
+const regexp = pathToRegexp("/:foo/:bar?");
+// keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
+
+regexp.exec("/test");
+//=> [ '/test', 'test', undefined, index: 0, input: '/test', groups: undefined ]
+
+regexp.exec("/test/route");
+//=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
+```
+
+**Tip:** The prefix is also optional, escape the prefix `\/` to make it required.
+
+##### Zero or more
+
+Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches.
+
+```js
+const regexp = pathToRegexp("/:foo*");
+// keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
+
+regexp.exec("/");
+//=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
+
+regexp.exec("/bar/baz");
+//=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
+```
+
+##### One or more
+
+Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches.
+
+```js
+const regexp = pathToRegexp("/:foo+");
+// keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
+
+regexp.exec("/");
+//=> null
+
+regexp.exec("/bar/baz");
+//=> [ '/bar/baz','bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
+```
 
 ### Match
 
