@@ -1,7 +1,7 @@
 {
   "name": "path-to-regexp",
   "description": "Express style path to RegExp utility",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "module": "dist.es2015/index.js",
