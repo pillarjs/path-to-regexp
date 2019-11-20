@@ -139,8 +139,8 @@ export interface ParseOptions {
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
-  const { delimiter = "/", prefixes = "./" } = options;
-  const defaultPattern = `[^${escapeString(delimiter)}]+?`;
+  const { prefixes = "./" } = options;
+  const defaultPattern = `[^${escapeString(options.delimiter || "/")}]+?`;
   const result: Token[] = [];
   let key = 0;
   let i = 0;
@@ -161,8 +161,9 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     let result = "";
     let value: string | undefined;
     // tslint:disable-next-line
-    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")))
+    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
       result += value;
+    }
     return result;
   };
 
@@ -533,13 +534,13 @@ export function tokensToRegexp(
   options: TokensToRegexpOptions = {}
 ) {
   const {
-    strict,
+    strict = false,
     start = true,
     end = true,
-    delimiter = "/",
     encode = (x: string) => x
   } = options;
   const endsWith = `[${escapeString(options.endsWith || "")}]|$`;
+  const delimiter = `[${escapeString(options.delimiter || "/")}]`;
   let route = start ? "^" : "";
 
   // Iterate over the tokens and create our regexp string.
@@ -570,7 +571,7 @@ export function tokensToRegexp(
   }
 
   if (end) {
-    if (!strict) route += `(?:[${escapeString(delimiter)}])?`;
+    if (!strict) route += `${delimiter}?`;
 
     route += endsWith === "$" ? "$" : `(?=${endsWith})`;
   } else {
@@ -582,11 +583,11 @@ export function tokensToRegexp(
           endToken === undefined;
 
     if (!strict) {
-      route += `(?:[${escapeString(delimiter)}](?=${endsWith}))?`;
+      route += `(?:${delimiter}(?=${endsWith}))?`;
     }
 
     if (!isEndDelimited) {
-      route += `(?=[${escapeString(delimiter)}]|${endsWith})`;
+      route += `(?=${delimiter}|${endsWith})`;
     }
   }
 
@@ -610,13 +611,7 @@ export function pathToRegexp(
   keys?: Key[],
   options?: TokensToRegexpOptions & ParseOptions
 ) {
-  if (path instanceof RegExp) {
-    return regexpToRegexp(path, keys);
-  }
-
-  if (Array.isArray(path)) {
-    return arrayToRegexp(path, keys, options);
-  }
-
+  if (path instanceof RegExp) return regexpToRegexp(path, keys);
+  if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
   return stringToRegexp(path, keys, options);
 }
