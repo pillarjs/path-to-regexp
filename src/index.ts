@@ -140,7 +140,7 @@ export interface ParseOptions {
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
   const { prefixes = "./" } = options;
-  const defaultPattern = `[^${escapeString(options.delimiter || "/")}]+?`;
+  const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]+?`;
   const result: Token[] = [];
   let key = 0;
   let i = 0;
@@ -540,7 +540,7 @@ export function tokensToRegexp(
     encode = (x: string) => x
   } = options;
   const endsWith = `[${escapeString(options.endsWith || "")}]|$`;
-  const delimiter = `[${escapeString(options.delimiter || "/")}]`;
+  const delimiter = `[${escapeString(options.delimiter || "/#?")}]`;
   let route = start ? "^" : "";
 
   // Iterate over the tokens and create our regexp string.
@@ -573,7 +573,7 @@ export function tokensToRegexp(
   if (end) {
     if (!strict) route += `${delimiter}?`;
 
-    route += endsWith === "$" ? "$" : `(?=${endsWith})`;
+    route += !options.endsWith ? "$" : `(?=${endsWith})`;
   } else {
     const endToken = tokens[tokens.length - 1];
     const isEndDelimited =

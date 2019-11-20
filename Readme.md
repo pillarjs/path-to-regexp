@@ -33,7 +33,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
   - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
-  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` patterns. (default: `'/'`)
+  - **delimiter** The default delimiter for segments, e.g. `[^/#?]` for `:named` patterns. (default: `'/#?'`)
   - **endsWith** Optional character, or list of characters, to treat as "end" characters.
   - **encode** A function to encode strings before inserting into `RegExp`. (default: `x => x`)
   - **prefixes** List of characters to automatically consider prefixes when parsing. (default: `./`)
