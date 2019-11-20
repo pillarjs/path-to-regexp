@@ -263,11 +263,11 @@ toPathRegexp({ id: "abc" }); //=> Throws `TypeError`.
 toPathRegexp({ id: "abc" }, { validate: false }); //=> "/user/abc"
 ```
 
-**Note:** The generated function will throw on invalid input. It will do all necessary checks to ensure the generated path is valid. This method only works with strings.
+**Note:** The generated function will throw on invalid input.
 
 ### Working with Tokens
 
-Path-To-RegExp exposes the two functions used internally that accept an array of tokens.
+Path-To-RegExp exposes the two functions used internally that accept an array of tokens:
 
 - `tokensToRegexp(tokens, keys?, options?)` Transform an array of tokens into a matching regular expression.
 - `tokensToFunction(tokens)` Transform an array of tokens into a path generator function.
@@ -275,11 +275,10 @@ Path-To-RegExp exposes the two functions used internally that accept an array of
 #### Token Information
 
 - `name` The name of the token (`string` for named or `number` for unnamed index)
-- `prefix` The prefix character for the segment (e.g. `/`)
-- `delimiter` The delimiter for the segment (same as prefix or default delimiter)
-- `optional` Indicates the token is optional (`boolean`)
-- `repeat` Indicates the token is repeated (`boolean`)
+- `prefix` The prefix string for the segment (e.g. `"/"`)
+- `suffix` The suffix string for the segment (e.g. `""`)
 - `pattern` The RegExp used to match this token (`string`)
+- `modifier` The modifier character used for the segment (e.g. `?`)
 
 ## Compatibility with Express <= 4.x
 
