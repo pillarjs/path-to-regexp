@@ -181,9 +181,21 @@ match("/invalid"); //=> false
 match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
 ```
 
-#### Normalize Pathname
+#### Process Pathname
 
-You should make sure variations of the same path to match your input `path`. Here's one possible solution:
+You should make sure variations of the same path match the expected `path`. Here's one possible solution using `encode`:
+
+```js
+const match = match("/café", { encode: encodeURI, decode: decodeURIComponent });
+
+match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
+```
+
+**Note:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically encodes pathnames for you.
+
+##### Alternative Using Normalize
+
+Sometimes you won't have an already normalized pathname. You can normalize it yourself before processing:
 
 ```js
 /**
@@ -202,14 +214,13 @@ function normalizePathname(pathname: string) {
   );
 }
 
+// Two possible ways of writing `/café`:
 const re = pathToRegexp("/caf\u00E9");
 const input = encodeURI("/cafe\u0301");
 
 re.test(input); //=> false
 re.test(normalizePathname(input)); //=> true
 ```
-
-**Note:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically encodes pathnames for you, which would result in a consistent match if you use `encodeURI` in `pathToRegexp` options.
 
 ### Parse
 
