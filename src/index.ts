@@ -46,12 +46,33 @@ function lexer(str: string): LexToken[] {
     }
 
     if (char === ":") {
-      const name = str.slice(i + 1).match(/^\w+/);
+      let name = "";
+      let j = i + 1;
+
+      while (j < str.length) {
+        const code = str.charCodeAt(j);
+
+        if (
+          // `0-9`
+          (code >= 48 && code <= 57) ||
+          // `A-Z`
+          (code >= 65 && code <= 90) ||
+          // `a-z`
+          (code >= 97 && code <= 122) ||
+          // `_`
+          code === 95
+        ) {
+          name += str[j++];
+          continue;
+        }
+
+        break;
+      }
 
       if (!name) throw new TypeError(`Missing parameter name at ${i}`);
 
-      tokens.push({ type: "NAME", index: i, value: name[0] });
-      i += name[0].length + 1;
+      tokens.push({ type: "NAME", index: i, value: name });
+      i = j;
       continue;
     }
 
