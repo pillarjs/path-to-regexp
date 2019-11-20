@@ -1,49 +1,46 @@
 /**
  * Tokenizer results.
  */
-export interface Lex {
+interface LexToken {
   type: "OPEN" | "CLOSE" | "PATTERN" | "NAME" | "CHAR" | "ESC" | "END" | "MOD";
   index: number;
   value: string;
 }
 
 /**
- * Modifier tokens.
- */
-const MODIFIERS = "*+?";
-
-/**
  * Tokenize input string.
  */
-export function lexer(str: string): Lex[] {
-  const tokens: Lex[] = [];
+function lexer(str: string): LexToken[] {
+  const tokens: LexToken[] = [];
   let group = 0;
   let i = 0;
 
   while (i < str.length) {
-    if (MODIFIERS.indexOf(str[i]) > -1) {
+    const char = str[i];
+
+    if (char === "*" || char === "+" || char === "?") {
       tokens.push({ type: "MOD", index: i, value: str[i++] });
       continue;
     }
 
-    if (str[i] === "\\") {
+    if (char === "\\") {
       tokens.push({ type: "ESC", index: i++, value: str[i++] });
       continue;
     }
 
-    if (str[i] === "{") {
+    if (char === "{") {
       group++;
       if (group === 1) {
         tokens.push({ type: "OPEN", index: i, value: str[i++] });
         continue;
       }
-    } else if (str[i] === "}") {
+    } else if (char === "}") {
       group--;
       if (group === 0) {
         tokens.push({ type: "CLOSE", index: i, value: str[i++] });
         continue;
       }
-    } else if (str[i] === ":") {
+    } else if (char === ":") {
       let name = "";
       let j = i + 1;
 
@@ -72,7 +69,7 @@ export function lexer(str: string): Lex[] {
         i = j;
         continue;
       }
-    } else if (str[i] === "(") {
+    } else if (char === "(") {
       let count = 1;
       let pattern = "";
       let j = i + 1;
@@ -146,11 +143,11 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   let i = 0;
   let path = "";
 
-  const tryConsume = (type: Lex["type"]): string | undefined => {
+  const tryConsume = (type: LexToken["type"]): string | undefined => {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   };
 
-  const mustConsume = (type: Lex["type"]): string => {
+  const mustConsume = (type: LexToken["type"]): string => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
     const { type: nextType, index } = tokens[i];
