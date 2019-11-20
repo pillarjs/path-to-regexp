@@ -42,7 +42,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 const keys = [];
 const regexp = pathToRegexp("/foo/:bar", keys);
 // regexp = /^\/foo\/([^\/]+?)\/?$/i
-// keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
+// keys = [{ name: 'bar', prefix: '/', suffix: '', pattern: '[^\\/#\\?]+?', modifier: '' }]
 ```
 
 **Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc). When using paths that contain query strings, you need to escape the question mark (`?`) to ensure it does not flag the parameter as [optional](#optional).
@@ -127,7 +127,7 @@ Parameters can be suffixed with a question mark (`?`) to make the parameter opti
 
 ```js
 const regexp = pathToRegexp("/:foo/:bar?");
-// keys = [{ name: 'foo', ... }, { name: 'bar', delimiter: '/', optional: true, repeat: false }]
+// keys = [{ name: 'foo', ... }, { name: 'bar', prefix: '/', modifier: '?' }]
 
 regexp.exec("/test");
 //=> [ '/test', 'test', undefined, index: 0, input: '/test', groups: undefined ]
@@ -157,7 +157,7 @@ Parameters can be suffixed with an asterisk (`*`) to denote a zero or more param
 
 ```js
 const regexp = pathToRegexp("/:foo*");
-// keys = [{ name: 'foo', delimiter: '/', optional: true, repeat: true }]
+// keys = [{ name: 'foo', prefix: '/', modifier: '*' }]
 
 regexp.exec("/");
 //=> [ '/', undefined, index: 0, input: '/', groups: undefined ]
@@ -172,7 +172,7 @@ Parameters can be suffixed with a plus sign (`+`) to denote a one or more parame
 
 ```js
 const regexp = pathToRegexp("/:foo+");
-// keys = [{ name: 'foo', delimiter: '/', optional: false, repeat: true }]
+// keys = [{ name: 'foo', prefix: '/', modifier: '+' }]
 
 regexp.exec("/");
 //=> null
@@ -246,10 +246,10 @@ console.log(tokens[0]);
 //=> "/route"
 
 console.log(tokens[1]);
-//=> { name: 'foo', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }
+//=> { name: 'foo', prefix: '/', suffix: '', pattern: '[^\\/#\\?]+?', modifier: '' }
 
 console.log(tokens[2]);
-//=> { name: 0, prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '.*' }
+//=> { name: 0, prefix: '/', suffix: '', pattern: '.*', modifier: '' }
 ```
 
 **Note:** This method only works with strings.
