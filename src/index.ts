@@ -2,7 +2,15 @@
  * Tokenizer results.
  */
 interface LexToken {
-  type: "OPEN" | "CLOSE" | "PATTERN" | "NAME" | "CHAR" | "ESC" | "END" | "MOD";
+  type:
+    | "OPEN"
+    | "CLOSE"
+    | "PATTERN"
+    | "NAME"
+    | "CHAR"
+    | "ESCAPED_CHAR"
+    | "MODIFIER"
+    | "END";
   index: number;
   value: string;
 }
@@ -12,35 +20,32 @@ interface LexToken {
  */
 function lexer(str: string): LexToken[] {
   const tokens: LexToken[] = [];
-  let group = 0;
   let i = 0;
 
   while (i < str.length) {
     const char = str[i];
 
     if (char === "*" || char === "+" || char === "?") {
-      tokens.push({ type: "MOD", index: i, value: str[i++] });
+      tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
       continue;
     }
 
     if (char === "\\") {
-      tokens.push({ type: "ESC", index: i++, value: str[i++] });
+      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: str[i++] });
       continue;
     }
 
     if (char === "{") {
-      group++;
-      if (group === 1) {
-        tokens.push({ type: "OPEN", index: i, value: str[i++] });
-        continue;
-      }
-    } else if (char === "}") {
-      group--;
-      if (group === 0) {
-        tokens.push({ type: "CLOSE", index: i, value: str[i++] });
-        continue;
-      }
-    } else if (char === ":") {
+      tokens.push({ type: "OPEN", index: i, value: str[i++] });
+      continue;
+    }
+
+    if (char === "}") {
+      tokens.push({ type: "CLOSE", index: i, value: str[i++] });
+      continue;
+    }
+
+    if (char === ":") {
       let name = "";
       let j = i + 1;
 
@@ -64,15 +69,21 @@ function lexer(str: string): LexToken[] {
         break;
       }
 
-      if (name) {
-        tokens.push({ type: "NAME", index: i, value: name });
-        i = j;
-        continue;
-      }
-    } else if (char === "(") {
+      if (!name) throw new TypeError(`Missing parameter name at ${i}`);
+
+      tokens.push({ type: "NAME", index: i, value: name });
+      i = j;
+      continue;
+    }
+
+    if (char === "(") {
       let count = 1;
       let pattern = "";
       let j = i + 1;
+
+      if (str[j] === "?") {
+        throw new TypeError(`Pattern cannot start with "?" at ${j}`);
+      }
 
       while (j < str.length) {
         if (str[j] === "\\") {
@@ -88,28 +99,20 @@ function lexer(str: string): LexToken[] {
           }
         } else if (str[j] === "(") {
           count++;
+          if (str[j + 1] !== "?") {
+            throw new TypeError(`Capturing groups are not allowed at ${j}`);
+          }
         }
 
         pattern += str[j++];
       }
 
-      if (count === 0 && pattern) {
-        if (pattern[0] === "?") {
-          throw new TypeError("Path pattern must be a capturing group");
-        }
+      if (count) throw new TypeError(`Unbalanced pattern at ${i}`);
+      if (!pattern) throw new TypeError(`Missing pattern at ${i}`);
 
-        if (/\((?=[^?])/.test(pattern)) {
-          const validPattern = pattern.replace(/\((?=[^?])/, "(?:");
-
-          throw new TypeError(
-            `Capturing groups are not allowed in pattern, use a non-capturing group: (${validPattern})`
-          );
-        }
-
-        tokens.push({ type: "PATTERN", index: i, value: pattern });
-        i = j;
-        continue;
-      }
+      tokens.push({ type: "PATTERN", index: i, value: pattern });
+      i = j;
+      continue;
     }
 
     tokens.push({ type: "CHAR", index: i, value: str[i++] });
@@ -158,7 +161,8 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     let result = "";
     let value: string | undefined;
     // tslint:disable-next-line
-    while ((value = tryConsume("CHAR") || tryConsume("ESC"))) result += value;
+    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")))
+      result += value;
     return result;
   };
 
@@ -185,12 +189,12 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: tryConsume("MOD") || ""
+        modifier: tryConsume("MODIFIER") || ""
       });
       continue;
     }
 
-    const value = char || tryConsume("ESC");
+    const value = char || tryConsume("ESCAPED_CHAR");
     if (value) {
       path += value;
       continue;
@@ -215,7 +219,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         pattern: name && !pattern ? defaultPattern : pattern,
         prefix,
         suffix,
-        modifier: tryConsume("MOD") || ""
+        modifier: tryConsume("MODIFIER") || ""
       });
       continue;
     }

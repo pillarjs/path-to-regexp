@@ -1840,7 +1840,7 @@ const TESTS: Test[] = [
     [[null, "/(testing)"]]
   ],
   [
-    "/.\\+\\*\\?\\{\\}=^!:$[]|",
+    "/.\\+\\*\\?\\{\\}=^!\\:$[]|",
     undefined,
     ["/.+*?{}=^!:$[]|"],
     [["/.+*?{}=^!:$[]|", ["/.+*?{}=^!:$[]|"]]],
@@ -1937,7 +1937,7 @@ const TESTS: Test[] = [
     [[{ foo: "a", bar: "b" }, "/a/b"]]
   ],
   [
-    "/:foo(test\\)/bar",
+    "/:foo\\(test\\)/bar",
     undefined,
     [
       {
@@ -2566,20 +2566,46 @@ describe("path-to-regexp", function() {
       expect(exec(re, "/user/123/show")).toEqual(["/user/123", "123"]);
     });
 
-    it("should throw on non-capturing pattern group", function() {
+    it("should throw on non-capturing pattern", function() {
       expect(function() {
         pathToRegexp.pathToRegexp("/:foo(?:\\d+(\\.\\d+)?)");
-      }).toThrow(new TypeError("Path pattern must be a capturing group"));
+      }).toThrow(new TypeError('Pattern cannot start with "?" at 6'));
     });
 
-    it("should throw on nested capturing regexp groups", function() {
+    it("should throw on nested capturing group", function() {
       expect(function() {
         pathToRegexp.pathToRegexp("/:foo(\\d+(\\.\\d+)?)");
-      }).toThrow(
-        new TypeError(
-          "Capturing groups are not allowed in pattern, use a non-capturing group: (\\d+(?:\\.\\d+)?)"
-        )
-      );
+      }).toThrow(new TypeError("Capturing groups are not allowed at 9"));
+    });
+
+    it("should throw on unbalanced pattern", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/:foo(abc");
+      }).toThrow(new TypeError("Unbalanced pattern at 5"));
+    });
+
+    it("should throw on missing pattern", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/:foo()");
+      }).toThrow(new TypeError("Missing pattern at 5"));
+    });
+
+    it("should throw on missing name", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/:(test)");
+      }).toThrow(new TypeError("Missing parameter name at 1"));
+    });
+
+    it("should throw on nested groups", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/{a{b:foo}}");
+      }).toThrow(new TypeError("Unexpected OPEN at 3, expected CLOSE"));
+    });
+
+    it("should throw on misplaced modifier", function() {
+      expect(function() {
+        pathToRegexp.pathToRegexp("/foo?");
+      }).toThrow(new TypeError("Unexpected MODIFIER at 4, expected END"));
     });
   });
 
