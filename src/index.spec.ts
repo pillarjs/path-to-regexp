@@ -1199,7 +1199,7 @@ const TESTS: Test[] = [
     [[{ test: "route" }, "route"]]
   ],
   [
-    "{:test}?",
+    ":test?",
     undefined,
     [
       {
@@ -1677,6 +1677,24 @@ const TESTS: Test[] = [
       ["/login", ["/login"]]
     ],
     [[{ "": "" }, "/login"]]
+  ],
+  [
+    "{/(.*)}",
+    undefined,
+    [
+      {
+        name: 0,
+        prefix: "/",
+        suffix: "",
+        modifier: "",
+        pattern: ".*"
+      }
+    ],
+    [
+      ["/", ["/", ""]],
+      ["/login", ["/login", "login"]]
+    ],
+    [[{ 0: "test" }, "/test"]]
   ],
 
   /**
@@ -2720,7 +2738,7 @@ describe("path-to-regexp", function() {
     });
 
     it("should throw when expecting a repeated value", function() {
-      const toPath = pathToRegexp.compile("{/:foo}+");
+      const toPath = pathToRegexp.compile("/:foo+");
 
       expect(function() {
         toPath({ foo: [] });
@@ -2738,7 +2756,7 @@ describe("path-to-regexp", function() {
     });
 
     it("should throw when repeated value does not match", function() {
-      const toPath = pathToRegexp.compile("{/:foo(\\d+)}+");
+      const toPath = pathToRegexp.compile("/:foo(\\d+)+");
 
       expect(function() {
         toPath({ foo: [1, 2, 3, "a"] });
