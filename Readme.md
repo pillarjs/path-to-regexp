@@ -35,8 +35,8 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
   - **delimiter** The default delimiter for segments. (default: `'/'`)
   - **endsWith** Optional character, or list of characters, to treat as "end" characters.
-  - **whitelist** List of characters to automatically consider prefixes when parsing. (default: `./`)
   - **encode** A function to encode strings before inserting into `RegExp`. (default: `x => x`)
+  - **prefixes** List of characters to automatically consider prefixes when parsing. (default: `./`)
 
 ```javascript
 const keys = [];

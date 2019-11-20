@@ -2,10 +2,9 @@
  * Tokenizer results.
  */
 export interface Lex {
-  type: "OPEN" | "CLOSE" | "PATTERN" | "NAME" | "CHAR" | "END" | "MODIFIER";
+  type: "OPEN" | "CLOSE" | "PATTERN" | "NAME" | "CHAR" | "ESC" | "END" | "MOD";
   index: number;
   value: string;
-  escaped?: boolean;
 }
 
 /**
@@ -20,17 +19,15 @@ export function lexer(str: string): Lex[] {
   const tokens: Lex[] = [];
   let group = 0;
   let i = 0;
-  let canModify = -1;
 
   while (i < str.length) {
-    if (canModify === i && MODIFIERS.indexOf(str[i]) > -1) {
-      tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
+    if (MODIFIERS.indexOf(str[i]) > -1) {
+      tokens.push({ type: "MOD", index: i, value: str[i++] });
       continue;
     }
 
-    // Ignore escaped characters in text.
     if (str[i] === "\\") {
-      tokens.push({ type: "CHAR", index: i++, value: str[i++], escaped: true });
+      tokens.push({ type: "ESC", index: i++, value: str[i++] });
       continue;
     }
 
@@ -44,7 +41,6 @@ export function lexer(str: string): Lex[] {
       group--;
       if (group === 0) {
         tokens.push({ type: "CLOSE", index: i, value: str[i++] });
-        canModify = i;
         continue;
       }
     } else if (str[i] === ":") {
@@ -73,7 +69,7 @@ export function lexer(str: string): Lex[] {
 
       if (name) {
         tokens.push({ type: "NAME", index: i, value: name });
-        canModify = i = j;
+        i = j;
         continue;
       }
     } else if (str[i] === "(") {
@@ -114,7 +110,7 @@ export function lexer(str: string): Lex[] {
         }
 
         tokens.push({ type: "PATTERN", index: i, value: pattern });
-        canModify = i = j;
+        i = j;
         continue;
       }
     }
@@ -135,7 +131,7 @@ export interface ParseOptions {
   /**
    * List of characters to automatically consider prefixes when parsing.
    */
-  whitelist?: string;
+  prefixes?: string;
 }
 
 /**
@@ -143,23 +139,15 @@ export interface ParseOptions {
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
-  const delimiter = options.delimiter ?? "/";
-  const whitelist = options.whitelist ?? "./";
+  const { delimiter = "/", prefixes = "./" } = options;
   const defaultPattern = `[^${escapeString(delimiter)}]+?`;
   const result: Token[] = [];
   let key = 0;
   let i = 0;
+  let path = "";
 
   const tryConsume = (type: Lex["type"]): string | undefined => {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
-  };
-
-  const whileConsume = (type: Lex["type"]): string => {
-    let result = "";
-    let value: string | undefined;
-    // tslint:disable-next-line
-    while ((value = tryConsume(type))) result += value;
-    return result;
   };
 
   const mustConsume = (type: Lex["type"]): string => {
@@ -169,55 +157,59 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
   };
 
-  // Hacky look back to support `whitelist` of prefixes.
-  const getPrefix = (): string => {
-    if (i < 2 || !whitelist) return "";
-    const { type, value, escaped } = tokens[i - 2]; // Move before `NAME`.
-    if (type === "CHAR" && !escaped && whitelist.indexOf(value) > -1) {
-      const prev = result.pop() as string;
-      if (prev.length > 1) result.push(prev.slice(0, -1));
-      return value;
-    }
-    return "";
+  const consumeText = (): string => {
+    let result = "";
+    let value: string | undefined;
+    // tslint:disable-next-line
+    while ((value = tryConsume("CHAR") || tryConsume("ESC"))) result += value;
+    return result;
   };
 
   while (i < tokens.length) {
-    const path = whileConsume("CHAR");
+    const char = tryConsume("CHAR");
+    const name = tryConsume("NAME");
+    const pattern = tryConsume("PATTERN");
+
+    if (name || pattern) {
+      let prefix = char || "";
+
+      if (prefixes.indexOf(prefix) === -1) {
+        path += prefix;
+        prefix = "";
+      }
+
+      if (path) {
+        result.push(path);
+        path = "";
+      }
+
+      result.push({
+        name: name || key++,
+        prefix,
+        suffix: "",
+        pattern: pattern || defaultPattern,
+        modifier: tryConsume("MOD") || ""
+      });
+      continue;
+    }
+
+    const value = char || tryConsume("ESC");
+    if (value) {
+      path += value;
+      continue;
+    }
+
     if (path) {
       result.push(path);
-      continue;
-    }
-
-    const name = tryConsume("NAME");
-    if (name) {
-      result.push({
-        name,
-        prefix: getPrefix(),
-        suffix: "",
-        pattern: tryConsume("PATTERN") || defaultPattern,
-        modifier: tryConsume("MODIFIER") || ""
-      });
-      continue;
-    }
-
-    const pattern = tryConsume("PATTERN");
-    if (pattern) {
-      result.push({
-        name: key++,
-        prefix: getPrefix(),
-        suffix: "",
-        pattern,
-        modifier: tryConsume("MODIFIER") || ""
-      });
-      continue;
+      path = "";
     }
 
     const open = tryConsume("OPEN");
     if (open) {
-      const prefix = whileConsume("CHAR");
+      const prefix = consumeText();
       const name = tryConsume("NAME") || "";
       const pattern = tryConsume("PATTERN") || "";
-      const suffix = whileConsume("CHAR");
+      const suffix = consumeText();
 
       mustConsume("CLOSE");
 
@@ -226,7 +218,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         pattern: name && !pattern ? defaultPattern : pattern,
         prefix,
         suffix,
-        modifier: tryConsume("MODIFIER") || ""
+        modifier: tryConsume("MOD") || ""
       });
       continue;
     }
