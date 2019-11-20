@@ -45,7 +45,7 @@ const regexp = pathToRegexp("/foo/:bar", keys);
 // keys = [{ name: 'bar', prefix: '/', delimiter: '/', optional: false, repeat: false, pattern: '[^\\/]+?' }]
 ```
 
-**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc). When using paths that contain query strings, you need to escape the question mark (`?`) to ensure it does not flag a parameter as [optional](#optional).
+**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc). When using paths that contain query strings, you need to escape the question mark (`?`) to ensure it does not flag the parameter as [optional](#optional).
 
 ### Parameters
 
@@ -138,10 +138,9 @@ regexp.exec("/test/route");
 
 **Tip:** The prefix is also optional, escape the prefix `\/` to make it required.
 
-When dealing with query strings, escape the question mark (`?`) to ensure it doesn't mark a parameter as optional. Handling unordered query string parameters is outside the scope of this library.
+When dealing with query strings, escape the question mark (`?`) so it doesn't mark the parameter as optional. Handling unordered data is outside the scope of this library.
 
 ```js
-// Example that uses a query string
 const regexp = pathToRegexp("/search/:tableName\\?useIndex=true&term=amazing");
 
 regexp.exec("/search/people?useIndex=true&term=amazing");
