@@ -119,7 +119,7 @@ regexp.exec("/test/route");
 
 #### Modifiers
 
-Modifiers must be placed after the parameter (e.g. `/:foo?`, `/(test)?`, or `/:foo(test)?`).
+Modifiers must be placed after the parameter (e.g. `/:foo?`, `/(test)?`, `/:foo(test)?`, or `{-:foo(test)}?`).
 
 ##### Optional
 
