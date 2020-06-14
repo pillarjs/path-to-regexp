@@ -41,7 +41,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 ```javascript
 const keys = [];
 const regexp = pathToRegexp("/foo/:bar", keys);
-// regexp = /^\/foo\/([^\/]+?)\/?$/i
+// regexp = /^\/foo(?:\/([^\/#\?]+?))[\/#\?]?$/i
 // keys = [{ name: 'bar', prefix: '/', suffix: '', pattern: '[^\\/#\\?]+?', modifier: '' }]
 ```
 
