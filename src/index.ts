@@ -453,13 +453,17 @@ export type Token = string | Key;
 function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
   if (!keys) return path;
 
-  // Use a negative lookahead to match only capturing groups.
-  const groups = path.source.match(/\((?!\?)/g);
+  const groups = path.source.match(/\((\?<.*?>)?(?!\?)/g);
 
   if (groups) {
     for (let i = 0; i < groups.length; i++) {
+      const name =
+        groups[i] === "("
+          ? i // Use index as name for non named match
+          : groups[i].slice(3, -1); // Remove '(?<' & '>' from named match. TODO improve regex to match without these characters
+
       keys.push({
-        name: i,
+        name,
         prefix: "",
         suffix: "",
         modifier: "",
