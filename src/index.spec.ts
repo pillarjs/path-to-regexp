@@ -1834,6 +1834,55 @@ const TESTS: Test[] = [
   ],
 
   /**
+   * Named capturing groups
+   */
+  [
+    /\/(?<groupname>.+)/,
+    undefined,
+    [
+      {
+        name: "groupname",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ""
+      }
+    ],
+    [
+      ["/", null],
+      ["/foo", ["/foo", "foo"]]
+    ],
+    []
+  ],
+  [
+    /\/(?<test>.*).(?<format>html|json)/,
+    undefined,
+    [
+      {
+        name: "test",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ""
+      },
+      {
+        name: "format",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ""
+      }
+    ],
+    [
+      ["/route", null],
+      ["/route.txt", null],
+      ["/route.html", ["/route.html", "route", "html"]],
+      ["/route.json", ["/route.json", "route", "json"]]
+    ],
+    []
+  ],
+
+  /**
    * Ignore non-matching groups in regexps.
    */
   [
