@@ -500,7 +500,7 @@ export interface TokensToRegexpOptions {
    */
   sensitive?: boolean;
   /**
-   * When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
+   * When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
    */
   strict?: boolean;
   /**
