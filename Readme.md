@@ -30,7 +30,7 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 - **keys** An array to populate with keys found in the path.
 - **options**
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
-  - **strict** When `true` the regexp allows an optional trailing delimiter to match. (default: `false`)
+  - **strict** When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
   - **start** When `true` the regexp will match from the beginning of the string. (default: `true`)
   - **delimiter** The default delimiter for segments, e.g. `[^/#?]` for `:named` patterns. (default: `'/#?'`)
