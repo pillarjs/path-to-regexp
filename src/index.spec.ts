@@ -2644,6 +2644,42 @@ if (gte(process.version, "10.0.0")) {
         ["/route.json", ["/route.json", "route", "json"]]
       ],
       []
+    ],
+    [
+      /\/(.+)\/(?<groupname>.+)\/(.+)/,
+      undefined,
+      [
+        {
+          name: 0,
+          prefix: "",
+          suffix: "",
+          modifier: "",
+          pattern: ""
+        },
+        {
+          name: "groupname",
+          prefix: "",
+          suffix: "",
+          modifier: "",
+          pattern: ""
+        },
+        {
+          name: 1,
+          prefix: "",
+          suffix: "",
+          modifier: "",
+          pattern: ""
+        }
+      ],
+      [
+        ["/test", null],
+        ["/test/testData", null],
+        [
+          "/test/testData/extraStuff",
+          ["/test/testData/extraStuff", "test", "testData", "extraStuff"]
+        ]
+      ],
+      []
     ]
   );
 }

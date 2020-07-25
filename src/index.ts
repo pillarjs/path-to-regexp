@@ -460,13 +460,12 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
   while (execResult) {
     keys.push({
       // Use parenthesized substring match if available, index otherwise
-      name: execResult[1] || index,
+      name: execResult[1] || index++,
       prefix: "",
       suffix: "",
       modifier: "",
       pattern: ""
     });
-    index++;
     execResult = groupsRegex.exec(path.source);
   }
 
