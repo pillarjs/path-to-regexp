@@ -453,19 +453,20 @@ export type Token = string | Key;
 function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
   if (!keys) return path;
 
-  // Use a negative lookahead to match only capturing groups.
-  const groups = path.source.match(/\((?!\?)/g);
+  const groupsRegex = /\((?:\?<(.*?)>)?(?!\?)/g;
 
-  if (groups) {
-    for (let i = 0; i < groups.length; i++) {
-      keys.push({
-        name: i,
-        prefix: "",
-        suffix: "",
-        modifier: "",
-        pattern: ""
-      });
-    }
+  let index = 0;
+  let execResult = groupsRegex.exec(path.source);
+  while (execResult) {
+    keys.push({
+      // Use parenthesized substring match if available, index otherwise
+      name: execResult[1] || index++,
+      prefix: "",
+      suffix: "",
+      modifier: "",
+      pattern: ""
+    });
+    execResult = groupsRegex.exec(path.source);
   }
 
   return path;
