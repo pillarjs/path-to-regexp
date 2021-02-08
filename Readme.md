@@ -187,11 +187,11 @@ The `match` function will return a function for transforming paths into paramete
 
 ```js
 // Make sure you consistently `decode` segments.
-const match = match("/user/:id", { decode: decodeURIComponent });
+const fn = match("/user/:id", { decode: decodeURIComponent });
 
-match("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
-match("/invalid"); //=> false
-match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
+fn("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
+fn("/invalid"); //=> false
+fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
 ```
 
 #### Process Pathname
@@ -199,16 +199,16 @@ match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id
 You should make sure variations of the same path match the expected `path`. Here's one possible solution using `encode`:
 
 ```js
-const match = match("/café", { encode: encodeURI, decode: decodeURIComponent });
+const fn = match("/café", { encode: encodeURI });
 
-match("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
+fn("/caf%C3%A9"); //=> { path: '/caf%C3%A9', index: 0, params: {} }
 ```
 
-**Note:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) automatically encodes pathnames for you.
+**Note:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) encodes paths, so `/café` would be normalized to `/caf%C3%A9` and match in the above example.
 
 ##### Alternative Using Normalize
 
-Sometimes you won't have an already normalized pathname. You can normalize it yourself before processing:
+Sometimes you won't have already normalized paths to use, so you could normalize it yourself before matching:
 
 ```js
 /**
