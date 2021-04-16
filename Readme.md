@@ -315,7 +315,7 @@ Path-To-RegExp breaks compatibility with Express <= `4.x`:
 
 ## Live Demo
 
-You can see a live demo of this library in use at [express-route-tester](http://forbeslindesay.github.com/express-route-tester/).
+You can see a live demo of this library in use at [express-route-tester](http://forbeslindesay.github.io/express-route-tester/).
 
 ## License
 
