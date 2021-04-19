@@ -64,6 +64,21 @@ const TESTS: Test[] = [
     ],
     [[null, "/test/"]]
   ],
+  [
+    "/test/*",
+    undefined,
+    ["/test"],
+    [
+      ["/test", ["/test"], { path: "/test", index: 0, params: {} }],
+      ["/route", null, false],
+      ["/test/route", null, false],
+      ["/test/", ["/test/"], { path: "/test/", index: 0, params: {} }]
+    ],
+    [
+      [null, "/test"],
+      [{}, "/test"]
+    ]
+  ],
 
   /**
    * Case-sensitive paths.
