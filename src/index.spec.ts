@@ -1120,6 +1120,50 @@ const TESTS: Test[] = [
   ],
 
   /**
+   * Asterisk wildcard.
+   */
+  [
+    "/*",
+    undefined,
+    [
+      {
+        name: 0,
+        prefix: "/",
+        suffix: "",
+        modifier: "",
+        pattern: ".*",
+      },
+    ],
+    [
+      ["/", ["/", ""]],
+      ["/test", ["/test", "test"]],
+      ["/abc/xyz", ["/abc/xyz", "abc/xyz"]],
+    ],
+    [],
+  ],
+  [
+    "/test/*?",
+    undefined,
+    [
+      "/test",
+      {
+        name: 0,
+        prefix: "/",
+        suffix: "",
+        modifier: "?",
+        pattern: ".*",
+      },
+    ],
+    [
+      ["/", null],
+      ["/test", ["/test", undefined]],
+      ["/abc/xyz", null],
+      ["/test/abc", ["/test/abc", "abc"]],
+    ],
+    [],
+  ],
+
+  /**
    * Prefixed slashes could be omitted.
    */
   [
