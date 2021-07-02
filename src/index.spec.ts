@@ -1162,6 +1162,25 @@ const TESTS: Test[] = [
     ],
     [],
   ],
+  [
+    "{a*b}+",
+    undefined,
+    [
+      {
+        name: 0,
+        prefix: "a",
+        suffix: "b",
+        modifier: "+",
+        pattern: ".*",
+      },
+    ],
+    [
+      ["FOO", null],
+      ["aFOOb", ["aFOOb", "FOO"]],
+      ["aFOObaFOOb", ["aFOObaFOOb", "FOObaFOO"]],
+    ],
+    [],
+  ],
 
   /**
    * Prefixed slashes could be omitted.

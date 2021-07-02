@@ -228,7 +228,10 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (open) {
       const prefix = consumeText();
       const name = tryConsume("NAME") || "";
-      const pattern = tryConsume("PATTERN") || "";
+      let pattern = tryConsume("PATTERN") || "";
+      if (!name && !pattern && tryConsume("ASTERISK")) {
+        pattern = ".*";
+      }
       const suffix = consumeText();
 
       mustConsume("CLOSE");
