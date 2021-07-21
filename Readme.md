@@ -26,9 +26,13 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 // compile(path)
 ```
 
+### Path to regexp
+
+The `pathToRegexp` function will return a regular expression object based on the provided `path` argument. It accepts the following arguments:
+
 - **path** A string, array of strings, or a regular expression.
-- **keys** An array to populate with keys found in the path.
-- **options**
+- **keys** _(optional)_ An array to populate with keys found in the path.
+- **options** _(optional)_
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
   - **strict** When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
@@ -47,11 +51,11 @@ const regexp = pathToRegexp("/foo/:bar", keys);
 
 **Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc). When using paths that contain query strings, you need to escape the question mark (`?`) to ensure it does not flag the parameter as [optional](#optional).
 
-### Parameters
+#### Parameters
 
 The path argument is used to define parameters and populate keys.
 
-#### Named Parameters
+##### Named Parameters
 
 Named parameters are defined by prefixing a colon to the parameter name (`:foo`).
 
@@ -105,7 +109,7 @@ regexp.exec("/test-test");
 // => ['/test', 'test', 'test', undefined]
 ```
 
-#### Unnamed Parameters
+##### Unnamed Parameters
 
 It is possible to write an unnamed parameter that only consists of a regexp. It works the same the named parameter, except it will be numerically indexed:
 
@@ -117,11 +121,11 @@ regexp.exec("/test/route");
 //=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
-#### Modifiers
+##### Modifiers
 
 Modifiers must be placed after the parameter (e.g. `/:foo?`, `/(test)?`, `/:foo(test)?`, or `{-:foo(test)}?`).
 
-##### Optional
+###### Optional
 
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
@@ -151,7 +155,7 @@ regexp.exec("/search/people?term=amazing&useIndex=true");
 //=> null
 ```
 
-##### Zero or more
+###### Zero or more
 
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches.
 
@@ -166,7 +170,7 @@ regexp.exec("/bar/baz");
 //=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
-##### One or more
+###### One or more
 
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches.
 
@@ -192,6 +196,21 @@ const fn = match("/user/:id", { decode: decodeURIComponent });
 fn("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 fn("/invalid"); //=> false
 fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
+```
+
+The `match` function can be used to custom match named parameters (as of Node 10.0.0). For example, this can be used to whitelist a small number of valid paths:
+
+```js
+const urlMatch = match("/users/:id/:tab(home|photos|bio)", { decode: decodeURIComponent });
+
+urlMatch("/users/1234/photos")
+//=> { path: '/users/1234/photos', index: 0, params: { id: '1234', tab: 'photos' } }
+
+urlMatch("/users/1234/bio")
+//=> { path: '/users/1234/bio', index: 0, params: { id: '1234', tab: 'bio' } }
+
+urlMatch("/users/1234/otherstuff")
+//=> false
 ```
 
 #### Process Pathname
