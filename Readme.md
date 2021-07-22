@@ -51,11 +51,11 @@ const regexp = pathToRegexp("/foo/:bar", keys);
 
 **Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc). When using paths that contain query strings, you need to escape the question mark (`?`) to ensure it does not flag the parameter as [optional](#optional).
 
-#### Parameters
+### Parameters
 
 The path argument is used to define parameters and populate keys.
 
-##### Named Parameters
+#### Named Parameters
 
 Named parameters are defined by prefixing a colon to the parameter name (`:foo`).
 
@@ -109,7 +109,7 @@ regexp.exec("/test-test");
 // => ['/test', 'test', 'test', undefined]
 ```
 
-##### Unnamed Parameters
+#### Unnamed Parameters
 
 It is possible to write an unnamed parameter that only consists of a regexp. It works the same the named parameter, except it will be numerically indexed:
 
@@ -121,11 +121,11 @@ regexp.exec("/test/route");
 //=> [ '/test/route', 'test', 'route', index: 0, input: '/test/route', groups: undefined ]
 ```
 
-##### Modifiers
+#### Modifiers
 
 Modifiers must be placed after the parameter (e.g. `/:foo?`, `/(test)?`, `/:foo(test)?`, or `{-:foo(test)}?`).
 
-###### Optional
+##### Optional
 
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
@@ -155,7 +155,7 @@ regexp.exec("/search/people?term=amazing&useIndex=true");
 //=> null
 ```
 
-###### Zero or more
+##### Zero or more
 
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches.
 
@@ -170,7 +170,7 @@ regexp.exec("/bar/baz");
 //=> [ '/bar/baz', 'bar/baz', index: 0, input: '/bar/baz', groups: undefined ]
 ```
 
-###### One or more
+##### One or more
 
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches.
 
@@ -198,7 +198,7 @@ fn("/invalid"); //=> false
 fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
 ```
 
-The `match` function can be used to custom match named parameters (as of Node 10.0.0). For example, this can be used to whitelist a small number of valid paths:
+The `match` function can be used to custom match named parameters. For example, this can be used to whitelist a small number of valid paths:
 
 ```js
 const urlMatch = match("/users/:id/:tab(home|photos|bio)", { decode: decodeURIComponent });
