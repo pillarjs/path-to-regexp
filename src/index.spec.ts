@@ -2611,6 +2611,21 @@ const TESTS: Test[] = [
     [["foobar", ["foobar", "foobar"]]],
     [[{ name: "foobar" }, "foobar"]],
   ],
+  [
+    ":name+",
+    undefined,
+    [
+      {
+        name: "name",
+        prefix: "",
+        suffix: "",
+        modifier: "+",
+        pattern: "[^\\/#\\?]+?",
+      },
+    ],
+    [["foobar", ["foobar", "foobar"]]],
+    [[{ name: "foobar" }, "foobar"]],
+  ],
 ];
 
 /**

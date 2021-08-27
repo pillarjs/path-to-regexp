@@ -563,7 +563,7 @@ export function tokensToRegexp(
             route += `(?:${prefix}(${token.pattern})${suffix})${token.modifier}`;
           }
         } else {
-          if (token.modifier === "*") {
+          if (token.modifier === "+" || token.modifier === "*") {
             route += `((?:${token.pattern})${token.modifier})`;
           } else {
             route += `(${token.pattern})${token.modifier}`;
