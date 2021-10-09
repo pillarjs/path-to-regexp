@@ -26,9 +26,13 @@ const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 // compile(path)
 ```
 
+### Path to regexp
+
+The `pathToRegexp` function will return a regular expression object based on the provided `path` argument. It accepts the following arguments:
+
 - **path** A string, array of strings, or a regular expression.
-- **keys** An array to populate with keys found in the path.
-- **options**
+- **keys** _(optional)_ An array to populate with keys found in the path.
+- **options** _(optional)_
   - **sensitive** When `true` the regexp will be case sensitive. (default: `false`)
   - **strict** When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
   - **end** When `true` the regexp will match to the end of the string. (default: `true`)
@@ -192,6 +196,21 @@ const fn = match("/user/:id", { decode: decodeURIComponent });
 fn("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 fn("/invalid"); //=> false
 fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
+```
+
+The `match` function can be used to custom match named parameters. For example, this can be used to whitelist a small number of valid paths:
+
+```js
+const urlMatch = match("/users/:id/:tab(home|photos|bio)", { decode: decodeURIComponent });
+
+urlMatch("/users/1234/photos")
+//=> { path: '/users/1234/photos', index: 0, params: { id: '1234', tab: 'photos' } }
+
+urlMatch("/users/1234/bio")
+//=> { path: '/users/1234/bio', index: 0, params: { id: '1234', tab: 'bio' } }
+
+urlMatch("/users/1234/otherstuff")
+//=> false
 ```
 
 #### Process Pathname
