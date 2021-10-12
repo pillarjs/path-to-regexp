@@ -14,7 +14,7 @@
     "prettier": "prettier --write",
     "lint": "tslint \"src/**/*\" --project tsconfig.json",
     "format": "npm run prettier -- \"{.,src/**}/*.{js,jsx,ts,tsx,json,md,yml,yaml}\"",
-    "build": "rimraf dist/ dist.es2015/ && tsc && tsc -P tsconfig.es2015.json",
+    "build": "rimraf dist/ dist.es2015/ && tsc && tsc -P tsconfig.es2015.json && echo '{\"type\":\"module\"}' > dist.es2015/package.json",
     "specs": "jest --coverage",
     "test": "npm run build && npm run lint && npm run specs && npm run size",
     "size": "size-limit",
