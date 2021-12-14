@@ -82,7 +82,7 @@ re.exec('/test')
 //=> ['/test', 'test', undefined]
 
 re.exec('/test/route')
-//=> ['/test', 'test', 'route']
+//=> ['/test/route', 'test', 'route']
 ```
 
 ##### Zero or more
