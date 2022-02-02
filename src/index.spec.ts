@@ -776,7 +776,7 @@ const TESTS: Test[] = [
         prefix: "/",
         suffix: "",
         modifier: "*",
-        pattern: "[^\\/#\\?]*?",
+        pattern: ".*",
       },
       "-bar",
     ],
@@ -910,7 +910,7 @@ const TESTS: Test[] = [
         prefix: "/",
         suffix: "",
         modifier: "*",
-        pattern: "[^\\/#\\?]*?",
+        pattern: ".*",
       },
     ],
     [

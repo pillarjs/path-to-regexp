@@ -140,7 +140,7 @@ export interface ParseOptions {
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
   const { prefixes = "./" } = options;
-  const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]`;
+  const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]+?`;
   const result: Token[] = [];
   let key = 0;
   let i = 0;
@@ -191,7 +191,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         name: name || key++,
         prefix,
         suffix: "",
-        pattern: pattern || defaultPattern + (isWildcard ? "*?" : "+?"),
+        pattern: pattern || (isWildcard ? ".*" : defaultPattern),
         modifier: tryConsume("MODIFIER") || "",
       });
       continue;
@@ -224,7 +224,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
       result.push({
         name: hasPattern ? name || key++ : "",
         pattern: hasPattern
-          ? pattern || defaultPattern + (isWildcard ? "*?" : "+?")
+          ? pattern || (isWildcard ? ".*" : defaultPattern)
           : "",
         prefix,
         suffix,
