@@ -150,6 +150,13 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   };
 
+  const tryConsumeWildcard = (): string | undefined => {
+    if (tokens[i]?.type === "MODIFIER" && tokens[i].value === "*") {
+      i++;
+      return ".*";
+    }
+  };
+
   const mustConsume = (type: LexToken["type"]): string => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
@@ -170,11 +177,10 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   while (i < tokens.length) {
     const char = tryConsume("CHAR");
     const name = tryConsume("NAME");
-    const pattern = tryConsume("PATTERN");
-    const isWildcard =
-      !pattern && tokens[i]?.type === "MODIFIER" && tokens[i].value === "*";
+    let wildcard = undefined;
+    const pattern = tryConsume("PATTERN") || (wildcard = tryConsumeWildcard());
 
-    if (name || pattern || isWildcard) {
+    if (name || pattern) {
       let prefix = char || "";
 
       if (prefixes.indexOf(prefix) === -1) {
@@ -191,8 +197,8 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         name: name || key++,
         prefix,
         suffix: "",
-        pattern: pattern || (isWildcard ? ".*" : defaultPattern),
-        modifier: tryConsume("MODIFIER") || "",
+        pattern: pattern || defaultPattern,
+        modifier: wildcard ? "*" : tryConsume("MODIFIER") || "",
       });
       continue;
     }
@@ -212,20 +218,14 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (open) {
       const prefix = consumeText();
       const name = tryConsume("NAME") || "";
-      const pattern = tryConsume("PATTERN") || "";
-      const isWildcard =
-        !pattern && tokens[i]?.type === "MODIFIER" && tokens[i].value === "*";
-      if (isWildcard) i++;
+      const pattern = tryConsume("PATTERN") || tryConsumeWildcard() || "";
       const suffix = consumeText();
 
       mustConsume("CLOSE");
 
-      const hasPattern = name || pattern || isWildcard;
       result.push({
-        name: hasPattern ? name || key++ : "",
-        pattern: hasPattern
-          ? pattern || (isWildcard ? ".*" : defaultPattern)
-          : "",
+        name: name || (pattern ? key++ : ""),
+        pattern: name && !pattern ? defaultPattern : pattern,
         prefix,
         suffix,
         modifier: tryConsume("MODIFIER") || "",
