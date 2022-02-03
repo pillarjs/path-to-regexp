@@ -198,7 +198,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: wildcard ? "*" : tryConsume("MODIFIER") || "",
+        modifier: tryConsume("MODIFIER") || (wildcard ? "*" : ""),
       });
       continue;
     }
