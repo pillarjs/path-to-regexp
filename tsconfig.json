@@ -1,4 +1,5 @@
 {
+  "extends": "@borderless/ts-scripts/configs/tsconfig.json",
   "compilerOptions": {
     "target": "es5",
     "lib": ["es5"],
@@ -6,13 +7,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
-    "strict": true,
-    "declaration": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "sourceMap": true,
-    "inlineSources": true
+    "types": ["jest"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/**/*.spec.ts"]
+  "include": ["src/**/*"]
 }

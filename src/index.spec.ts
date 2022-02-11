@@ -1,6 +1,6 @@
 import * as util from "util";
 import * as pathToRegexp from "./index";
-import { gte } from "semver";
+import semver from "semver";
 
 type Test = [
   pathToRegexp.Path,
@@ -1809,7 +1809,7 @@ const TESTS: Test[] = [
     [],
   ],
   [
-    [/^\/([^\/]+)$/, /^\/route\/([^\/]+)$/],
+    [/^\/([^/]+)$/, /^\/route\/([^/]+)$/],
     undefined,
     [
       {
@@ -2593,12 +2593,45 @@ const TESTS: Test[] = [
       [{ foo: "#" }, null],
     ],
   ],
+  /**
+   * https://github.com/pillarjs/path-to-regexp/issues/260
+   */
+  [
+    ":name*",
+    undefined,
+    [
+      {
+        name: "name",
+        prefix: "",
+        suffix: "",
+        modifier: "*",
+        pattern: "[^\\/#\\?]+?",
+      },
+    ],
+    [["foobar", ["foobar", "foobar"]]],
+    [[{ name: "foobar" }, "foobar"]],
+  ],
+  [
+    ":name+",
+    undefined,
+    [
+      {
+        name: "name",
+        prefix: "",
+        suffix: "",
+        modifier: "+",
+        pattern: "[^\\/#\\?]+?",
+      },
+    ],
+    [["foobar", ["foobar", "foobar"]]],
+    [[{ name: "foobar" }, "foobar"]],
+  ],
 ];
 
 /**
- * Named capturing groups (available from Node version 10)
+ * Named capturing groups (available from 1812 version 10)
  */
-if (gte(process.version, "10.0.0")) {
+if (semver.gte(process.version, "10.0.0")) {
   TESTS.push(
     [
       /\/(?<groupname>.+)/,
