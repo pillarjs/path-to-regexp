@@ -2593,6 +2593,39 @@ const TESTS: Test[] = [
       [{ foo: "#" }, null],
     ],
   ],
+  /**
+   * https://github.com/pillarjs/path-to-regexp/issues/260
+   */
+  [
+    ":name*",
+    undefined,
+    [
+      {
+        name: "name",
+        prefix: "",
+        suffix: "",
+        modifier: "*",
+        pattern: "[^\\/#\\?]+?",
+      },
+    ],
+    [["foobar", ["foobar", "foobar"]]],
+    [[{ name: "foobar" }, "foobar"]],
+  ],
+  [
+    ":name+",
+    undefined,
+    [
+      {
+        name: "name",
+        prefix: "",
+        suffix: "",
+        modifier: "+",
+        pattern: "[^\\/#\\?]+?",
+      },
+    ],
+    [["foobar", ["foobar", "foobar"]]],
+    [[{ name: "foobar" }, "foobar"]],
+  ],
 ];
 
 /**
