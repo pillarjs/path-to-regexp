@@ -2605,7 +2605,7 @@ const TESTS: Test[] = [
         prefix: "",
         suffix: "",
         modifier: "*",
-        pattern: "[^\\/#\\?]+?",
+        pattern: ".*",
       },
     ],
     [["foobar", ["foobar", "foobar"]]],
