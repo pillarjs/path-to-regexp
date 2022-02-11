@@ -3,11 +3,10 @@
 > Turn a path string such as `/user/:name` into a regular expression.
 
 [![NPM version][npm-image]][npm-url]
-[![Build status][travis-image]][travis-url]
-[![Test coverage][coveralls-image]][coveralls-url]
-[![Dependency Status][david-image]][david-url]
+[![NPM downloads][downloads-image]][downloads-url]
+[![Build status][build-image]][build-url]
+[![Build coverage][coverage-image]][coverage-url]
 [![License][license-image]][license-url]
-[![Downloads][downloads-image]][downloads-url]
 
 ## Installation
 
@@ -201,15 +200,17 @@ fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: '
 The `match` function can be used to custom match named parameters. For example, this can be used to whitelist a small number of valid paths:
 
 ```js
-const urlMatch = match("/users/:id/:tab(home|photos|bio)", { decode: decodeURIComponent });
+const urlMatch = match("/users/:id/:tab(home|photos|bio)", {
+  decode: decodeURIComponent,
+});
 
-urlMatch("/users/1234/photos")
+urlMatch("/users/1234/photos");
 //=> { path: '/users/1234/photos', index: 0, params: { id: '1234', tab: 'photos' } }
 
-urlMatch("/users/1234/bio")
+urlMatch("/users/1234/bio");
 //=> { path: '/users/1234/bio', index: 0, params: { id: '1234', tab: 'bio' } }
 
-urlMatch("/users/1234/otherstuff")
+urlMatch("/users/1234/otherstuff");
 //=> false
 ```
 
@@ -340,15 +341,13 @@ You can see a live demo of this library in use at [express-route-tester](http://
 
 MIT
 
-[npm-image]: https://img.shields.io/npm/v/path-to-regexp.svg?style=flat
+[npm-image]: https://img.shields.io/npm/v/path-to-regexp
 [npm-url]: https://npmjs.org/package/path-to-regexp
-[travis-image]: https://img.shields.io/travis/pillarjs/path-to-regexp.svg?style=flat
-[travis-url]: https://travis-ci.org/pillarjs/path-to-regexp
-[coveralls-image]: https://img.shields.io/coveralls/pillarjs/path-to-regexp.svg?style=flat
-[coveralls-url]: https://coveralls.io/r/pillarjs/path-to-regexp?branch=master
-[david-image]: http://img.shields.io/david/pillarjs/path-to-regexp.svg?style=flat
-[david-url]: https://david-dm.org/pillarjs/path-to-regexp
+[downloads-image]: https://img.shields.io/npm/dm/path-to-regexp
+[downloads-url]: https://npmjs.org/package/path-to-regexp
+[build-image]: https://img.shields.io/github/workflow/status/pillarjs/path-to-regexp/CI/master
+[build-url]: https://github.com/pillarjs/path-to-regexp/actions/workflows/ci.yml?query=branch%3Amaster
+[coverage-image]: https://img.shields.io/codecov/c/gh/pillarjs/path-to-regexp
+[coverage-url]: https://codecov.io/gh/pillarjs/path-to-regexp
 [license-image]: http://img.shields.io/npm/l/path-to-regexp.svg?style=flat
 [license-url]: LICENSE.md
-[downloads-image]: http://img.shields.io/npm/dm/path-to-regexp.svg?style=flat
-[downloads-url]: https://npmjs.org/package/path-to-regexp
