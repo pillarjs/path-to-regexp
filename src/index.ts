@@ -160,7 +160,6 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   const consumeText = (): string => {
     let result = "";
     let value: string | undefined;
-    // tslint:disable-next-line
     while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
       result += value;
     }
@@ -399,7 +398,6 @@ export function regexpToFunction<P extends object = object>(
     const params = Object.create(null);
 
     for (let i = 1; i < m.length; i++) {
-      // tslint:disable-next-line
       if (m[i] === undefined) continue;
 
       const key = keys[i - 1];
@@ -586,8 +584,7 @@ export function tokensToRegexp(
     const isEndDelimited =
       typeof endToken === "string"
         ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1
-        : // tslint:disable-next-line
-          endToken === undefined;
+        : endToken === undefined;
 
     if (!strict) {
       route += `(?:${delimiterRe}(?=${endsWithRe}))?`;
