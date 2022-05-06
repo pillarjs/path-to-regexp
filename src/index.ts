@@ -539,9 +539,11 @@ export function tokensToRegexp(
     start = true,
     end = true,
     encode = (x: string) => x,
+    delimiter = "/#?",
+    endsWith = "",
   } = options;
-  const endsWith = `[${escapeString(options.endsWith || "")}]|$`;
-  const delimiter = `[${escapeString(options.delimiter || "/#?")}]`;
+  const endsWithRe = `[${escapeString(endsWith)}]|$`;
+  const delimiterRe = `[${escapeString(delimiter)}]`;
   let route = start ? "^" : "";
 
   // Iterate over the tokens and create our regexp string.
@@ -576,23 +578,23 @@ export function tokensToRegexp(
   }
 
   if (end) {
-    if (!strict) route += `${delimiter}?`;
+    if (!strict) route += `${delimiterRe}?`;
 
-    route += !options.endsWith ? "$" : `(?=${endsWith})`;
+    route += !options.endsWith ? "$" : `(?=${endsWithRe})`;
   } else {
     const endToken = tokens[tokens.length - 1];
     const isEndDelimited =
       typeof endToken === "string"
-        ? delimiter.indexOf(endToken[endToken.length - 1]) > -1
+        ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1
         : // tslint:disable-next-line
           endToken === undefined;
 
     if (!strict) {
-      route += `(?:${delimiter}(?=${endsWith}))?`;
+      route += `(?:${delimiterRe}(?=${endsWithRe}))?`;
     }
 
     if (!isEndDelimited) {
-      route += `(?=${delimiter}|${endsWith})`;
+      route += `(?=${delimiterRe}|${endsWithRe})`;
     }
   }
 
