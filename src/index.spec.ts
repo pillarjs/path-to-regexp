@@ -1897,6 +1897,27 @@ const TESTS: Test[] = [
       [{ cid: "u123" }, null],
     ],
   ],
+  [
+    "/test/{\\(:uid(\\d+)\\)}?",
+    undefined,
+    [
+      "/test/",
+      {
+        name: "uid",
+        prefix: "(",
+        suffix: ")",
+        modifier: "?",
+        pattern: "\\d+",
+      },
+    ],
+    [
+      ["/test", null],
+      ["/test/", ["/test/", undefined]],
+      ["/test/123", null],
+      ["/test/(123)", ["/test/(123)", "123"]],
+    ],
+    [[{ uid: "123" }, "/test/(123)"]],
+  ],
 
   /**
    * Unnamed group prefix.
@@ -2772,6 +2793,20 @@ describe("path-to-regexp", function () {
       }).toThrow(new TypeError("Unbalanced pattern at 5"));
     });
 
+    it("should throw if ) appears unescaped and without an opening (", function () {
+      expect(function () {
+        pathToRegexp.pathToRegexp("/:fooab)c");
+      }).toThrow(
+        new TypeError("Unescaped ) at 7: may be unmatched group finish.")
+      );
+    });
+    it("should throw on unbalanced patterns, even after completing a balanced one.", function () {
+      expect(function () {
+        pathToRegexp.pathToRegexp("/:test(\\w+)/:foo(\\d+))");
+      }).toThrow(
+        new TypeError("Unescaped ) at 21: may be unmatched group finish.")
+      );
+    });
     it("should throw on missing pattern", function () {
       expect(function () {
         pathToRegexp.pathToRegexp("/:foo()");

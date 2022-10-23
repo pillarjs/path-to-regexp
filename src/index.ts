@@ -45,6 +45,12 @@ function lexer(str: string): LexToken[] {
       continue;
     }
 
+    if (char === ")") {
+      throw new TypeError(
+        `Unescaped ) at ${i}: may be unmatched group finish.`
+      );
+    }
+
     if (char === ":") {
       let name = "";
       let j = i + 1;
