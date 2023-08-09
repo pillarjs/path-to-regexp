@@ -7,7 +7,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
-    "types": ["jest"]
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }
