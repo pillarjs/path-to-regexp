@@ -284,15 +284,14 @@ const toPath = compile("/user/:id", { encode: encodeURIComponent });
 
 toPath({ id: 123 }); //=> "/user/123"
 toPath({ id: "café" }); //=> "/user/caf%C3%A9"
-toPath({ id: "/" }); //=> "/user/%2F"
-
 toPath({ id: ":/" }); //=> "/user/%3A%2F"
 
 // Without `encode`, you need to make sure inputs are encoded correctly.
-const toPathRaw = compile("/user/:id");
+// (Note: You can use `validate: false` to create an invalid paths.)
+const toPathRaw = compile("/user/:id", { validate: false });
 
 toPathRaw({ id: "%3A%2F" }); //=> "/user/%3A%2F"
-toPathRaw({ id: ":/" }, { validate: false }); //=> "/user/:/"
+toPathRaw({ id: ":/" }); //=> "/user/:/"
 
 const toPathRepeated = compile("/:segment+");
 
@@ -303,8 +302,6 @@ const toPathRegexp = compile("/user/:id(\\d+)");
 
 toPathRegexp({ id: 123 }); //=> "/user/123"
 toPathRegexp({ id: "123" }); //=> "/user/123"
-toPathRegexp({ id: "abc" }); //=> Throws `TypeError`.
-toPathRegexp({ id: "abc" }, { validate: false }); //=> "/user/abc"
 ```
 
 **Note:** The generated function will throw on invalid input.
