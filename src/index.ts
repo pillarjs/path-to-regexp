@@ -380,6 +380,13 @@ export function match<P extends object = object>(
   return regexpToFunction<P>(re, keys, options);
 }
 
+export interface RegExpWithKeys extends RegExp {
+  /**
+   * Optional property that includes key metadata corresponding to this regex.
+   */
+  keys?: Key[];
+}
+
 /**
  * Create a path match function from `path-to-regexp` output.
  */
@@ -477,9 +484,14 @@ function arrayToRegexp(
   paths: Array<string | RegExp>,
   keys?: Key[],
   options?: TokensToRegexpOptions & ParseOptions
-): RegExp {
+): RegExpWithKeys {
   const parts = paths.map((path) => pathToRegexp(path, keys, options).source);
-  return new RegExp(`(?:${parts.join("|")})`, flags(options));
+  const re: RegExpWithKeys = new RegExp(
+    `(?:${parts.join("|")})`,
+    flags(options)
+  );
+  re.keys = keys;
+  return re;
 }
 
 /**
@@ -531,7 +543,7 @@ export function tokensToRegexp(
   tokens: Token[],
   keys?: Key[],
   options: TokensToRegexpOptions = {}
-) {
+): RegExpWithKeys {
   const {
     strict = false,
     start = true,
@@ -595,7 +607,10 @@ export function tokensToRegexp(
     }
   }
 
-  return new RegExp(route, flags(options));
+  const re: RegExpWithKeys = new RegExp(route, flags(options));
+  re.keys = keys;
+
+  return re;
 }
 
 /**
