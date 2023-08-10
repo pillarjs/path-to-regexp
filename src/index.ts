@@ -150,6 +150,13 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   };
 
+  const tryConsumeWildcard = (): string | undefined => {
+    if (tokens[i]?.type === "MODIFIER" && tokens[i].value === "*") {
+      i++;
+      return ".*";
+    }
+  };
+
   const mustConsume = (type: LexToken["type"]): string => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
@@ -169,7 +176,8 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   while (i < tokens.length) {
     const char = tryConsume("CHAR");
     const name = tryConsume("NAME");
-    const pattern = tryConsume("PATTERN");
+    let wildcard = undefined;
+    const pattern = tryConsume("PATTERN") || (wildcard = tryConsumeWildcard());
 
     if (name || pattern) {
       let prefix = char || "";
@@ -189,7 +197,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: tryConsume("MODIFIER") || "",
+        modifier: tryConsume("MODIFIER") || (wildcard ? "*" : ""),
       });
       continue;
     }
@@ -209,7 +217,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (open) {
       const prefix = consumeText();
       const name = tryConsume("NAME") || "";
-      const pattern = tryConsume("PATTERN") || "";
+      const pattern = tryConsume("PATTERN") || tryConsumeWildcard() || "";
       const suffix = consumeText();
 
       mustConsume("CLOSE");
