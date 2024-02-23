@@ -8,6 +8,7 @@ module.exports = pathtoRegexp;
  * Match matching groups in a regular expression.
  */
 var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
+var MATCHING_NAMED_GROUP_REGEXP = /\(\?<(.+?)>/g;
 
 /**
  * Normalize the given path string,
@@ -41,6 +42,13 @@ function pathtoRegexp(path, keys, options) {
     while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
       keys.push({
         name: name++,
+        optional: false,
+        offset: m.index
+      });
+    }
+    while (m = MATCHING_NAMED_GROUP_REGEXP.exec(path.source)) {
+      keys.push({
+        name: m[1],
         optional: false,
         offset: m.index
       });

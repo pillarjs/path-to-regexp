@@ -574,6 +574,7 @@ describe('path-to-regexp', function () {
     it('should match trailing slashing in non-ending strict mode', function () {
       var params = [];
       var re = pathToRegExp('/route/', params, { end: false, strict: true });
+      var m;
 
       assert.equal(params.length, 0);
 
@@ -600,6 +601,7 @@ describe('path-to-regexp', function () {
     it('should not match trailing slashes in non-ending strict mode', function () {
       var params = [];
       var re = pathToRegExp('/route', params, { end: false, strict: true });
+      var m;
 
       assert.equal(params.length, 0);
 
@@ -617,6 +619,7 @@ describe('path-to-regexp', function () {
     it('should match text after an express param', function () {
       var params = [];
       var re = pathToRegExp('/(:test)route', params);
+      var m;
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
@@ -723,6 +726,28 @@ describe('path-to-regexp', function () {
       assert.equal(m[0], '/route');
       assert.equal(m[1], '/route');
     });
+
+    it('should pull out matching named groups', function () {
+      var params = [];
+      var re = pathToRegExp(/\/(.*)\/(?<foo>.*)\/(.*)/, params);
+      var m;
+
+      assert.equal(params.length, 3);
+      assert.equal(params[0].name, 0);
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 1);
+      assert.equal(params[1].optional, false);
+      assert.equal(params[2].name, 'foo');
+      assert.equal(params[2].optional, false);
+
+      m = re.exec('/foo/bar/baz');
+
+      assert.equal(m.length, 4);
+      assert.equal(m[0], '/foo/bar/baz');
+      assert.equal(m[1], 'foo');
+      assert.equal(m[2], 'bar');
+      assert.equal(m[3], 'baz');
+    })
   });
 
   describe('arrays', function () {
