@@ -735,9 +735,9 @@ describe('path-to-regexp', function () {
       assert.equal(params.length, 3);
       assert.equal(params[0].name, 0);
       assert.equal(params[0].optional, false);
-      assert.equal(params[1].name, 1);
+      assert.equal(params[1].name, 'foo');
       assert.equal(params[1].optional, false);
-      assert.equal(params[2].name, 'foo');
+      assert.equal(params[2].name, 1);
       assert.equal(params[2].optional, false);
 
       m = re.exec('/foo/bar/baz');
