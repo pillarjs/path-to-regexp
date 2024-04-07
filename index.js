@@ -7,7 +7,7 @@ module.exports = pathtoRegexp;
 /**
  * Match matching groups in a regular expression.
  */
-var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
+var MATCHING_GROUP_REGEXP = /\((?:\?<(.*?)>)?(?!\?)/g;
 
 /**
  * Normalize the given path string,
@@ -40,7 +40,7 @@ function pathtoRegexp(path, keys, options) {
   if (path instanceof RegExp) {
     while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
       keys.push({
-        name: name++,
+        name: m[1] || name++,
         optional: false,
         offset: m.index
       });
