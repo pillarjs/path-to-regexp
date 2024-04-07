@@ -12,10 +12,10 @@ type Test = [
       string,
       (string | undefined)[] | null,
       pathToRegexp.Match?,
-      pathToRegexp.RegexpToFunctionOptions?
+      pathToRegexp.RegexpToFunctionOptions?,
     ]
   >,
-  Array<[any, string | null, pathToRegexp.TokensToFunctionOptions?]>
+  Array<[any, string | null, pathToRegexp.TokensToFunctionOptions?]>,
 ];
 
 /**
@@ -2717,7 +2717,7 @@ if (semver.gte(process.version, "10.0.0")) {
         ],
       ],
       [],
-    ]
+    ],
   );
 }
 
@@ -2852,7 +2852,7 @@ describe("path-to-regexp", () => {
         } else {
           it("should parse keys", () => {
             expect(keys).toEqual(
-              tokens.filter((token) => typeof token !== "string")
+              tokens.filter((token) => typeof token !== "string"),
             );
           });
         }
@@ -2895,7 +2895,7 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: "abc" });
       }).toThrow(
-        new TypeError('Expected "foo" to match "\\d+", but got "abc"')
+        new TypeError('Expected "foo" to match "\\d+", but got "abc"'),
       );
     });
 
@@ -2913,7 +2913,7 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: [] });
       }).toThrow(
-        new TypeError('Expected "foo" to not repeat, but got an array')
+        new TypeError('Expected "foo" to not repeat, but got an array'),
       );
     });
 
@@ -2923,7 +2923,7 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: [1, 2, 3, "a"] });
       }).toThrow(
-        new TypeError('Expected all "foo" to match "\\d+", but got "a"')
+        new TypeError('Expected all "foo" to match "\\d+", but got "a"'),
       );
     });
   });

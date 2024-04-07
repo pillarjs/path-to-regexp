@@ -250,7 +250,7 @@ export interface TokensToFunctionOptions {
  */
 export function compile<P extends object = object>(
   str: string,
-  options?: ParseOptions & TokensToFunctionOptions
+  options?: ParseOptions & TokensToFunctionOptions,
 ) {
   return tokensToFunction<P>(parse(str, options), options);
 }
@@ -262,7 +262,7 @@ export type PathFunction<P extends object = object> = (data?: P) => string;
  */
 export function tokensToFunction<P extends object = object>(
   tokens: Token[],
-  options: TokensToFunctionOptions = {}
+  options: TokensToFunctionOptions = {},
 ): PathFunction<P> {
   const reFlags = flags(options);
   const { encode = (x: string) => x, validate = true } = options;
@@ -292,7 +292,7 @@ export function tokensToFunction<P extends object = object>(
       if (Array.isArray(value)) {
         if (!repeat) {
           throw new TypeError(
-            `Expected "${token.name}" to not repeat, but got an array`
+            `Expected "${token.name}" to not repeat, but got an array`,
           );
         }
 
@@ -307,7 +307,7 @@ export function tokensToFunction<P extends object = object>(
 
           if (validate && !(matches[i] as RegExp).test(segment)) {
             throw new TypeError(
-              `Expected all "${token.name}" to match "${token.pattern}", but got "${segment}"`
+              `Expected all "${token.name}" to match "${token.pattern}", but got "${segment}"`,
             );
           }
 
@@ -322,7 +322,7 @@ export function tokensToFunction<P extends object = object>(
 
         if (validate && !(matches[i] as RegExp).test(segment)) {
           throw new TypeError(
-            `Expected "${token.name}" to match "${token.pattern}", but got "${segment}"`
+            `Expected "${token.name}" to match "${token.pattern}", but got "${segment}"`,
           );
         }
 
@@ -365,7 +365,7 @@ export type Match<P extends object = object> = false | MatchResult<P>;
  * The match function takes a string and returns whether it matched the path.
  */
 export type MatchFunction<P extends object = object> = (
-  path: string
+  path: string,
 ) => Match<P>;
 
 /**
@@ -373,7 +373,7 @@ export type MatchFunction<P extends object = object> = (
  */
 export function match<P extends object = object>(
   str: Path,
-  options?: ParseOptions & TokensToRegexpOptions & RegexpToFunctionOptions
+  options?: ParseOptions & TokensToRegexpOptions & RegexpToFunctionOptions,
 ) {
   const keys: Key[] = [];
   const re = pathToRegexp(str, keys, options);
@@ -386,7 +386,7 @@ export function match<P extends object = object>(
 export function regexpToFunction<P extends object = object>(
   re: RegExp,
   keys: Key[],
-  options: RegexpToFunctionOptions = {}
+  options: RegexpToFunctionOptions = {},
 ): MatchFunction<P> {
   const { decode = (x: string) => x } = options;
 
@@ -476,7 +476,7 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
 function arrayToRegexp(
   paths: Array<string | RegExp>,
   keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions,
 ): RegExp {
   const parts = paths.map((path) => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
@@ -488,7 +488,7 @@ function arrayToRegexp(
 function stringToRegexp(
   path: string,
   keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions,
 ) {
   return tokensToRegexp(parse(path, options), keys, options);
 }
@@ -530,7 +530,7 @@ export interface TokensToRegexpOptions {
 export function tokensToRegexp(
   tokens: Token[],
   keys?: Key[],
-  options: TokensToRegexpOptions = {}
+  options: TokensToRegexpOptions = {},
 ) {
   const {
     strict = false,
@@ -613,7 +613,7 @@ export type Path = string | RegExp | Array<string | RegExp>;
 export function pathToRegexp(
   path: Path,
   keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
+  options?: TokensToRegexpOptions & ParseOptions,
 ) {
   if (path instanceof RegExp) return regexpToRegexp(path, keys);
   if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
