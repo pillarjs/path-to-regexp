@@ -5,7 +5,7 @@ on:
 jobs:
   test:
     name: Node.js ${{ matrix.node-version }}
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
