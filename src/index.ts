@@ -10,6 +10,7 @@ interface LexToken {
     | "CHAR"
     | "ESCAPED_CHAR"
     | "MODIFIER"
+    | "ASTERISK"
     | "END";
   index: number;
   value: string;
@@ -25,7 +26,12 @@ function lexer(str: string): LexToken[] {
   while (i < str.length) {
     const char = str[i];
 
-    if (char === "*" || char === "+" || char === "?") {
+    if (char === "*") {
+      tokens.push({ type: "ASTERISK", index: i, value: str[i++] });
+      continue;
+    }
+
+    if (char === "+" || char === "?") {
       tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
       continue;
     }
@@ -150,6 +156,14 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   };
 
+  const tryConsumeModifier = (): string | undefined => {
+    const r = tryConsume("MODIFIER");
+    if (r) {
+      return r;
+    }
+    return tryConsume("ASTERISK");
+  };
+
   const mustConsume = (type: LexToken["type"]): string => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
@@ -169,7 +183,11 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   while (i < tokens.length) {
     const char = tryConsume("CHAR");
     const name = tryConsume("NAME");
-    const pattern = tryConsume("PATTERN");
+
+    let pattern = tryConsume("PATTERN");
+    if (!name && !pattern && tryConsume("ASTERISK")) {
+      pattern = ".*";
+    }
 
     if (name || pattern) {
       let prefix = char || "";
@@ -189,7 +207,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: tryConsume("MODIFIER") || "",
+        modifier: tryConsumeModifier() || "",
       });
       continue;
     }
@@ -209,7 +227,10 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     if (open) {
       const prefix = consumeText();
       const name = tryConsume("NAME") || "";
-      const pattern = tryConsume("PATTERN") || "";
+      let pattern = tryConsume("PATTERN") || "";
+      if (!name && !pattern && tryConsume("ASTERISK")) {
+        pattern = ".*";
+      }
       const suffix = consumeText();
 
       mustConsume("CLOSE");
@@ -219,7 +240,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         pattern: name && !pattern ? defaultPattern : pattern,
         prefix,
         suffix,
-        modifier: tryConsume("MODIFIER") || "",
+        modifier: tryConsumeModifier() || "",
       });
       continue;
     }
