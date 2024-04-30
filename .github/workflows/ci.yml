@@ -19,11 +19,11 @@ jobs:
           - "21"
           - "22"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -31,6 +31,6 @@ jobs:
             ${{ runner.os }}-node-
       - run: npm ci
       - run: npm test
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v4
         with:
           name: Node.js ${{ matrix.node-version }}
