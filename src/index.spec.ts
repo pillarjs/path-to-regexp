@@ -1215,7 +1215,7 @@ const TESTS: Test[] = [
     [
       ["route", ["route", "route"]],
       ["/route", null],
-      ["", ["", undefined]],
+      ["", ["", ""]],
       ["route/foobar", null],
     ],
     [
@@ -1888,9 +1888,9 @@ const TESTS: Test[] = [
     ],
     [
       ["/test", null],
-      ["/test/", ["/test/", undefined, undefined]],
-      ["/test/u123", ["/test/u123", "u123", undefined]],
-      ["/test/c123", ["/test/c123", undefined, "c123"]],
+      ["/test/", ["/test/", "", ""]],
+      ["/test/u123", ["/test/u123", "u123", ""]],
+      ["/test/c123", ["/test/c123", "", "c123"]],
     ],
     [
       [{ uid: "u123" }, "/test/u123"],
@@ -2060,7 +2060,7 @@ const TESTS: Test[] = [
     ],
     [
       ["/foobaz", ["/foobaz", "foo"]],
-      ["/baz", ["/baz", undefined]],
+      ["/baz", ["/baz", ""]],
     ],
     [
       [{}, "/baz"],
@@ -2090,7 +2090,7 @@ const TESTS: Test[] = [
     ],
     [
       ["/hello(world)", ["/hello(world)", "hello", "world"]],
-      ["/hello()", ["/hello()", "hello", undefined]],
+      ["/hello()", ["/hello()", "hello", ""]],
     ],
     [
       [{ foo: "hello", bar: "world" }, "/hello(world)"],
@@ -2117,7 +2117,7 @@ const TESTS: Test[] = [
       },
     ],
     [
-      ["/video", ["/video", "video", undefined]],
+      ["/video", ["/video", "video", ""]],
       ["/video+test", ["/video+test", "video", "+test"]],
       ["/video+", null],
     ],
@@ -2545,7 +2545,7 @@ const TESTS: Test[] = [
       },
     ],
     [
-      ["/user/123", ["/user/123", undefined, "123"]],
+      ["/user/123", ["/user/123", "", "123"]],
       ["/users/123", ["/users/123", "s", "123"]],
     ],
     [[{ user: "123" }, "/user/123"]],
