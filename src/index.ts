@@ -23,7 +23,7 @@ interface LexToken {
 /**
  * Tokenize input string.
  */
-function lexer(str: string): LexToken[] {
+function lexer(str: string) {
   const tokens: LexToken[] = [];
   let i = 0;
 
@@ -125,7 +125,7 @@ function lexer(str: string): LexToken[] {
 
   tokens.push({ type: "END", index: i, value: "" });
 
-  return tokens;
+  return new Iter(tokens);
 }
 
 export interface ParseOptions {
@@ -139,6 +139,41 @@ export interface ParseOptions {
   prefixes?: string;
 }
 
+class Iter {
+  index = 0;
+
+  constructor(private tokens: LexToken[]) {}
+
+  peek(): LexToken {
+    return this.tokens[this.index];
+  }
+
+  tryConsume(type: LexToken["type"]): string | undefined {
+    const token = this.peek();
+    if (token.type !== type) return;
+    this.index++;
+    return token.value;
+  }
+
+  consume(type: LexToken["type"]): string {
+    const value = this.tryConsume(type);
+    if (value !== undefined) return value;
+    const { type: nextType, index } = this.peek();
+    throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
+  }
+
+  text(): string {
+    let result = "";
+    let value: string | undefined;
+    while (
+      (value = this.tryConsume("CHAR") || this.tryConsume("ESCAPED_CHAR"))
+    ) {
+      result += value;
+    }
+    return result;
+  }
+}
+
 /**
  * Parse a string for the raw tokens.
  */
@@ -149,33 +184,12 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   const result: Token[] = [];
   const tokens = lexer(str);
   let key = 0;
-  let i = 0;
   let path = "";
 
-  const tryConsume = (type: LexToken["type"]): string | undefined => {
-    if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
-  };
-
-  const mustConsume = (type: LexToken["type"]): string => {
-    const value = tryConsume(type);
-    if (value !== undefined) return value;
-    const { type: nextType, index } = tokens[i];
-    throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
-  };
-
-  const consumeText = (): string => {
-    let result = "";
-    let value: string | undefined;
-    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
-      result += value;
-    }
-    return result;
-  };
-
-  while (i < tokens.length) {
-    const char = tryConsume("CHAR");
-    const name = tryConsume("NAME");
-    const pattern = tryConsume("PATTERN");
+  do {
+    const char = tokens.tryConsume("CHAR");
+    const name = tokens.tryConsume("NAME");
+    const pattern = tokens.tryConsume("PATTERN");
 
     if (name || pattern) {
       let prefix = char || "";
@@ -195,12 +209,12 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: tryConsume("MODIFIER") || "",
+        modifier: tokens.tryConsume("MODIFIER") || "",
       });
       continue;
     }
 
-    const value = char || tryConsume("ESCAPED_CHAR");
+    const value = char || tokens.tryConsume("ESCAPED_CHAR");
     if (value) {
       path += value;
       continue;
@@ -211,27 +225,28 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
       path = "";
     }
 
-    const open = tryConsume("OPEN");
+    const open = tokens.tryConsume("OPEN");
     if (open) {
-      const prefix = consumeText();
-      const name = tryConsume("NAME") || "";
-      const pattern = tryConsume("PATTERN") || "";
-      const suffix = consumeText();
+      const prefix = tokens.text();
+      const name = tokens.tryConsume("NAME") || "";
+      const pattern = tokens.tryConsume("PATTERN") || "";
+      const suffix = tokens.text();
 
-      mustConsume("CLOSE");
+      tokens.consume("CLOSE");
 
       result.push({
         name: name || (pattern ? key++ : ""),
         pattern: name && !pattern ? defaultPattern : pattern,
         prefix,
         suffix,
-        modifier: tryConsume("MODIFIER") || "",
+        modifier: tokens.tryConsume("MODIFIER") || "",
       });
       continue;
     }
 
-    mustConsume("END");
-  }
+    tokens.consume("END");
+    break;
+  } while (true);
 
   return result;
 }
@@ -559,15 +574,11 @@ export function tokensToRegexp(
       if (token.pattern) {
         if (keys) keys.push(token);
 
-        if (prefix || suffix) {
-          if (token.modifier === "+" || token.modifier === "*") {
-            const mod = token.modifier === "*" ? "?" : "";
-            route += `(?:${prefix}((?:${token.pattern})(?:${suffix}${prefix}(?:${token.pattern}))*)${suffix})${mod}`;
-          } else {
-            route += `(?:${prefix}(${token.pattern})${suffix})${token.modifier}`;
-          }
+        if (token.modifier === "+" || token.modifier === "*") {
+          const mod = token.modifier === "*" ? "?" : "";
+          route += `(?:${prefix}((?:${token.pattern})(?:${suffix}${prefix}(?:${token.pattern}))*)${suffix})${mod}`;
         } else {
-          route += `((?:${token.pattern})${token.modifier})`;
+          route += `(?:${prefix}(${token.pattern})${suffix})${token.modifier}`;
         }
       } else {
         route += `(?:${prefix}${suffix})${token.modifier}`;
@@ -577,8 +588,7 @@ export function tokensToRegexp(
 
   if (end) {
     if (!strict) route += `${delimiterRe}?`;
-
-    route += options.endsWith ? `(?=${endsWithRe})` : "$";
+    route += endsWith ? `(?=${endsWithRe})` : "$";
   } else {
     const endToken = tokens[tokens.length - 1];
     const isEndDelimited =

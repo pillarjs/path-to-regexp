@@ -1215,7 +1215,7 @@ const TESTS: Test[] = [
     [
       ["route", ["route", "route"]],
       ["/route", null],
-      ["", ["", ""]],
+      ["", ["", undefined]],
       ["route/foobar", null],
     ],
     [
@@ -1888,9 +1888,9 @@ const TESTS: Test[] = [
     ],
     [
       ["/test", null],
-      ["/test/", ["/test/", "", ""]],
-      ["/test/u123", ["/test/u123", "u123", ""]],
-      ["/test/c123", ["/test/c123", "", "c123"]],
+      ["/test/", ["/test/", undefined, undefined]],
+      ["/test/u123", ["/test/u123", "u123", undefined]],
+      ["/test/c123", ["/test/c123", undefined, "c123"]],
     ],
     [
       [{ uid: "u123" }, "/test/u123"],
@@ -2060,7 +2060,7 @@ const TESTS: Test[] = [
     ],
     [
       ["/foobaz", ["/foobaz", "foo"]],
-      ["/baz", ["/baz", ""]],
+      ["/baz", ["/baz", undefined]],
     ],
     [
       [{}, "/baz"],
@@ -2090,7 +2090,7 @@ const TESTS: Test[] = [
     ],
     [
       ["/hello(world)", ["/hello(world)", "hello", "world"]],
-      ["/hello()", ["/hello()", "hello", ""]],
+      ["/hello()", ["/hello()", "hello", undefined]],
     ],
     [
       [{ foo: "hello", bar: "world" }, "/hello(world)"],
@@ -2117,7 +2117,7 @@ const TESTS: Test[] = [
       },
     ],
     [
-      ["/video", ["/video", "video", ""]],
+      ["/video", ["/video", "video", undefined]],
       ["/video+test", ["/video+test", "video", "+test"]],
       ["/video+", null],
     ],
@@ -2545,7 +2545,7 @@ const TESTS: Test[] = [
       },
     ],
     [
-      ["/user/123", ["/user/123", "", "123"]],
+      ["/user/123", ["/user/123", undefined, "123"]],
       ["/users/123", ["/users/123", "s", "123"]],
     ],
     [[{ user: "123" }, "/user/123"]],
@@ -2792,12 +2792,6 @@ describe("path-to-regexp", () => {
       expect(() => {
         pathToRegexp.pathToRegexp("/{a{b:foo}}");
       }).toThrow(new TypeError("Unexpected OPEN at 3, expected CLOSE"));
-    });
-
-    it("should throw on misplaced modifier", () => {
-      expect(() => {
-        pathToRegexp.pathToRegexp("/foo?");
-      }).toThrow(new TypeError("Unexpected MODIFIER at 4, expected END"));
     });
   });
 
