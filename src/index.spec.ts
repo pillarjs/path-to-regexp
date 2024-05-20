@@ -1698,6 +1698,79 @@ const TESTS: Test[] = [
     ],
     [[{ 0: "test" }, "/test"]],
   ],
+  /**
+   * Standalone modifiers.
+   */
+  [
+    "/*",
+    undefined,
+    [
+      "/",
+      {
+        name: 0,
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ".*",
+      },
+    ],
+    [
+      ["/", ["/", ""]],
+      ["/route", ["/route", "route"]],
+      ["/route/nested", ["/route/nested", "route/nested"]],
+    ],
+    [
+      [{ 0: "" }, "/"],
+      [{ 0: "123" }, "/123"],
+    ],
+  ],
+  [
+    "/+",
+    undefined,
+    [
+      "/",
+      {
+        name: 0,
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ".+",
+      },
+    ],
+    [
+      ["/", null],
+      ["/x", ["/x", "x"]],
+      ["/route", ["/route", "route"]],
+    ],
+    [
+      [{ 0: "" }, null],
+      [{ 0: "x" }, "/x"],
+      [{ 0: "xyz" }, "/xyz"],
+    ],
+  ],
+  [
+    "/?",
+    undefined,
+    [
+      "/",
+      {
+        name: 0,
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: ".?",
+      },
+    ],
+    [
+      ["/", ["/", ""]],
+      ["/x", ["/x", "x"]],
+      ["/route", null],
+    ],
+    [
+      [{ 0: "" }, "/"],
+      [{ 0: "x" }, "/x"],
+    ],
+  ],
 
   /**
    * Regexps.

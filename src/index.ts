@@ -244,6 +244,18 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
       continue;
     }
 
+    const modifier = tokens.tryConsume("MODIFIER");
+    if (modifier) {
+      result.push({
+        name: key++,
+        prefix: "",
+        suffix: "",
+        pattern: `.${modifier}`,
+        modifier: "",
+      });
+      continue;
+    }
+
     tokens.consume("END");
     break;
   } while (true);
