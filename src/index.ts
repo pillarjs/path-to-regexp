@@ -190,8 +190,9 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     const char = tokens.tryConsume("CHAR");
     const name = tokens.tryConsume("NAME");
     const pattern = tokens.tryConsume("PATTERN");
+    const modifier = tokens.tryConsume("MODIFIER");
 
-    if (name || pattern) {
+    if (name || pattern || modifier) {
       let prefix = char || "";
 
       if (prefixes.indexOf(prefix) === -1) {
@@ -209,7 +210,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix: "",
         pattern: pattern || defaultPattern,
-        modifier: tokens.tryConsume("MODIFIER") || "",
+        modifier: modifier || "",
       });
       continue;
     }
@@ -240,18 +241,6 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         prefix,
         suffix,
         modifier: tokens.tryConsume("MODIFIER") || "",
-      });
-      continue;
-    }
-
-    const modifier = tokens.tryConsume("MODIFIER");
-    if (modifier) {
-      result.push({
-        name: key++,
-        prefix: "",
-        suffix: "",
-        pattern: `.${modifier}`,
-        modifier: "",
       });
       continue;
     }
