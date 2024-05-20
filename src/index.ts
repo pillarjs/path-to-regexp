@@ -137,6 +137,10 @@ export interface ParseOptions {
    * List of characters to automatically consider prefixes when parsing.
    */
   prefixes?: string;
+  /**
+   * Function for encoding input strings for output into path.
+   */
+  encode?: Encode;
 }
 
 class Iter {
@@ -178,11 +182,15 @@ class Iter {
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
-  const { prefixes = DEFAULT_PREFIXES, delimiter = DEFAULT_DELIMITER } =
-    options;
-  const defaultPattern = `[^${escapeString(delimiter)}]+?`;
+  const {
+    prefixes = DEFAULT_PREFIXES,
+    delimiter = DEFAULT_DELIMITER,
+    encode = DEFAULT_ENCODE,
+  } = options;
+  const defaultPattern = `[^${escape(delimiter)}]+?`;
   const result: Token[] = [];
   const tokens = lexer(str);
+  const stringify = encoder(delimiter, encode);
   let key = 0;
   let path = "";
 
@@ -207,7 +215,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
 
       result.push({
         name: name || key++,
-        prefix,
+        prefix: stringify(prefix),
         suffix: "",
         pattern: pattern || defaultPattern,
         modifier: modifier || "",
@@ -222,7 +230,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     }
 
     if (path) {
-      result.push(path);
+      result.push(stringify(path));
       path = "";
     }
 
@@ -238,8 +246,8 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
       result.push({
         name: name || (pattern ? key++ : ""),
         pattern: name && !pattern ? defaultPattern : pattern,
-        prefix,
-        suffix,
+        prefix: stringify(prefix),
+        suffix: stringify(suffix),
         modifier: tokens.tryConsume("MODIFIER") || "",
       });
       continue;
@@ -252,19 +260,21 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   return result;
 }
 
+export type Encode = (value: string) => string;
+
 export interface TokensToFunctionOptions {
   /**
    * When `true` the regexp will be case sensitive. (default: `false`)
    */
   sensitive?: boolean;
   /**
-   * Function for encoding input strings for output.
-   */
-  encode?: (value: string, token: Key) => string;
-  /**
    * When `false` the function can produce an invalid (unmatched) path. (default: `true`)
    */
   validate?: boolean;
+  /**
+   * Function for encoding input strings for output.
+   */
+  encode?: Encode;
 }
 
 /**
@@ -325,7 +335,7 @@ export function tokensToFunction<P extends object = object>(
         }
 
         for (let j = 0; j < value.length; j++) {
-          const segment = encode(value[j], token);
+          const segment = encode(value[j]);
 
           if (validate && !(matches[i] as RegExp).test(segment)) {
             throw new TypeError(
@@ -340,7 +350,7 @@ export function tokensToFunction<P extends object = object>(
       }
 
       if (typeof value === "string" || typeof value === "number") {
-        const segment = encode(String(value), token);
+        const segment = encode(String(value));
 
         if (validate && !(matches[i] as RegExp).test(segment)) {
           throw new TypeError(
@@ -440,8 +450,16 @@ export function regexpToFunction<P extends object = object>(
 /**
  * Escape a regular expression string.
  */
-function escapeString(str: string) {
+function escape(str: string) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
+}
+
+/**
+ * Encode all non-delimiter characters using the encode function.
+ */
+function encoder(delimiter: string, encode: Encode) {
+  const re = new RegExp(`[^${escape(delimiter)}]+`, "g");
+  return (value: string) => value.replace(re, encode);
 }
 
 /**
@@ -538,10 +556,6 @@ export interface TokensToRegexpOptions {
    * List of characters that can also be "end" characters.
    */
   endsWith?: string;
-  /**
-   * Encode path tokens for use in the `RegExp`.
-   */
-  encode?: (value: string) => string;
 }
 
 /**
@@ -556,21 +570,20 @@ export function tokensToRegexp(
     strict = false,
     start = true,
     end = true,
-    encode = DEFAULT_ENCODE,
     delimiter = DEFAULT_DELIMITER,
     endsWith = "",
   } = options;
-  const endsWithRe = `[${escapeString(endsWith)}]|$`;
-  const delimiterRe = `[${escapeString(delimiter)}]`;
+  const endsWithRe = `[${escape(endsWith)}]|$`;
+  const delimiterRe = `[${escape(delimiter)}]`;
   let route = start ? "^" : "";
 
   // Iterate over the tokens and create our regexp string.
   for (const token of tokens) {
     if (typeof token === "string") {
-      route += escapeString(encode(token));
+      route += escape(token);
     } else {
-      const prefix = escapeString(encode(token.prefix));
-      const suffix = escapeString(encode(token.suffix));
+      const prefix = escape(token.prefix);
+      const suffix = escape(token.suffix);
 
       if (token.pattern) {
         if (keys) keys.push(token);
