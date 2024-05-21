@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import * as util from "util";
 import * as pathToRegexp from "./index";
-import semver from "semver";
 
 type Test = [
   pathToRegexp.Path,
@@ -2703,96 +2702,92 @@ const TESTS: Test[] = [
     [["foobar", ["foobar", "foobar"]]],
     [[{ name: "foobar" }, "foobar"]],
   ],
-];
 
-/**
- * Named capturing groups (available from 1812 version 10)
- */
-if (semver.gte(process.version, "10.0.0")) {
-  TESTS.push(
+  /**
+   * Named capturing groups (available from 1812 version 10)
+   */
+  [
+    /\/(?<groupname>.+)/,
+    undefined,
     [
-      /\/(?<groupname>.+)/,
-      undefined,
-      [
-        {
-          name: "groupname",
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-      ],
-      [
-        ["/", null],
-        ["/foo", ["/foo", "foo"]],
-      ],
-      [],
+      {
+        name: "groupname",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
     ],
     [
-      /\/(?<test>.*).(?<format>html|json)/,
-      undefined,
-      [
-        {
-          name: "test",
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-        {
-          name: "format",
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-      ],
-      [
-        ["/route", null],
-        ["/route.txt", null],
-        ["/route.html", ["/route.html", "route", "html"]],
-        ["/route.json", ["/route.json", "route", "json"]],
-      ],
-      [],
+      ["/", null],
+      ["/foo", ["/foo", "foo"]],
+    ],
+    [],
+  ],
+  [
+    /\/(?<test>.*).(?<format>html|json)/,
+    undefined,
+    [
+      {
+        name: "test",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
+      {
+        name: "format",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
     ],
     [
-      /\/(.+)\/(?<groupname>.+)\/(.+)/,
-      undefined,
-      [
-        {
-          name: 0,
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-        {
-          name: "groupname",
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-        {
-          name: 1,
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
-        },
-      ],
-      [
-        ["/test", null],
-        ["/test/testData", null],
-        [
-          "/test/testData/extraStuff",
-          ["/test/testData/extraStuff", "test", "testData", "extraStuff"],
-        ],
-      ],
-      [],
+      ["/route", null],
+      ["/route.txt", null],
+      ["/route.html", ["/route.html", "route", "html"]],
+      ["/route.json", ["/route.json", "route", "json"]],
     ],
-  );
-}
+    [],
+  ],
+  [
+    /\/(.+)\/(?<groupname>.+)\/(.+)/,
+    undefined,
+    [
+      {
+        name: 0,
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
+      {
+        name: "groupname",
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
+      {
+        name: 1,
+        prefix: "",
+        suffix: "",
+        modifier: "",
+        pattern: "",
+      },
+    ],
+    [
+      ["/test", null],
+      ["/test/testData", null],
+      [
+        "/test/testData/extraStuff",
+        ["/test/testData/extraStuff", "test", "testData", "extraStuff"],
+      ],
+    ],
+    [],
+  ],
+];
 
 /**
  * Dynamically generate the entire test suite.

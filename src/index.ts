@@ -1,7 +1,7 @@
 const DEFAULT_PREFIXES = "./";
-const DEFAULT_DELIMITER = "/#?";
-const DEFAULT_ENCODE = (x: string) => x;
-const DEFAULT_DECODE = (x: string) => x;
+const DEFAULT_DELIMITERS = "/#?";
+const NOOP_ENCODE = (x: string) => x;
+const NOOP_DECODE = (x: string) => x;
 
 /**
  * Tokenizer results.
@@ -184,13 +184,13 @@ class Iter {
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const {
     prefixes = DEFAULT_PREFIXES,
-    delimiter = DEFAULT_DELIMITER,
-    encode = DEFAULT_ENCODE,
+    delimiter = DEFAULT_DELIMITERS,
+    encode = NOOP_ENCODE,
   } = options;
   const defaultPattern = `[^${escape(delimiter)}]+?`;
   const result: Token[] = [];
   const tokens = lexer(str);
-  const stringify = encoder(delimiter, encode);
+  const stringify = encoder(delimiter, encode, NOOP_ENCODE);
   let key = 0;
   let path = "";
 
@@ -209,7 +209,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
       }
 
       if (path) {
-        result.push(path);
+        result.push(stringify(path));
         path = "";
       }
 
@@ -297,7 +297,7 @@ export function tokensToFunction<P extends object = object>(
   options: TokensToFunctionOptions = {},
 ): PathFunction<P> {
   const reFlags = flags(options);
-  const { encode = DEFAULT_ENCODE, validate = true } = options;
+  const { encode = NOOP_ENCODE, validate = true } = options;
 
   // Compile all the tokens into regexps.
   const matches = tokens.map((token) => {
@@ -306,7 +306,7 @@ export function tokensToFunction<P extends object = object>(
     }
   });
 
-  return (data: Record<string, any> | null | undefined) => {
+  return function path(data: Record<string, any> | undefined) {
     let path = "";
 
     for (let i = 0; i < tokens.length; i++) {
@@ -372,13 +372,6 @@ export function tokensToFunction<P extends object = object>(
   };
 }
 
-export interface RegexpToFunctionOptions {
-  /**
-   * Function for decoding strings for params.
-   */
-  decode?: (value: string, token: Key) => string;
-}
-
 /**
  * A match result contains data about the path match.
  */
@@ -412,6 +405,13 @@ export function match<P extends object = object>(
   return regexpToFunction<P>(re, keys, options);
 }
 
+export interface RegexpToFunctionOptions {
+  /**
+   * Function for decoding strings for params.
+   */
+  decode?: (value: string, token: Key) => string;
+}
+
 /**
  * Create a path match function from `path-to-regexp` output.
  */
@@ -420,9 +420,18 @@ export function regexpToFunction<P extends object = object>(
   keys: Key[],
   options: RegexpToFunctionOptions = {},
 ): MatchFunction<P> {
-  const { decode = DEFAULT_DECODE } = options;
+  const { decode = NOOP_DECODE } = options;
+  const decoders = keys.map((key) => {
+    if (key.split) {
+      const splitRe = new RegExp(key.split, "g");
+      return (value: string, key: Key) =>
+        value.split(splitRe).map((part) => decode(part, key));
+    }
 
-  return function (pathname: string) {
+    return (value: string, key: Key) => decode(value, key);
+  });
+
+  return function match(pathname: string) {
     const m = re.exec(pathname);
     if (!m) return false;
 
@@ -433,14 +442,8 @@ export function regexpToFunction<P extends object = object>(
       if (m[i] === undefined) continue;
 
       const key = keys[i - 1];
-
-      if (key.modifier === "*" || key.modifier === "+") {
-        params[key.name] = m[i].split(key.prefix + key.suffix).map((value) => {
-          return decode(value, key);
-        });
-      } else {
-        params[key.name] = decode(m[i], key);
-      }
+      const decoder = decoders[i - 1];
+      params[key.name] = decoder(m[i], key);
     }
 
     return { path, index, params };
@@ -455,11 +458,24 @@ function escape(str: string) {
 }
 
 /**
+ * Escape and repeat a string for regular expressions.
+ */
+function repeat(str: string) {
+  return `${escape(str)}+`;
+}
+
+/**
  * Encode all non-delimiter characters using the encode function.
  */
-function encoder(delimiter: string, encode: Encode) {
-  const re = new RegExp(`[^${escape(delimiter)}]+`, "g");
-  return (value: string) => value.replace(re, encode);
+function encoder(
+  delimiter: string,
+  encodeString: Encode,
+  encodeDelimiter: Encode,
+) {
+  const re = new RegExp(`[^${escape(delimiter)}]+|(.)`, "g");
+  const replacer = (value: string, delimiter: string) =>
+    delimiter ? encodeDelimiter(value) : encodeString(value);
+  return (value: string) => value.replace(re, replacer);
 }
 
 /**
@@ -469,10 +485,7 @@ function flags(options?: { sensitive?: boolean }) {
   return options && options.sensitive ? "" : "i";
 }
 
-/**
- * Metadata about a key.
- */
-export interface Key {
+export interface TokenKey {
   name: string | number;
   prefix: string;
   suffix: string;
@@ -483,7 +496,17 @@ export interface Key {
 /**
  * A token is a string (nothing special) or key metadata (capture group).
  */
-export type Token = string | Key;
+export type Token = string | TokenKey;
+
+/**
+ * Metadata about a key.
+ */
+export interface Key extends TokenKey {
+  /**
+   * Internal flag indicating the key needs to be split for the match.
+   */
+  split?: string;
+}
 
 /**
  * Pull out keys from a regexp.
@@ -556,6 +579,10 @@ export interface TokensToRegexpOptions {
    * List of characters that can also be "end" characters.
    */
   endsWith?: string;
+  /**
+   * When `true` the regexp will allow repeated delimiters. (default: `false`)
+   */
+  loose?: boolean;
 }
 
 /**
@@ -563,35 +590,38 @@ export interface TokensToRegexpOptions {
  */
 export function tokensToRegexp(
   tokens: Token[],
-  keys?: Key[],
+  keys: Key[] = [],
   options: TokensToRegexpOptions = {},
-) {
+): RegExp {
   const {
     strict = false,
+    loose = false,
     start = true,
     end = true,
-    delimiter = DEFAULT_DELIMITER,
+    delimiter = DEFAULT_DELIMITERS,
     endsWith = "",
   } = options;
-  const endsWithRe = `[${escape(endsWith)}]|$`;
+  const endsWithRe = endsWith ? `[${escape(endsWith)}]|$` : "$";
   const delimiterRe = `[${escape(delimiter)}]`;
+  const stringify = loose ? encoder(delimiter, escape, repeat) : escape;
   let route = start ? "^" : "";
 
   // Iterate over the tokens and create our regexp string.
   for (const token of tokens) {
     if (typeof token === "string") {
-      route += escape(token);
+      route += stringify(token);
     } else {
-      const prefix = escape(token.prefix);
-      const suffix = escape(token.suffix);
+      const prefix = stringify(token.prefix);
+      const suffix = stringify(token.suffix);
 
       if (token.pattern) {
-        if (keys) keys.push(token);
-
         if (token.modifier === "+" || token.modifier === "*") {
           const mod = token.modifier === "*" ? "?" : "";
-          route += `(?:${prefix}((?:${token.pattern})(?:${suffix}${prefix}(?:${token.pattern}))*)${suffix})${mod}`;
+          const split = `${suffix}${prefix}`;
+          keys.push({ ...token, split });
+          route += `(?:${prefix}((?:${token.pattern})(?:${split}(?:${token.pattern}))*)${suffix})${mod}`;
         } else {
+          keys.push(token);
           route += `(?:${prefix}(${token.pattern})${suffix})${token.modifier}`;
         }
       } else {
@@ -601,8 +631,8 @@ export function tokensToRegexp(
   }
 
   if (end) {
-    if (!strict) route += `${delimiterRe}?`;
-    route += endsWith ? `(?=${endsWithRe})` : "$";
+    if (!strict) route += `${delimiterRe}${loose ? "*" : "?"}`;
+    route += `(?=${endsWithRe})`;
   } else {
     const endToken = tokens[tokens.length - 1];
     const isEndDelimited =
@@ -611,7 +641,7 @@ export function tokensToRegexp(
         : !endToken;
 
     if (!strict) {
-      route += `(?:${delimiterRe}(?=${endsWithRe}))?`;
+      route += `(?:${delimiterRe}${loose ? "+" : ""}(?=${endsWithRe}))?`;
     }
 
     if (!isEndDelimited) {
