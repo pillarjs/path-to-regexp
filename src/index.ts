@@ -409,7 +409,7 @@ export interface RegexpToFunctionOptions {
   /**
    * Function for decoding strings for params.
    */
-  decode?: (value: string, token: Key) => string;
+  decode?: (value: string) => string;
 }
 
 /**
@@ -424,11 +424,10 @@ export function regexpToFunction<P extends object = object>(
   const decoders = keys.map((key) => {
     if (key.split) {
       const splitRe = new RegExp(key.split, "g");
-      return (value: string, key: Key) =>
-        value.split(splitRe).map((part) => decode(part, key));
+      return (value: string) => value.split(splitRe).map(decode);
     }
 
-    return (value: string, key: Key) => decode(value, key);
+    return decode;
   });
 
   return function match(pathname: string) {
@@ -443,7 +442,7 @@ export function regexpToFunction<P extends object = object>(
 
       const key = keys[i - 1];
       const decoder = decoders[i - 1];
-      params[key.name] = decoder(m[i], key);
+      params[key.name] = decoder(m[i]);
     }
 
     return { path, index, params };
