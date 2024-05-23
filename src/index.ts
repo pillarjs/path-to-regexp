@@ -2,7 +2,7 @@ const DEFAULT_PREFIXES = "./";
 const DEFAULT_DELIMITER = "/";
 const GROUPS_RE = /\((?:\?<(.*?)>)?(?!\?)/g;
 const NOOP_VALUE = (value: string) => value;
-const NAME_RE = /^[\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}]$/u;
+const NAME_RE = /^[\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}$]$/u;
 
 /**
  * Encode a string into another string.
@@ -130,13 +130,8 @@ function lexer(str: string) {
       let name = "";
       let j = i + 1;
 
-      while (j < chars.length) {
-        if (NAME_RE.test(chars[j])) {
-          name += chars[j++];
-          continue;
-        }
-
-        break;
+      while (NAME_RE.test(chars[j])) {
+        name += chars[j++];
       }
 
       if (!name) throw new TypeError(`Missing parameter name at ${i}`);
