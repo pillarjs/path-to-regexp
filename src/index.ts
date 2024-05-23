@@ -90,6 +90,7 @@ interface LexToken {
     | "CHAR"
     | "ESCAPED_CHAR"
     | "MODIFIER"
+    | "RESERVED"
     | "END";
   index: number;
   value: string;
@@ -105,6 +106,11 @@ function lexer(str: string) {
 
   while (i < chars.length) {
     const char = chars[i];
+
+    if (char === "!" || char === ";" || char === "|") {
+      tokens.push({ type: "RESERVED", index: i, value: chars[i++] });
+      continue;
+    }
 
     if (char === "*" || char === "+" || char === "?") {
       tokens.push({ type: "MODIFIER", index: i, value: chars[i++] });
@@ -510,6 +516,7 @@ function matchRegexp<P extends ParamData>(
 ): MatchFunction<P> {
   const { decode = decodeURIComponent, loose = DEFAULT_DELIMITER } = options;
   const stringify = toStringify(loose);
+
   const decoders = keys.map((key) => {
     if (key.separator) {
       const re = new RegExp(
