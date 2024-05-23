@@ -4,17 +4,10 @@ import * as pathToRegexp from "./index";
 
 type Test = [
   pathToRegexp.Path,
-  (pathToRegexp.TokensToRegexpOptions & pathToRegexp.ParseOptions) | undefined,
+  pathToRegexp.MatchOptions | undefined,
   pathToRegexp.Token[],
-  Array<
-    [
-      string,
-      (string | undefined)[] | null,
-      pathToRegexp.Match?,
-      pathToRegexp.RegexpToFunctionOptions?,
-    ]
-  >,
-  Array<[any, string | null, pathToRegexp.TokensToFunctionOptions?]>,
+  Array<[string, (string | undefined)[] | null, pathToRegexp.Match<any>?]>,
+  Array<[any, string | null, pathToRegexp.CompileOptions?]>,
 ];
 
 /**
@@ -33,7 +26,7 @@ const TESTS: Test[] = [
       ["/route", null, false],
     ],
     [
-      [null, "/"],
+      [undefined, "/"],
       [{}, "/"],
       [{ id: 123 }, "/"],
     ],
@@ -49,7 +42,7 @@ const TESTS: Test[] = [
       ["/test/", ["/test/"], { path: "/test/", index: 0, params: {} }],
     ],
     [
-      [null, "/test"],
+      [undefined, "/test"],
       [{}, "/test"],
     ],
   ],
@@ -62,7 +55,7 @@ const TESTS: Test[] = [
       ["/test/", ["/test/"]],
       ["/test//", ["/test//"]],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
 
   /**
@@ -78,7 +71,7 @@ const TESTS: Test[] = [
       ["/test", ["/test"]],
       ["/TEST", null],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/TEST",
@@ -90,7 +83,7 @@ const TESTS: Test[] = [
       ["/test", null],
       ["/TEST", ["/TEST"]],
     ],
-    [[null, "/TEST"]],
+    [[undefined, "/TEST"]],
   ],
 
   /**
@@ -107,7 +100,7 @@ const TESTS: Test[] = [
       ["/test/", null],
       ["/TEST", ["/TEST"]],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/test/",
@@ -121,7 +114,7 @@ const TESTS: Test[] = [
       ["/test//", ["/test//"]],
       ["/test/route", null],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
 
   /**
@@ -139,7 +132,7 @@ const TESTS: Test[] = [
       ["/test/route", ["/test"]],
       ["/route", null],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/test/",
@@ -154,7 +147,7 @@ const TESTS: Test[] = [
       ["/test//", ["/test//"]],
       ["/foo//bar", null],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
   [
     "/:test",
@@ -179,19 +172,13 @@ const TESTS: Test[] = [
       [
         "/caf%C3%A9",
         ["/caf%C3%A9", "caf%C3%A9"],
-        { path: "/caf%C3%A9", index: 0, params: { test: "caf%C3%A9" } },
-      ],
-      [
-        "/caf%C3%A9",
-        ["/caf%C3%A9", "caf%C3%A9"],
         { path: "/caf%C3%A9", index: 0, params: { test: "café" } },
-        { decode: decodeURIComponent },
       ],
     ],
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b"],
+      [{ test: "a+b" }, "/a+b", { encode: (x) => x }],
       [{ test: "a+b" }, "/test", { encode: () => "test" }],
       [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }],
     ],
@@ -230,7 +217,7 @@ const TESTS: Test[] = [
       ["/route", [""]],
       ["/route/", [""]],
     ],
-    [[null, ""]],
+    [[undefined, ""]],
   ],
 
   /**
@@ -250,7 +237,7 @@ const TESTS: Test[] = [
       ["/route/test/deep", null],
       ["/route", null],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/test/",
@@ -265,7 +252,7 @@ const TESTS: Test[] = [
       ["/test//", ["/test//"]],
       ["/route/test/", ["/test/"]],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
   [
     "/:test",
@@ -285,7 +272,7 @@ const TESTS: Test[] = [
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b"],
+      [{ test: "a+b" }, "/a+b", { encode: (x) => x }],
       [{ test: "a+b" }, "/test", { encode: () => "test" }],
       [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }],
     ],
@@ -324,7 +311,7 @@ const TESTS: Test[] = [
       ["/route", [""]],
       ["/route/", ["/"]],
     ],
-    [[null, ""]],
+    [[undefined, ""]],
   ],
 
   /**
@@ -342,7 +329,7 @@ const TESTS: Test[] = [
       ["/test/", ["/test"]],
       ["/test/route", ["/test"]],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/test/",
@@ -358,7 +345,7 @@ const TESTS: Test[] = [
       ["/test/route", null],
       ["/test//route", ["/test/"]],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
   [
     "/test.json",
@@ -372,7 +359,7 @@ const TESTS: Test[] = [
       ["/test.json.hbs", null],
       ["/test.json/route", ["/test.json"]],
     ],
-    [[null, "/test.json"]],
+    [[undefined, "/test.json"]],
   ],
   [
     "/:test",
@@ -433,7 +420,7 @@ const TESTS: Test[] = [
       ["/test/route", ["/test"]],
       ["/route/test/deep", ["/test"]],
     ],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
   [
     "/test/",
@@ -449,7 +436,7 @@ const TESTS: Test[] = [
       ["/test/route", null],
       ["/route/test/deep", null],
     ],
-    [[null, "/test/"]],
+    [[undefined, "/test/"]],
   ],
   [
     "/test.json",
@@ -464,7 +451,7 @@ const TESTS: Test[] = [
       ["/test.json/route", ["/test.json"]],
       ["/route/test.json/deep", ["/test.json"]],
     ],
-    [[null, "/test.json"]],
+    [[undefined, "/test.json"]],
   ],
   [
     "/:test",
@@ -539,7 +526,7 @@ const TESTS: Test[] = [
     },
     ["/test"],
     [["/test/route", ["/test"]]],
-    [[null, "/test"]],
+    [[undefined, "/test"]],
   ],
 
   /**
@@ -673,7 +660,7 @@ const TESTS: Test[] = [
       ["//", ["//", undefined], { path: "//", index: 0, params: {} }],
     ],
     [
-      [null, ""],
+      [undefined, ""],
       [{ test: "foobar" }, "/foobar"],
     ],
   ],
@@ -697,7 +684,7 @@ const TESTS: Test[] = [
       ["//", null],
     ],
     [
-      [null, ""],
+      [undefined, ""],
       [{ test: "foobar" }, "/foobar"],
     ],
   ],
@@ -723,7 +710,7 @@ const TESTS: Test[] = [
       ["//", ["//", undefined]],
     ],
     [
-      [null, "/"],
+      [undefined, "/"],
       [{ test: "foobar" }, "/foobar/"],
     ],
   ],
@@ -745,7 +732,7 @@ const TESTS: Test[] = [
       ["/foo/bar", ["/foo/bar", "foo"]],
     ],
     [
-      [null, "/bar"],
+      [undefined, "/bar"],
       [{ test: "foo" }, "/foo/bar"],
     ],
   ],
@@ -782,6 +769,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
       "-bar",
     ],
@@ -791,7 +779,11 @@ const TESTS: Test[] = [
       ["/foo-bar", ["/foo-bar", "foo"]],
       ["/foo/baz-bar", ["/foo/baz-bar", "foo/baz"]],
     ],
-    [[{ test: "foo" }, "/foo-bar"]],
+    [
+      [{}, "-bar"],
+      [{ test: [] }, "-bar"],
+      [{ test: ["foo"] }, "/foo-bar"],
+    ],
   ],
 
   /**
@@ -807,6 +799,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [
@@ -829,7 +822,7 @@ const TESTS: Test[] = [
     ],
     [
       [{}, null],
-      [{ test: "foobar" }, "/foobar"],
+      [{ test: ["foobar"] }, "/foobar"],
       [{ test: ["a", "b", "c"] }, "/a/b/c"],
     ],
   ],
@@ -843,6 +836,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "\\d+",
+        separator: "/",
       },
     ],
     [
@@ -850,9 +844,9 @@ const TESTS: Test[] = [
       ["/123/456/789", ["/123/456/789", "123/456/789"]],
     ],
     [
-      [{ test: "abc" }, null],
-      [{ test: 123 }, "/123"],
-      [{ test: [1, 2, 3] }, "/1/2/3"],
+      [{ test: ["abc"] }, null],
+      [{ test: ["123"] }, "/123"],
+      [{ test: ["1", "2", "3"] }, "/1/2/3"],
     ],
   ],
   [
@@ -866,6 +860,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "json|xml",
+        separator: ".",
       },
     ],
     [
@@ -875,8 +870,8 @@ const TESTS: Test[] = [
       ["/route.html", null],
     ],
     [
-      [{ ext: "foobar" }, null],
-      [{ ext: "xml" }, "/route.xml"],
+      [{ ext: ["foobar"] }, null],
+      [{ ext: ["xml"] }, "/route.xml"],
       [{ ext: ["xml", "json"] }, "/route.xml.json"],
     ],
   ],
@@ -916,6 +911,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [
@@ -939,7 +935,7 @@ const TESTS: Test[] = [
     [
       [{}, ""],
       [{ test: [] }, ""],
-      [{ test: "foobar" }, "/foobar"],
+      [{ test: ["foobar"] }, "/foobar"],
       [{ test: ["foo", "bar"] }, "/foo/bar"],
     ],
   ],
@@ -954,6 +950,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "[a-z]+",
+        separator: ".",
       },
     ],
     [
@@ -965,8 +962,8 @@ const TESTS: Test[] = [
     [
       [{}, "/route"],
       [{ ext: [] }, "/route"],
-      [{ ext: "123" }, null],
-      [{ ext: "foobar" }, "/route.foobar"],
+      [{ ext: ["123"] }, null],
+      [{ ext: ["foobar"] }, "/route.foobar"],
       [{ ext: ["foo", "bar"] }, "/route.foo.bar"],
     ],
   ],
@@ -1037,12 +1034,8 @@ const TESTS: Test[] = [
     [
       [{ test: "" }, "/"],
       [{ test: "abc" }, "/abc"],
-      [{ test: "abc/123" }, "/abc%2F123", { encode: encodeURIComponent }],
-      [
-        { test: "abc/123/456" },
-        "/abc%2F123%2F456",
-        { encode: encodeURIComponent },
-      ],
+      [{ test: "abc/123" }, "/abc%2F123"],
+      [{ test: "abc/123/456" }, "/abc%2F123%2F456"],
     ],
   ],
   [
@@ -1103,6 +1096,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "abc|xyz",
+        separator: "/",
       },
     ],
     [
@@ -1114,13 +1108,13 @@ const TESTS: Test[] = [
       ["/xyzxyz", null],
     ],
     [
-      [{ path: "abc" }, "/abc"],
+      [{ path: ["abc"] }, "/abc"],
       [{ path: ["abc", "xyz"] }, "/abc/xyz"],
       [{ path: ["xyz", "abc", "xyz"] }, "/xyz/abc/xyz"],
-      [{ path: "abc123" }, null],
-      [{ path: "abc123" }, "/abc123", { validate: false }],
-      [{ path: "abcxyz" }, null],
-      [{ path: "abcxyz" }, "/abcxyz", { validate: false }],
+      [{ path: ["abc123"] }, null],
+      [{ path: ["abc123"] }, "/abc123", { validate: false }],
+      [{ path: ["abcxyz"] }, null],
+      [{ path: ["abcxyz"] }, "/abcxyz", { validate: false }],
     ],
   ],
 
@@ -1135,7 +1129,7 @@ const TESTS: Test[] = [
       ["test", ["test"]],
       ["/test", null],
     ],
-    [[null, "test"]],
+    [[undefined, "test"]],
   ],
   [
     ":test",
@@ -1224,7 +1218,7 @@ const TESTS: Test[] = [
     ],
     [
       [{}, ""],
-      [{ test: "" }, null],
+      [{ test: "" }, ""],
       [{ test: "route" }, "route"],
     ],
   ],
@@ -1238,6 +1232,7 @@ const TESTS: Test[] = [
         suffix: "/",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [
@@ -1358,6 +1353,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: ".",
       },
     ],
     [
@@ -1366,7 +1362,7 @@ const TESTS: Test[] = [
     ],
     [
       [{ format: [] }, null],
-      [{ format: "foo" }, "/test.foo"],
+      [{ format: ["foo"] }, "/test.foo"],
       [{ format: ["foo", "bar"] }, "/test.foo.bar"],
     ],
   ],
@@ -1643,7 +1639,7 @@ const TESTS: Test[] = [
       ")",
     ],
     [["/route(\\123\\)", ["/route(\\123\\)", "123\\"]]],
-    [[["123\\"], "/route(\\123\\)"]],
+    [[["123\\"], "/route(\\123\\)", { encode: (x) => x }]],
   ],
   [
     "{/login}?",
@@ -1662,7 +1658,7 @@ const TESTS: Test[] = [
       ["/login", ["/login"]],
     ],
     [
-      [null, ""],
+      [undefined, ""],
       [{ "": "" }, "/login"],
     ],
   ],
@@ -1715,6 +1711,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [
@@ -1724,7 +1721,7 @@ const TESTS: Test[] = [
     ],
     [
       [{ 0: null }, ""],
-      [{ 0: "x" }, "/x"],
+      [{ 0: ["x"] }, "/x"],
       [{ 0: ["a", "b", "c"] }, "/a/b/c"],
     ],
   ],
@@ -1738,6 +1735,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [
@@ -1748,8 +1746,8 @@ const TESTS: Test[] = [
     ],
     [
       [{ 0: "" }, null],
-      [{ 0: "x" }, "/x"],
-      [{ 0: "route" }, "/route"],
+      [{ 0: ["x"] }, "/x"],
+      [{ 0: ["route"] }, "/route"],
       [{ 0: ["a", "b", "c"] }, "/a/b/c"],
     ],
   ],
@@ -1934,14 +1932,14 @@ const TESTS: Test[] = [
       ["/testing", null],
       ["/(testing)", ["/(testing)"]],
     ],
-    [[null, "/(testing)"]],
+    [[undefined, "/(testing)"]],
   ],
   [
     "/.\\+\\*\\?\\{\\}=^!\\:$[]|",
     undefined,
     ["/.+*?{}=^!:$[]|"],
     [["/.+*?{}=^!:$[]|", ["/.+*?{}=^!:$[]|"]]],
-    [[null, "/.+*?{}=^!:$[]|"]],
+    [[undefined, "/.+*?{}=^!:$[]|"]],
   ],
   [
     "/test\\/:uid(u\\d+)?:cid(c\\d+)?",
@@ -2107,6 +2105,7 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
       "baz",
     ],
@@ -2116,8 +2115,8 @@ const TESTS: Test[] = [
       ["/baz", null],
     ],
     [
-      [{ foo: "foo" }, "/foobaz"],
-      [{ foo: "foo/bar" }, "/foo%2Fbarbaz", { encode: encodeURIComponent }],
+      [{ foo: [] }, null],
+      [{ foo: ["foo"] }, "/foobaz"],
       [{ foo: ["foo", "bar"] }, "/foo/barbaz"],
     ],
   ],
@@ -2282,17 +2281,23 @@ const TESTS: Test[] = [
     ],
     [["/café", ["/café", "café"]]],
     [
-      [{ foo: "café" }, "/café"],
-      [{ foo: "café" }, "/caf%C3%A9", { encode: encodeURIComponent }],
+      [{ foo: "café" }, "/café", { encode: (x) => x }],
+      [{ foo: "café" }, "/caf%C3%A9"],
     ],
   ],
-  ["/café", undefined, ["/café"], [["/café", ["/café"]]], [[null, "/café"]]],
   [
     "/café",
-    { encode: encodeURIComponent },
+    undefined,
+    ["/café"],
+    [["/café", ["/café"]]],
+    [[undefined, "/café"]],
+  ],
+  [
+    "/café",
+    { encodePath: encodeURI },
     ["/caf%C3%A9"],
     [["/caf%C3%A9", ["/caf%C3%A9"]]],
-    [[null, "/caf%C3%A9"]],
+    [[undefined, "/caf%C3%A9"]],
   ],
   [
     "packages/",
@@ -2302,7 +2307,7 @@ const TESTS: Test[] = [
       ["packages", null],
       ["packages/", ["packages/"]],
     ],
-    [[null, "packages/"]],
+    [[undefined, "packages/"]],
   ],
 
   /**
@@ -2390,7 +2395,7 @@ const TESTS: Test[] = [
       ["this is a test", ["this is"]],
       ["this isn't", null],
     ],
-    [[null, "this is"]],
+    [[undefined, "this is"]],
   ],
 
   /**
@@ -2537,8 +2542,6 @@ const TESTS: Test[] = [
       ["/123.abc", null],
     ],
     [
-      [{ test: 123 }, "/123"],
-      [{ test: 123.123 }, "/123.123"],
       [{ test: "abc" }, null],
       [{ test: "123" }, "/123"],
       [{ test: "123.123" }, "/123.123"],
@@ -2610,10 +2613,17 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "*",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
-    [["foobar", ["foobar", "foobar"]]],
-    [[{ name: "foobar" }, "foobar"]],
+    [
+      ["foobar", ["foobar", "foobar"]],
+      ["foo/bar", ["foo/bar", "foo/bar"]],
+    ],
+    [
+      [{ name: ["foobar"] }, "foobar"],
+      [{ name: ["foo", "bar"] }, "foo/bar"],
+    ],
   ],
   [
     ":name+",
@@ -2625,10 +2635,11 @@ const TESTS: Test[] = [
         suffix: "",
         modifier: "+",
         pattern: "[^\\/]+?",
+        separator: "/",
       },
     ],
     [["foobar", ["foobar", "foobar"]]],
-    [[{ name: "foobar" }, "foobar"]],
+    [[{ name: ["foobar"] }, "foobar"]],
   ],
 
   /**
@@ -2721,16 +2732,6 @@ const TESTS: Test[] = [
  * Dynamically generate the entire test suite.
  */
 describe("path-to-regexp", () => {
-  const TEST_PATH = "/user/:id";
-
-  const TEST_PARAM = {
-    name: "id",
-    prefix: "/",
-    suffix: "",
-    modifier: "",
-    pattern: "[^\\/]+?",
-  };
-
   describe("arguments", () => {
     it("should work without different call combinations", () => {
       pathToRegexp.pathToRegexp("/test");
@@ -2748,9 +2749,19 @@ describe("path-to-regexp", () => {
 
     it("should accept an array of keys as the second argument", () => {
       const keys: pathToRegexp.Key[] = [];
-      const re = pathToRegexp.pathToRegexp(TEST_PATH, keys, { end: false });
+      const re = pathToRegexp.pathToRegexp("/user/:id", keys, { end: false });
 
-      expect(keys).toEqual([TEST_PARAM]);
+      const expectedKeys = [
+        {
+          name: "id",
+          prefix: "/",
+          suffix: "",
+          modifier: "",
+          pattern: "[^\\/]+?",
+        },
+      ];
+
+      expect(keys).toEqual(expectedKeys);
       expect(exec(re, "/user/123/show")).toEqual(["/user/123", "123"]);
     });
 
@@ -2791,22 +2802,6 @@ describe("path-to-regexp", () => {
     });
   });
 
-  describe("tokens", () => {
-    const tokens = pathToRegexp.parse(TEST_PATH);
-
-    it("should expose method to compile tokens to regexp", () => {
-      const re = pathToRegexp.tokensToRegexp(tokens);
-
-      expect(exec(re, "/user/123")).toEqual(["/user/123", "123"]);
-    });
-
-    it("should expose method to compile tokens to a path function", () => {
-      const fn = pathToRegexp.tokensToFunction(tokens);
-
-      expect(fn({ id: 123 })).toEqual("/user/123");
-    });
-  });
-
   describe("rules", () => {
     TESTS.forEach(([path, opts, tokens, matchCases, compileCases]) => {
       describe(util.inspect(path), () => {
@@ -2816,7 +2811,7 @@ describe("path-to-regexp", () => {
         // Parsing and compiling is only supported with string input.
         if (typeof path === "string") {
           it("should parse", () => {
-            expect(pathToRegexp.parse(path, opts)).toEqual(tokens);
+            expect(pathToRegexp.parse(path, opts).tokens).toEqual(tokens);
           });
 
           describe("compile", () => {
@@ -2848,7 +2843,7 @@ describe("path-to-regexp", () => {
         }
 
         describe("match" + (opts ? " using " + util.inspect(opts) : ""), () => {
-          matchCases.forEach(([pathname, matches, params, options]) => {
+          matchCases.forEach(([pathname, matches, params]) => {
             const message = `should ${
               matches ? "" : "not "
             }match ${util.inspect(pathname)}`;
@@ -2858,7 +2853,7 @@ describe("path-to-regexp", () => {
             });
 
             if (typeof path === "string" && params !== undefined) {
-              const match = pathToRegexp.match(path, options);
+              const match = pathToRegexp.match(path, opts);
 
               it(message + " params", () => {
                 expect(match(pathname)).toEqual(params);
@@ -2884,9 +2879,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: "abc" });
-      }).toThrow(
-        new TypeError('Expected "foo" to match "\\d+", but got "abc"'),
-      );
+      }).toThrow(new TypeError('Invalid value for "foo": "/abc"'));
     });
 
     it("should throw when expecting a repeated value", () => {
@@ -2894,7 +2887,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [] });
-      }).toThrow(new TypeError('Expected "foo" to not be empty'));
+      }).toThrow(new TypeError('Invalid value for "foo": ""'));
     });
 
     it("should throw when not expecting a repeated value", () => {
@@ -2902,19 +2895,31 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [] });
-      }).toThrow(
-        new TypeError('Expected "foo" to not repeat, but got an array'),
-      );
+      }).toThrow(new TypeError('Expected "foo" to be a string'));
+    });
+
+    it("should throw when a repeated param is not an array", () => {
+      const toPath = pathToRegexp.compile("/:foo+");
+
+      expect(() => {
+        toPath({ foo: "a" });
+      }).toThrow(new TypeError('Expected "foo" to be an array'));
+    });
+
+    it("should throw when an array value is not a string", () => {
+      const toPath = pathToRegexp.compile("/:foo+");
+
+      expect(() => {
+        toPath({ foo: [1, "a"] });
+      }).toThrow(new TypeError('Expected "foo/0" to be a string'));
     });
 
     it("should throw when repeated value does not match", () => {
       const toPath = pathToRegexp.compile("/:foo(\\d+)+");
 
       expect(() => {
-        toPath({ foo: [1, 2, 3, "a"] });
-      }).toThrow(
-        new TypeError('Expected all "foo" to match "\\d+", but got "a"'),
-      );
+        toPath({ foo: ["1", "2", "3", "a"] });
+      }).toThrow(new TypeError('Invalid value for "foo": "/1/2/3/a"'));
     });
   });
 });
