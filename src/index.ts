@@ -2,7 +2,8 @@ const DEFAULT_PREFIXES = "./";
 const DEFAULT_DELIMITER = "/";
 const GROUPS_RE = /\((?:\?<(.*?)>)?(?!\?)/g;
 const NOOP_VALUE = (value: string) => value;
-const NAME_RE = /^[\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}$]$/u;
+const ID_START = /^[$_\p{ID_Start}]$/u;
+const ID_CONTINUE = /^[$_\u200C\u200D\p{ID_Continue}]$/u;
 
 /**
  * Encode a string into another string.
@@ -133,56 +134,55 @@ function lexer(str: string) {
     }
 
     if (char === ":") {
-      let name = "";
-      let j = i + 1;
+      let name = chars[++i];
 
-      while (NAME_RE.test(chars[j])) {
-        name += chars[j++];
+      if (!ID_START.test(chars[i])) {
+        throw new TypeError(`Missing parameter name at ${i}`);
       }
 
-      if (!name) throw new TypeError(`Missing parameter name at ${i}`);
+      while (ID_CONTINUE.test(chars[++i])) {
+        name += chars[i];
+      }
 
       tokens.push({ type: "NAME", index: i, value: name });
-      i = j;
       continue;
     }
 
     if (char === "(") {
+      const pos = i++;
       let count = 1;
       let pattern = "";
-      let j = i + 1;
 
-      if (chars[j] === "?") {
-        throw new TypeError(`Pattern cannot start with "?" at ${j}`);
+      if (chars[i] === "?") {
+        throw new TypeError(`Pattern cannot start with "?" at ${i}`);
       }
 
-      while (j < chars.length) {
-        if (chars[j] === "\\") {
-          pattern += chars[j++] + chars[j++];
+      while (i < chars.length) {
+        if (chars[i] === "\\") {
+          pattern += chars[i++] + chars[i++];
           continue;
         }
 
-        if (chars[j] === ")") {
+        if (chars[i] === ")") {
           count--;
           if (count === 0) {
-            j++;
+            i++;
             break;
           }
-        } else if (chars[j] === "(") {
+        } else if (chars[i] === "(") {
           count++;
-          if (chars[j + 1] !== "?") {
-            throw new TypeError(`Capturing groups are not allowed at ${j}`);
+          if (chars[i + 1] !== "?") {
+            throw new TypeError(`Capturing groups are not allowed at ${i}`);
           }
         }
 
-        pattern += chars[j++];
+        pattern += chars[i++];
       }
 
-      if (count) throw new TypeError(`Unbalanced pattern at ${i}`);
-      if (!pattern) throw new TypeError(`Missing pattern at ${i}`);
+      if (count) throw new TypeError(`Unbalanced pattern at ${pos}`);
+      if (!pattern) throw new TypeError(`Missing pattern at ${pos}`);
 
       tokens.push({ type: "PATTERN", index: i, value: pattern });
-      i = j;
       continue;
     }
 
@@ -440,7 +440,7 @@ function compileTokens<P extends ParamData>(
   options: CompileOptions,
 ): PathFunction<P> {
   const {
-    encode = encodeURIComponent,
+    encode = NOOP_VALUE,
     validate = true,
     loose = DEFAULT_DELIMITER,
   } = options;
@@ -514,7 +514,7 @@ function matchRegexp<P extends ParamData>(
   keys: Key[],
   options: MatchOptions,
 ): MatchFunction<P> {
-  const { decode = decodeURIComponent, loose = DEFAULT_DELIMITER } = options;
+  const { decode = NOOP_VALUE, loose = DEFAULT_DELIMITER } = options;
   const stringify = toStringify(loose);
 
   const decoders = keys.map((key) => {

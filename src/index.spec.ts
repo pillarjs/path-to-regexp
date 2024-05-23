@@ -172,13 +172,13 @@ const TESTS: Test[] = [
       [
         "/caf%C3%A9",
         ["/caf%C3%A9", "caf%C3%A9"],
-        { path: "/caf%C3%A9", index: 0, params: { test: "café" } },
+        { path: "/caf%C3%A9", index: 0, params: { test: "caf%C3%A9" } },
       ],
     ],
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b", { encode: (x) => x }],
+      [{ test: "a+b" }, "/a+b"],
       [{ test: "a+b" }, "/test", { encode: () => "test" }],
       [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }],
     ],
@@ -272,7 +272,7 @@ const TESTS: Test[] = [
     [
       [{}, null],
       [{ test: "abc" }, "/abc"],
-      [{ test: "a+b" }, "/a+b", { encode: (x) => x }],
+      [{ test: "a+b" }, "/a+b"],
       [{ test: "a+b" }, "/test", { encode: () => "test" }],
       [{ test: "a+b" }, "/a%2Bb", { encode: encodeURIComponent }],
     ],
@@ -1034,8 +1034,13 @@ const TESTS: Test[] = [
     [
       [{ test: "" }, "/"],
       [{ test: "abc" }, "/abc"],
-      [{ test: "abc/123" }, "/abc%2F123"],
-      [{ test: "abc/123/456" }, "/abc%2F123%2F456"],
+      [{ test: "abc/123" }, "/abc/123"],
+      [{ test: "abc/123" }, "/abc%2F123", { encode: encodeURIComponent }],
+      [
+        { test: "abc/123/456" },
+        "/abc%2F123%2F456",
+        { encode: encodeURIComponent },
+      ],
     ],
   ],
   [
@@ -1639,7 +1644,7 @@ const TESTS: Test[] = [
       ")",
     ],
     [["/route(\\123\\)", ["/route(\\123\\)", "123\\"]]],
-    [[["123\\"], "/route(\\123\\)", { encode: (x) => x }]],
+    [[["123\\"], "/route(\\123\\)"]],
   ],
   [
     "{/login}?",
@@ -2281,8 +2286,8 @@ const TESTS: Test[] = [
     ],
     [["/café", ["/café", "café"]]],
     [
-      [{ foo: "café" }, "/café", { encode: (x) => x }],
-      [{ foo: "café" }, "/caf%C3%A9"],
+      [{ foo: "café" }, "/café"],
+      [{ foo: "café" }, "/caf%C3%A9", { encode: encodeURIComponent }],
     ],
   ],
   [
@@ -2792,7 +2797,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing name", () => {
       expect(() => {
         pathToRegexp.pathToRegexp("/:(test)");
-      }).toThrow(new TypeError("Missing parameter name at 1"));
+      }).toThrow(new TypeError("Missing parameter name at 2"));
     });
 
     it("should throw on nested groups", () => {
