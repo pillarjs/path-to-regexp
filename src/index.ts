@@ -561,24 +561,20 @@ function escape(str: string) {
 }
 
 /**
- * Escape and repeat a string for regular expressions.
+ * Escape and repeat loose characters for regular expressions.
  */
-function repeat(str: string) {
-  return `${escape(str)}+`;
+function looseReplacer(value: string, loose: string) {
+  return loose ? `${escape(value)}+` : escape(value);
 }
 
 /**
  * Encode all non-delimiter characters using the encode function.
  */
 function toStringify(loose: string) {
-  if (loose) {
-    const re = new RegExp(`[^${escape(loose)}]+|(.)`, "g");
-    const replacer = (value: string, loose: string) =>
-      loose ? repeat(value) : escape(value);
-    return (value: string) => value.replace(re, replacer);
-  }
+  if (!loose) return escape;
 
-  return escape;
+  const re = new RegExp(`[^${escape(loose)}]+|(.)`, "g");
+  return (value: string) => value.replace(re, looseReplacer);
 }
 
 /**
