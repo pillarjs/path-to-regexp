@@ -2,6 +2,7 @@ const DEFAULT_PREFIXES = "./";
 const DEFAULT_DELIMITER = "/";
 const GROUPS_RE = /\((?:\?<(.*?)>)?(?!\?)/g;
 const NOOP_VALUE = (value: string) => value;
+const NAME_RE = /^[\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}]$/u;
 
 /**
  * Encode a string into another string.
@@ -98,29 +99,30 @@ interface LexToken {
  * Tokenize input string.
  */
 function lexer(str: string) {
+  const chars = [...str];
   const tokens: LexToken[] = [];
   let i = 0;
 
-  while (i < str.length) {
-    const char = str[i];
+  while (i < chars.length) {
+    const char = chars[i];
 
     if (char === "*" || char === "+" || char === "?") {
-      tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
+      tokens.push({ type: "MODIFIER", index: i, value: chars[i++] });
       continue;
     }
 
     if (char === "\\") {
-      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: str[i++] });
+      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: chars[i++] });
       continue;
     }
 
     if (char === "{") {
-      tokens.push({ type: "OPEN", index: i, value: str[i++] });
+      tokens.push({ type: "OPEN", index: i, value: chars[i++] });
       continue;
     }
 
     if (char === "}") {
-      tokens.push({ type: "CLOSE", index: i, value: str[i++] });
+      tokens.push({ type: "CLOSE", index: i, value: chars[i++] });
       continue;
     }
 
@@ -128,20 +130,9 @@ function lexer(str: string) {
       let name = "";
       let j = i + 1;
 
-      while (j < str.length) {
-        const code = str.charCodeAt(j);
-
-        if (
-          // `0-9`
-          (code >= 48 && code <= 57) ||
-          // `A-Z`
-          (code >= 65 && code <= 90) ||
-          // `a-z`
-          (code >= 97 && code <= 122) ||
-          // `_`
-          code === 95
-        ) {
-          name += str[j++];
+      while (j < chars.length) {
+        if (NAME_RE.test(chars[j])) {
+          name += chars[j++];
           continue;
         }
 
@@ -160,30 +151,30 @@ function lexer(str: string) {
       let pattern = "";
       let j = i + 1;
 
-      if (str[j] === "?") {
+      if (chars[j] === "?") {
         throw new TypeError(`Pattern cannot start with "?" at ${j}`);
       }
 
-      while (j < str.length) {
-        if (str[j] === "\\") {
-          pattern += str[j++] + str[j++];
+      while (j < chars.length) {
+        if (chars[j] === "\\") {
+          pattern += chars[j++] + chars[j++];
           continue;
         }
 
-        if (str[j] === ")") {
+        if (chars[j] === ")") {
           count--;
           if (count === 0) {
             j++;
             break;
           }
-        } else if (str[j] === "(") {
+        } else if (chars[j] === "(") {
           count++;
-          if (str[j + 1] !== "?") {
+          if (chars[j + 1] !== "?") {
             throw new TypeError(`Capturing groups are not allowed at ${j}`);
           }
         }
 
-        pattern += str[j++];
+        pattern += chars[j++];
       }
 
       if (count) throw new TypeError(`Unbalanced pattern at ${i}`);
@@ -194,7 +185,7 @@ function lexer(str: string) {
       continue;
     }
 
-    tokens.push({ type: "CHAR", index: i, value: str[i++] });
+    tokens.push({ type: "CHAR", index: i, value: chars[i++] });
   }
 
   tokens.push({ type: "END", index: i, value: "" });
