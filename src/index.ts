@@ -250,15 +250,15 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   } = options;
   const defaultPattern = `[^${escape(delimiter)}]+?`;
   const tokens: Token[] = [];
-  const iter = lexer(str);
+  const it = lexer(str);
   let key = 0;
   let path = "";
 
   do {
-    const char = iter.tryConsume("CHAR");
-    const name = iter.tryConsume("NAME");
-    const pattern = iter.tryConsume("PATTERN");
-    const modifier = iter.tryConsume("MODIFIER");
+    const char = it.tryConsume("CHAR");
+    const name = it.tryConsume("NAME");
+    const pattern = it.tryConsume("PATTERN");
+    const modifier = it.tryConsume("MODIFIER");
 
     if (name || pattern || modifier) {
       let prefix = char || "";
@@ -287,7 +287,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       continue;
     }
 
-    const value = char || iter.tryConsume("ESCAPED_CHAR");
+    const value = char || it.tryConsume("ESCAPED_CHAR");
     if (value) {
       path += value;
       continue;
@@ -298,19 +298,17 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       path = "";
     }
 
-    const open = iter.tryConsume("OPEN");
+    const open = it.tryConsume("OPEN");
     if (open) {
-      const prefix = iter.text();
-      const name = iter.tryConsume("NAME");
-      const pattern = iter.tryConsume("PATTERN");
-      const suffix = iter.text();
+      const prefix = it.text();
+      const name = it.tryConsume("NAME");
+      const pattern = it.tryConsume("PATTERN");
+      const suffix = it.text();
 
-      iter.consume("CLOSE");
+      it.consume("CLOSE");
 
-      const modifier = iter.tryConsume("MODIFIER");
+      const modifier = it.tryConsume("MODIFIER");
 
-      // TODO: Create non-matching version of keys to switch on/off in `compile`.
-      // TODO: Make optional trailing `/` a version of this so the info is in the "token".
       tokens.push(
         toKey(
           encodePath,
@@ -325,7 +323,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       continue;
     }
 
-    iter.consume("END");
+    it.consume("END");
     break;
   } while (true);
 
