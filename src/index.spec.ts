@@ -1,15 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, TestOptions } from "vitest";
 import * as pathToRegexp from "./index";
 
 interface ParserTestSet {
   path: string;
   options?: pathToRegexp.ParseOptions;
   expected: pathToRegexp.Token[];
+  testOptions?: TestOptions;
 }
 
 interface CompileTestSet {
   path: string;
   options?: pathToRegexp.CompileOptions;
+  testOptions?: TestOptions;
   tests: Array<{
     input: pathToRegexp.ParamData | undefined;
     expected: string | null;
@@ -19,6 +21,7 @@ interface CompileTestSet {
 interface MatchTestSet {
   path: pathToRegexp.Path;
   options?: pathToRegexp.MatchOptions;
+  testOptions?: TestOptions;
   tests: Array<{
     input: string;
     matches: (string | undefined)[] | null;
@@ -2919,6 +2922,92 @@ const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+
+  /**
+   * https://github.com/pillarjs/path-to-regexp/pull/270
+   */
+  {
+    path: "/files/:path*.:ext*",
+    tests: [
+      {
+        input: "/files/hello/world.txt",
+        matches: ["/files/hello/world.txt", "hello/world", "txt"],
+        expected: {
+          path: "/files/hello/world.txt",
+          index: 0,
+          params: { path: ["hello", "world"], ext: ["txt"] },
+        },
+      },
+      {
+        input: "/files/my/photo.jpg/gif",
+        matches: ["/files/my/photo.jpg/gif", "my/photo.jpg/gif", undefined],
+        expected: {
+          path: "/files/my/photo.jpg/gif",
+          index: 0,
+          params: { path: ["my", "photo.jpg", "gif"], ext: undefined },
+        },
+      },
+    ],
+  },
+  {
+    path: "#/*",
+    tests: [
+      {
+        input: "#/",
+        matches: ["#/", undefined],
+        expected: { path: "#/", index: 0, params: {} },
+      },
+    ],
+  },
+  {
+    path: "/foo/:bar*",
+    tests: [
+      {
+        input: "/foo/test1//test2",
+        matches: ["/foo/test1//test2", "test1//test2"],
+        expected: {
+          path: "/foo/test1//test2",
+          index: 0,
+          params: { bar: ["test1", "test2"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/entity/:id/*",
+    tests: [
+      {
+        input: "/entity/foo",
+        matches: ["/entity/foo", "foo", undefined],
+        expected: { path: "/entity/foo", index: 0, params: { id: "foo" } },
+      },
+      {
+        input: "/entity/foo/",
+        matches: ["/entity/foo/", "foo", undefined],
+        expected: { path: "/entity/foo/", index: 0, params: { id: "foo" } },
+      },
+    ],
+  },
+  {
+    path: "/test/*",
+    tests: [
+      {
+        input: "/test",
+        matches: ["/test", undefined],
+        expected: { path: "/test", index: 0, params: {} },
+      },
+      {
+        input: "/test/",
+        matches: ["/test/", undefined],
+        expected: { path: "/test/", index: 0, params: {} },
+      },
+      {
+        input: "/test/route",
+        matches: ["/test/route", "route"],
+        expected: { path: "/test/route", index: 0, params: { "0": ["route"] } },
+      },
+    ],
+  },
 ];
 
 /**
@@ -3003,8 +3092,8 @@ describe("path-to-regexp", () => {
 
   describe.each(PARSER_TESTS)(
     "parse $path with $options",
-    ({ path, options, expected }) => {
-      it("should parse the path", () => {
+    ({ path, options, expected, testOptions }) => {
+      it("should parse the path", testOptions, () => {
         const data = pathToRegexp.parse(path, options);
         expect(data.tokens).toEqual(expected);
       });
@@ -3013,32 +3102,38 @@ describe("path-to-regexp", () => {
 
   describe.each(COMPILE_TESTS)(
     "compile $path with $options",
-    ({ path, options, tests }) => {
+    ({ path, options, tests, testOptions = {} }) => {
       const toPath = pathToRegexp.compile(path, options);
 
-      it.each(tests)("should compile $input", ({ input, expected }) => {
-        if (expected === null) {
-          expect(() => {
-            toPath(input);
-          }).toThrow();
-        } else {
-          expect(toPath(input)).toEqual(expected);
-        }
-      });
+      it.each(tests)(
+        "should compile $input",
+        testOptions,
+        ({ input, expected }) => {
+          if (expected === null) {
+            expect(() => toPath(input)).toThrow();
+          } else {
+            expect(toPath(input)).toEqual(expected);
+          }
+        },
+      );
     },
   );
 
   describe.each(MATCH_TESTS)(
     "match $path with $options",
-    ({ path, options, tests }) => {
+    ({ path, options, tests, testOptions = {} }) => {
       const keys: pathToRegexp.Key[] = [];
       const re = pathToRegexp.pathToRegexp(path, keys, options);
       const match = pathToRegexp.match(path, options);
 
-      it.each(tests)("should match $input", ({ input, matches, expected }) => {
-        expect(exec(re, input)).toEqual(matches);
-        expect(match(input)).toEqual(expected);
-      });
+      it.each(tests)(
+        "should match $input",
+        testOptions,
+        ({ input, matches, expected }) => {
+          expect(exec(re, input)).toEqual(matches);
+          expect(match(input)).toEqual(expected);
+        },
+      );
     },
   );
 
