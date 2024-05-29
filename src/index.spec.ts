@@ -1044,35 +1044,6 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Arrays of simple paths.
-   */
-  {
-    path: ["/one", "/two"],
-    tests: [
-      {
-        input: "/one",
-        matches: ["/one"],
-        expected: { path: "/one", index: 0, params: {} },
-      },
-      {
-        input: "/two",
-        matches: ["/two"],
-        expected: { path: "/two", index: 0, params: {} },
-      },
-      {
-        input: "/three",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/one/two",
-        matches: null,
-        expected: false,
-      },
-    ],
-  },
-
-  /**
    * Optional.
    */
   {
@@ -1962,132 +1933,6 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Regexps.
-   */
-  {
-    path: /.*/,
-    tests: [
-      {
-        input: "/match/anything",
-        matches: ["/match/anything"],
-        expected: { path: "/match/anything", index: 0, params: {} },
-      },
-    ],
-  },
-  {
-    path: /(.*)/,
-    tests: [
-      {
-        input: "/match/anything",
-        matches: ["/match/anything", "/match/anything"],
-        expected: {
-          path: "/match/anything",
-          index: 0,
-          params: { "0": "/match/anything" },
-        },
-      },
-    ],
-  },
-  {
-    path: /\/(\d+)/,
-    tests: [
-      {
-        input: "/abc",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/123",
-        matches: ["/123", "123"],
-        expected: { path: "/123", index: 0, params: { "0": "123" } },
-      },
-    ],
-  },
-
-  /**
-   * Mixed inputs.
-   */
-  {
-    path: ["/one", /\/two/],
-    tests: [
-      {
-        input: "/one",
-        matches: ["/one"],
-        expected: { path: "/one", index: 0, params: {} },
-      },
-      {
-        input: "/two",
-        matches: ["/two"],
-        expected: { path: "/two", index: 0, params: {} },
-      },
-      {
-        input: "/three",
-        matches: null,
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: ["/:test(\\d+)", /(.*)/],
-    tests: [
-      {
-        input: "/123",
-        matches: ["/123", "123", undefined],
-        expected: { path: "/123", index: 0, params: { test: "123" } },
-      },
-      {
-        input: "/abc",
-        matches: ["/abc", undefined, "/abc"],
-        expected: { path: "/abc", index: 0, params: { "0": "/abc" } },
-      },
-    ],
-  },
-
-  /**
-   * Correct names and indexes.
-   */
-  {
-    path: ["/:test", "/route/:test2"],
-    tests: [
-      {
-        input: "/test",
-        matches: ["/test", "test", undefined],
-        expected: { path: "/test", index: 0, params: { test: "test" } },
-      },
-      {
-        input: "/route/test",
-        matches: ["/route/test", undefined, "test"],
-        expected: { path: "/route/test", index: 0, params: { test2: "test" } },
-      },
-    ],
-  },
-  {
-    path: [/^\/([^/]+)$/, /^\/route\/([^/]+)$/],
-    tests: [
-      {
-        input: "/test",
-        matches: ["/test", "test", undefined],
-        expected: { path: "/test", index: 0, params: { 0: "test" } },
-      },
-      {
-        input: "/route/test",
-        matches: ["/route/test", undefined, "test"],
-        expected: { path: "/route/test", index: 0, params: { 0: "test" } },
-      },
-    ],
-  },
-  {
-    path: /(?:.*)/,
-    tests: [
-      {
-        input: "/anything/you/want",
-        matches: ["/anything/you/want"],
-        expected: { path: "/anything/you/want", index: 0, params: {} },
-      },
-    ],
-  },
-
-  /**
    * Escaped characters.
    */
   {
@@ -2776,82 +2621,6 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Named capturing groups.
-   */
-  {
-    path: /\/(?<groupname>.+)/,
-    tests: [
-      {
-        input: "/foo",
-        matches: ["/foo", "foo"],
-        expected: { path: "/foo", index: 0, params: { groupname: "foo" } },
-      },
-    ],
-  },
-  {
-    path: /\/(?<test>.*).(?<format>html|json)/,
-    tests: [
-      {
-        input: "/route",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/route.txt",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/route.html",
-        matches: ["/route.html", "route", "html"],
-        expected: {
-          path: "/route.html",
-          index: 0,
-          params: { test: "route", format: "html" },
-        },
-      },
-      {
-        input: "/route.json",
-        matches: ["/route.json", "route", "json"],
-        expected: {
-          path: "/route.json",
-          index: 0,
-          params: { test: "route", format: "json" },
-        },
-      },
-    ],
-  },
-  {
-    path: /\/(.+)\/(?<groupname>.+)\/(.+)/,
-    tests: [
-      {
-        input: "/test",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/test/testData",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/test/testData/extraStuff",
-        matches: [
-          "/test/testData/extraStuff",
-          "test",
-          "testData",
-          "extraStuff",
-        ],
-        expected: {
-          path: "/test/testData/extraStuff",
-          index: 0,
-          params: { 0: "test", 1: "extraStuff", groupname: "testData" },
-        },
-      },
-    ],
-  },
-
-  /**
    * https://github.com/pillarjs/path-to-regexp/pull/270
    */
   {
@@ -2952,23 +2721,8 @@ const MATCH_TESTS: MatchTestSet[] = [
  */
 describe("path-to-regexp", () => {
   describe("arguments", () => {
-    it("should work without different call combinations", () => {
-      pathToRegexp.pathToRegexp("/test");
-      pathToRegexp.pathToRegexp("/test", []);
-      pathToRegexp.pathToRegexp("/test", undefined, {});
-
-      pathToRegexp.pathToRegexp(/^\/test/);
-      pathToRegexp.pathToRegexp(/^\/test/, []);
-      pathToRegexp.pathToRegexp(/^\/test/, undefined, {});
-
-      pathToRegexp.pathToRegexp(["/a", "/b"]);
-      pathToRegexp.pathToRegexp(["/a", "/b"], []);
-      pathToRegexp.pathToRegexp(["/a", "/b"], undefined, {});
-    });
-
     it("should accept an array of keys as the second argument", () => {
-      const keys: pathToRegexp.Key[] = [];
-      const re = pathToRegexp.pathToRegexp("/user/:id", keys, { end: false });
+      const re = pathToRegexp.pathToRegexp("/user/:id", { end: false });
 
       const expectedKeys = [
         {
@@ -2980,7 +2734,7 @@ describe("path-to-regexp", () => {
         },
       ];
 
-      expect(keys).toEqual(expectedKeys);
+      expect(re.keys).toEqual(expectedKeys);
       expect(exec(re, "/user/123/show")).toEqual(["/user/123", "123"]);
     });
 
@@ -3063,8 +2817,7 @@ describe("path-to-regexp", () => {
         "should match $input",
         testOptions,
         ({ input, matches, expected }) => {
-          const keys: pathToRegexp.Key[] = [];
-          const re = pathToRegexp.pathToRegexp(path, keys, options);
+          const re = pathToRegexp.pathToRegexp(path, options);
           const match = pathToRegexp.match(path, options);
 
           expect(exec(re, input)).toEqual(matches);
