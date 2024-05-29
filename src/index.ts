@@ -79,23 +79,39 @@ export interface CompileOptions extends ParseOptions {
   encode?: Encode;
 }
 
+type TokenType =
+  | "{"
+  | "}"
+  | "*"
+  | "+"
+  | "?"
+  | "NAME"
+  | "PATTERN"
+  | "CHAR"
+  | "ESCAPED"
+  | "END"
+  // Reserved for use.
+  | "!"
+  | ";";
+
 /**
  * Tokenizer results.
  */
 interface LexToken {
-  type:
-    | "OPEN"
-    | "CLOSE"
-    | "PATTERN"
-    | "NAME"
-    | "CHAR"
-    | "ESCAPED_CHAR"
-    | "MODIFIER"
-    | "RESERVED"
-    | "END";
+  type: TokenType;
   index: number;
   value: string;
 }
+
+const SIMPLE_TOKENS: Record<string, TokenType> = {
+  "!": "!",
+  ";": ";",
+  "*": "*",
+  "+": "+",
+  "?": "?",
+  "{": "{",
+  "}": "}",
+};
 
 /**
  * Tokenize input string.
@@ -107,29 +123,15 @@ function lexer(str: string) {
 
   while (i < chars.length) {
     const char = chars[i];
+    const type = SIMPLE_TOKENS[char];
 
-    if (char === "!" || char === ";" || char === "|") {
-      tokens.push({ type: "RESERVED", index: i, value: chars[i++] });
-      continue;
-    }
-
-    if (char === "*" || char === "+" || char === "?") {
-      tokens.push({ type: "MODIFIER", index: i, value: chars[i++] });
+    if (type) {
+      tokens.push({ type, index: i++, value: char });
       continue;
     }
 
     if (char === "\\") {
-      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: chars[i++] });
-      continue;
-    }
-
-    if (char === "{") {
-      tokens.push({ type: "OPEN", index: i, value: chars[i++] });
-      continue;
-    }
-
-    if (char === "}") {
-      tokens.push({ type: "CLOSE", index: i, value: chars[i++] });
+      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
       continue;
     }
 
@@ -220,12 +222,14 @@ class Iter {
   text(): string {
     let result = "";
     let value: string | undefined;
-    while (
-      (value = this.tryConsume("CHAR") || this.tryConsume("ESCAPED_CHAR"))
-    ) {
+    while ((value = this.tryConsume("CHAR") || this.tryConsume("ESCAPED"))) {
       result += value;
     }
     return result;
+  }
+
+  modifier(): string | undefined {
+    return this.tryConsume("?") || this.tryConsume("*") || this.tryConsume("+");
   }
 }
 
@@ -258,9 +262,8 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     const char = it.tryConsume("CHAR");
     const name = it.tryConsume("NAME");
     const pattern = it.tryConsume("PATTERN");
-    const modifier = it.tryConsume("MODIFIER");
 
-    if (name || pattern || modifier) {
+    if (name || pattern) {
       let prefix = char || "";
 
       if (!prefixes.includes(prefix)) {
@@ -277,17 +280,17 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         toKey(
           encodePath,
           delimiter,
-          name || key++,
+          name || String(key++),
           pattern || defaultPattern,
           prefix,
           "",
-          modifier,
+          it.modifier(),
         ),
       );
       continue;
     }
 
-    const value = char || it.tryConsume("ESCAPED_CHAR");
+    const value = char || it.tryConsume("ESCAPED");
     if (value) {
       path += value;
       continue;
@@ -298,26 +301,24 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       path = "";
     }
 
-    const open = it.tryConsume("OPEN");
+    const open = it.tryConsume("{");
     if (open) {
       const prefix = it.text();
       const name = it.tryConsume("NAME");
       const pattern = it.tryConsume("PATTERN");
       const suffix = it.text();
 
-      it.consume("CLOSE");
-
-      const modifier = it.tryConsume("MODIFIER");
+      it.consume("}");
 
       tokens.push(
         toKey(
           encodePath,
           delimiter,
-          name || (pattern ? key++ : ""),
+          name || (pattern ? String(key++) : ""),
           name && !pattern ? defaultPattern : pattern || "",
           prefix,
           suffix,
-          modifier,
+          it.modifier(),
         ),
       );
       continue;
@@ -333,7 +334,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 function toKey(
   encode: Encode,
   delimiter: string,
-  name: string | number,
+  name: string,
   pattern = "",
   inputPrefix = "",
   inputSuffix = "",
@@ -586,7 +587,7 @@ function flags(options: { sensitive?: boolean }) {
  * A key is a capture group in the regex.
  */
 export interface Key {
-  name: string | number;
+  name: string;
   prefix: string;
   suffix: string;
   pattern: string;
@@ -609,7 +610,7 @@ function regexpToRegexp(path: RegExp, keys: Key[]): RegExp {
   for (const execResult of path.source.matchAll(GROUPS_RE)) {
     keys.push({
       // Use parenthesized substring match if available, index otherwise.
-      name: execResult[1] || index++,
+      name: execResult[1] || String(index++),
       prefix: "",
       suffix: "",
       modifier: "",
@@ -664,7 +665,7 @@ function tokensToRegexp(
     if (typeof token === "string") {
       pattern += stringify(token);
     } else {
-      if (token.pattern) keys.push(token);
+      if (token.name) keys.push(token);
       pattern += keyToRegexp(token, stringify);
     }
   }
@@ -685,7 +686,7 @@ function keyToRegexp(key: Key, stringify: Encode): string {
   const prefix = stringify(key.prefix);
   const suffix = stringify(key.suffix);
 
-  if (key.pattern) {
+  if (key.name) {
     if (key.separator) {
       const mod = key.modifier === "*" ? "?" : "";
       const split = stringify(key.separator);

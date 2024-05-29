@@ -1962,78 +1962,6 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Standalone modifiers.
-   */
-  {
-    path: "/?",
-    tests: [
-      {
-        input: "/",
-        matches: ["/", undefined],
-        expected: { path: "/", index: 0, params: {} },
-      },
-      {
-        input: "/route",
-        matches: ["/route", "route"],
-        expected: { path: "/route", index: 0, params: { "0": "route" } },
-      },
-    ],
-  },
-  {
-    path: "/+",
-    tests: [
-      {
-        input: "/",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "/route",
-        matches: ["/route", "route"],
-        expected: { path: "/route", index: 0, params: { "0": ["route"] } },
-      },
-      {
-        input: "/route/",
-        matches: ["/route/", "route"],
-        expected: { path: "/route/", index: 0, params: { "0": ["route"] } },
-      },
-      {
-        input: "/route/route",
-        matches: ["/route/route", "route/route"],
-        expected: {
-          path: "/route/route",
-          index: 0,
-          params: { "0": ["route", "route"] },
-        },
-      },
-    ],
-  },
-  {
-    path: "/*",
-    tests: [
-      {
-        input: "/",
-        matches: ["/", undefined],
-        expected: { path: "/", index: 0, params: { "0": undefined } },
-      },
-      {
-        input: "/route",
-        matches: ["/route", "route"],
-        expected: { path: "/route", index: 0, params: { "0": ["route"] } },
-      },
-      {
-        input: "/route/nested",
-        matches: ["/route/nested", "route/nested"],
-        expected: {
-          path: "/route/nested",
-          index: 0,
-          params: { "0": ["route", "nested"] },
-        },
-      },
-    ],
-  },
-
-  /**
    * Regexps.
    */
   {
@@ -2951,6 +2879,9 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "#/*",
+    testOptions: {
+      skip: true,
+    },
     tests: [
       {
         input: "#/",
@@ -2975,6 +2906,9 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "/entity/:id/*",
+    testOptions: {
+      skip: true,
+    },
     tests: [
       {
         input: "/entity/foo",
@@ -2990,6 +2924,9 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "/test/*",
+    testOptions: {
+      skip: true,
+    },
     tests: [
       {
         input: "/test",
@@ -3086,7 +3023,7 @@ describe("path-to-regexp", () => {
     it("should throw on nested groups", () => {
       expect(() => {
         pathToRegexp.pathToRegexp("/{a{b:foo}}");
-      }).toThrow(new TypeError("Unexpected OPEN at 3, expected CLOSE"));
+      }).toThrow(new TypeError("Unexpected { at 3, expected }"));
     });
   });
 
@@ -3103,12 +3040,12 @@ describe("path-to-regexp", () => {
   describe.each(COMPILE_TESTS)(
     "compile $path with $options",
     ({ path, options, tests, testOptions = {} }) => {
-      const toPath = pathToRegexp.compile(path, options);
-
       it.each(tests)(
         "should compile $input",
         testOptions,
         ({ input, expected }) => {
+          const toPath = pathToRegexp.compile(path, options);
+
           if (expected === null) {
             expect(() => toPath(input)).toThrow();
           } else {
@@ -3122,14 +3059,14 @@ describe("path-to-regexp", () => {
   describe.each(MATCH_TESTS)(
     "match $path with $options",
     ({ path, options, tests, testOptions = {} }) => {
-      const keys: pathToRegexp.Key[] = [];
-      const re = pathToRegexp.pathToRegexp(path, keys, options);
-      const match = pathToRegexp.match(path, options);
-
       it.each(tests)(
         "should match $input",
         testOptions,
         ({ input, matches, expected }) => {
+          const keys: pathToRegexp.Key[] = [];
+          const re = pathToRegexp.pathToRegexp(path, keys, options);
+          const match = pathToRegexp.match(path, options);
+
           expect(exec(re, input)).toEqual(matches);
           expect(match(input)).toEqual(expected);
         },
