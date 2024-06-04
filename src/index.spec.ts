@@ -40,6 +40,24 @@ const PARSER_TESTS: ParserTestSet[] = [
       { name: "test", prefix: "/", suffix: "", pattern: "", modifier: "" },
     ],
   },
+  {
+    path: "/:0",
+    expected: [
+      { name: "0", prefix: "/", suffix: "", pattern: "", modifier: "" },
+    ],
+  },
+  {
+    path: "/:_",
+    expected: [
+      { name: "_", prefix: "/", suffix: "", pattern: "", modifier: "" },
+    ],
+  },
+  {
+    path: "/:café",
+    expected: [
+      { name: "café", prefix: "/", suffix: "", pattern: "", modifier: "" },
+    ],
+  },
 ];
 
 const COMPILE_TESTS: CompileTestSet[] = [
