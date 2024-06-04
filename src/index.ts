@@ -1,9 +1,6 @@
-const DEFAULT_PREFIXES = "./";
 const DEFAULT_DELIMITER = "/";
-const GROUPS_RE = /\((?:\?<(.*?)>)?(?!\?)/g;
 const NOOP_VALUE = (value: string) => value;
-const ID_START = /^[$_\p{ID_Start}]$/u;
-const ID_CONTINUE = /^[$_\u200C\u200D\p{ID_Continue}]$/u;
+const ID_CHAR = /^\p{XID_Continue}$/u;
 
 /**
  * Encode a string into another string.
@@ -92,6 +89,7 @@ type TokenType =
   | "END"
   // Reserved for use.
   | "!"
+  | "@"
   | ";";
 
 /**
@@ -105,6 +103,7 @@ interface LexToken {
 
 const SIMPLE_TOKENS: Record<string, TokenType> = {
   "!": "!",
+  "@": "@",
   ";": ";",
   "*": "*",
   "+": "+",
@@ -136,14 +135,14 @@ function lexer(str: string) {
     }
 
     if (value === ":") {
-      let name = chars[++i];
+      let name = "";
 
-      if (!ID_START.test(name)) {
-        throw new TypeError(`Missing parameter name at ${i}`);
+      while (ID_CHAR.test(chars[++i])) {
+        name += chars[i];
       }
 
-      while (ID_CONTINUE.test(chars[++i])) {
-        name += chars[i];
+      if (!name) {
+        throw new TypeError(`Missing parameter name at ${i}`);
       }
 
       tokens.push({ type: "NAME", index: i, value: name });
@@ -248,11 +247,10 @@ export class TokenData {
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const {
-    prefixes = DEFAULT_PREFIXES,
+    prefixes = "./",
     delimiter = DEFAULT_DELIMITER,
     encodePath = NOOP_VALUE,
   } = options;
-  const defaultPattern = `[^${escape(delimiter)}]+?`;
   const tokens: Token[] = [];
   const it = lexer(str);
   let key = 0;
@@ -265,6 +263,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
     if (name || pattern) {
       let prefix = char || "";
+      const modifier = it.modifier();
 
       if (!prefixes.includes(prefix)) {
         path += prefix;
@@ -281,10 +280,10 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
           encodePath,
           delimiter,
           name || String(key++),
-          pattern || defaultPattern,
+          pattern,
           prefix,
           "",
-          it.modifier(),
+          modifier,
         ),
       );
       continue;
@@ -301,6 +300,22 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       path = "";
     }
 
+    const asterisk = it.tryConsume("*");
+    if (asterisk) {
+      tokens.push(
+        toKey(
+          encodePath,
+          delimiter,
+          String(key++),
+          `[^${escape(delimiter)}]*`,
+          "",
+          "",
+          asterisk,
+        ),
+      );
+      continue;
+    }
+
     const open = it.tryConsume("{");
     if (open) {
       const prefix = it.text();
@@ -315,7 +330,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
           encodePath,
           delimiter,
           name || (pattern ? String(key++) : ""),
-          name && !pattern ? defaultPattern : pattern || "",
+          pattern,
           prefix,
           suffix,
           it.modifier(),
@@ -445,6 +460,7 @@ function compileTokens<P extends ParamData>(
   } = options;
   const reFlags = flags(options);
   const stringify = toStringify(loose);
+  const keyToRegexp = toKeyRegexp(stringify, data.delimiter);
 
   // Compile all the tokens into regexps.
   const encoders: Array<(data: ParamData) => string> = data.tokens.map(
@@ -452,7 +468,7 @@ function compileTokens<P extends ParamData>(
       const fn = tokenToFunction(token, encode);
       if (!validate || typeof token === "string") return fn;
 
-      const pattern = keyToRegexp(token, stringify);
+      const pattern = keyToRegexp(token);
       const validRe = new RegExp(`^${pattern}$`, reFlags);
 
       return (data) => {
@@ -516,16 +532,9 @@ function matchRegexp<P extends ParamData>(
 
   const decoders = re.keys.map((key) => {
     if (key.separator) {
-      const re = new RegExp(
-        `(${key.pattern})(?:${stringify(key.separator)}|$)`,
-        "g",
-      );
+      const re = new RegExp(stringify(key.separator), "g");
 
-      return (value: string) => {
-        const result: string[] = [];
-        for (const m of value.matchAll(re)) result.push(decode(m[1]));
-        return result;
-      };
+      return (value: string) => value.split(re).map(decode);
     }
 
     return decode;
@@ -613,6 +622,7 @@ function tokensToRegexp(
     loose = DEFAULT_DELIMITER,
   } = options;
   const stringify = toStringify(loose);
+  const keyToRegexp = toKeyRegexp(stringify, data.delimiter);
   let pattern = start ? "^" : "";
 
   for (const token of data.tokens) {
@@ -620,7 +630,7 @@ function tokensToRegexp(
       pattern += stringify(token);
     } else {
       if (token.name) keys.push(token);
-      pattern += keyToRegexp(token, stringify);
+      pattern += keyToRegexp(token);
     }
   }
 
@@ -636,21 +646,26 @@ function tokensToRegexp(
 /**
  * Convert a token into a regexp string (re-used for path validation).
  */
-function keyToRegexp(key: Key, stringify: Encode): string {
-  const prefix = stringify(key.prefix);
-  const suffix = stringify(key.suffix);
+function toKeyRegexp(stringify: Encode, delimiter: string) {
+  const segmentPattern = `[^${escape(delimiter)}]+?`;
 
-  if (key.name) {
-    if (key.separator) {
-      const mod = key.modifier === "*" ? "?" : "";
-      const split = stringify(key.separator);
-      return `(?:${prefix}((?:${key.pattern})(?:${split}(?:${key.pattern}))*)${suffix})${mod}`;
-    } else {
-      return `(?:${prefix}(${key.pattern})${suffix})${key.modifier}`;
+  return (key: Key) => {
+    const prefix = stringify(key.prefix);
+    const suffix = stringify(key.suffix);
+
+    if (key.name) {
+      const pattern = key.pattern || segmentPattern;
+      if (key.separator) {
+        const mod = key.modifier === "*" ? "?" : "";
+        const split = stringify(key.separator);
+        return `(?:${prefix}((?:${pattern})(?:${split}(?:${pattern}))*)${suffix})${mod}`;
+      } else {
+        return `(?:${prefix}(${pattern})${suffix})${key.modifier}`;
+      }
     }
-  } else {
+
     return `(?:${prefix}${suffix})${key.modifier}`;
-  }
+  };
 }
 
 /**

@@ -34,6 +34,12 @@ const PARSER_TESTS: ParserTestSet[] = [
     path: "/",
     expected: ["/"],
   },
+  {
+    path: "/:test",
+    expected: [
+      { name: "test", prefix: "/", suffix: "", pattern: "", modifier: "" },
+    ],
+  },
 ];
 
 const COMPILE_TESTS: CompileTestSet[] = [
@@ -59,6 +65,14 @@ const COMPILE_TESTS: CompileTestSet[] = [
       { input: undefined, expected: "/test/" },
       { input: {}, expected: "/test/" },
       { input: { id: "123" }, expected: "/test/" },
+    ],
+  },
+  {
+    path: "/:0",
+    tests: [
+      { input: undefined, expected: null },
+      { input: {}, expected: null },
+      { input: { 0: "123" }, expected: "/123" },
     ],
   },
   {
@@ -2648,9 +2662,6 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "#/*",
-    testOptions: {
-      skip: true,
-    },
     tests: [
       {
         input: "#/",
@@ -2675,14 +2686,11 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "/entity/:id/*",
-    testOptions: {
-      skip: true,
-    },
     tests: [
       {
         input: "/entity/foo",
-        matches: ["/entity/foo", "foo", undefined],
-        expected: { path: "/entity/foo", index: 0, params: { id: "foo" } },
+        matches: null,
+        expected: false,
       },
       {
         input: "/entity/foo/",
@@ -2693,14 +2701,11 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "/test/*",
-    testOptions: {
-      skip: true,
-    },
     tests: [
       {
         input: "/test",
-        matches: ["/test", undefined],
-        expected: { path: "/test", index: 0, params: {} },
+        matches: null,
+        expected: false,
       },
       {
         input: "/test/",
@@ -2711,6 +2716,58 @@ const MATCH_TESTS: MatchTestSet[] = [
         input: "/test/route",
         matches: ["/test/route", "route"],
         expected: { path: "/test/route", index: 0, params: { "0": ["route"] } },
+      },
+      {
+        input: "/test/route/nested",
+        matches: ["/test/route/nested", "route/nested"],
+        expected: {
+          path: "/test/route/nested",
+          index: 0,
+          params: { "0": ["route", "nested"] },
+        },
+      },
+    ],
+  },
+
+  /**
+   * Asterisk wildcard.
+   */
+  {
+    path: "/*",
+    tests: [
+      {
+        input: "/",
+        matches: ["/", undefined],
+        expected: { path: "/", index: 0, params: { "0": undefined } },
+      },
+      {
+        input: "/route",
+        matches: ["/route", "route"],
+        expected: { path: "/route", index: 0, params: { "0": ["route"] } },
+      },
+      {
+        input: "/route/nested",
+        matches: ["/route/nested", "route/nested"],
+        expected: {
+          path: "/route/nested",
+          index: 0,
+          params: { "0": ["route", "nested"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "*",
+    tests: [
+      {
+        input: "/",
+        matches: ["/", "/"],
+        expected: { path: "/", index: 0, params: { "0": ["", ""] } },
+      },
+      {
+        input: "/test",
+        matches: ["/test", "/test"],
+        expected: { path: "/test", index: 0, params: { "0": ["", "test"] } },
       },
     ],
   },
@@ -2730,7 +2787,7 @@ describe("path-to-regexp", () => {
           prefix: "/",
           suffix: "",
           modifier: "",
-          pattern: "[^\\/]+?",
+          pattern: "",
         },
       ];
 
