@@ -81,12 +81,22 @@ const COMPILE_TESTS: CompileTestSet[] = [
       { input: undefined, expected: null },
       { input: {}, expected: null },
       { input: { test: "123" }, expected: "/123" },
-      { input: { test: "123/xyz" }, expected: null }, // Requires encoding.
+      { input: { test: "123/xyz" }, expected: "/123%2Fxyz" },
     ],
   },
   {
     path: "/:test",
     options: { validate: false },
+    tests: [
+      { input: undefined, expected: null },
+      { input: {}, expected: null },
+      { input: { test: "123" }, expected: "/123" },
+      { input: { test: "123/xyz" }, expected: "/123%2Fxyz" },
+    ],
+  },
+  {
+    path: "/:test",
+    options: { validate: false, encode: false },
     tests: [
       { input: undefined, expected: null },
       { input: {}, expected: null },
@@ -116,22 +126,48 @@ const COMPILE_TESTS: CompileTestSet[] = [
   },
   {
     path: "/:test?",
+    options: { encode: false },
     tests: [
       { input: undefined, expected: "" },
       { input: {}, expected: "" },
       { input: { test: undefined }, expected: "" },
       { input: { test: "123" }, expected: "/123" },
-      { input: { test: "123/xyz" }, expected: null }, // Requires encoding.
+      { input: { test: "123/xyz" }, expected: null },
     ],
   },
   {
     path: "/:test(.*)",
+    options: { encode: false },
     tests: [
       { input: undefined, expected: null },
       { input: {}, expected: null },
       { input: { test: "" }, expected: "/" },
       { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
+    ],
+  },
+  {
+    path: "/:test*",
+    tests: [
+      { input: undefined, expected: "" },
+      { input: {}, expected: "" },
+      { input: { test: [] }, expected: "" },
+      { input: { test: [""] }, expected: null },
+      { input: { test: ["123"] }, expected: "/123" },
+      { input: { test: "123/xyz" }, expected: null },
+      { input: { test: ["123", "xyz"] }, expected: "/123/xyz" },
+    ],
+  },
+  {
+    path: "/:test*",
+    options: { encode: false },
+    tests: [
+      { input: undefined, expected: "" },
+      { input: {}, expected: "" },
+      { input: { test: "" }, expected: null },
+      { input: { test: "123" }, expected: "/123" },
+      { input: { test: "123/xyz" }, expected: "/123/xyz" },
+      { input: { test: ["123", "xyz"] }, expected: null },
     ],
   },
 ];
@@ -235,7 +271,7 @@ const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/caf%C3%A9",
           index: 0,
-          params: { test: "caf%C3%A9" },
+          params: { test: "café" },
         },
       },
       {
@@ -531,7 +567,7 @@ const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/caf%C3%A9",
           index: 0,
-          params: { test: "caf%C3%A9" },
+          params: { test: "café" },
         },
       },
     ],
@@ -2257,13 +2293,17 @@ const MATCH_TESTS: MatchTestSet[] = [
   {
     path: "/:foo",
     options: {
-      decode: encodeURIComponent,
+      decode: false,
     },
     tests: [
       {
-        input: "/café",
-        matches: ["/café", "café"],
-        expected: { path: "/café", index: 0, params: { foo: "caf%C3%A9" } },
+        input: "/caf%C3%A9",
+        matches: ["/caf%C3%A9", "caf%C3%A9"],
+        expected: {
+          path: "/caf%C3%A9",
+          index: 0,
+          params: { foo: "caf%C3%A9" },
+        },
       },
     ],
   },
@@ -2768,6 +2808,22 @@ const MATCH_TESTS: MatchTestSet[] = [
         input: "/test",
         matches: ["/test", "/test"],
         expected: { path: "/test", index: 0, params: { "0": ["", "test"] } },
+      },
+    ],
+  },
+  {
+    path: "*",
+    options: { decode: false },
+    tests: [
+      {
+        input: "/",
+        matches: ["/", "/"],
+        expected: { path: "/", index: 0, params: { "0": "/" } },
+      },
+      {
+        input: "/test",
+        matches: ["/test", "/test"],
+        expected: { path: "/test", index: 0, params: { "0": "/test" } },
       },
     ],
   },

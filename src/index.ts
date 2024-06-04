@@ -54,7 +54,7 @@ export interface MatchOptions extends PathToRegexpOptions {
   /**
    * Function for decoding strings for params.
    */
-  decode?: Decode;
+  decode?: Decode | false;
 }
 
 export interface CompileOptions extends ParseOptions {
@@ -73,7 +73,7 @@ export interface CompileOptions extends ParseOptions {
   /**
    * Function for encoding input strings for output into the path. (default: `encodeURIComponent`)
    */
-  encode?: Encode;
+  encode?: Encode | false;
 }
 
 type TokenType =
@@ -383,20 +383,21 @@ export type PathFunction<P extends ParamData> = (data?: P) => string;
  */
 function tokenToFunction(
   token: Token,
-  encode: Encode,
+  encode: Encode | false,
 ): (data: ParamData) => string {
   if (typeof token === "string") {
     return () => token;
   }
 
   const optional = token.modifier === "?" || token.modifier === "*";
+  const encodeValue = encode || NOOP_VALUE;
 
-  if (token.separator) {
+  if (encode && token.separator) {
     const stringify = (value: string, index: number) => {
       if (typeof value !== "string") {
         throw new TypeError(`Expected "${token.name}/${index}" to be a string`);
       }
-      return encode(value);
+      return encodeValue(value);
     };
 
     const compile = (value: unknown) => {
@@ -429,7 +430,7 @@ function tokenToFunction(
     if (typeof value !== "string") {
       throw new TypeError(`Expected "${token.name}" to be a string`);
     }
-    return token.prefix + encode(value) + token.suffix;
+    return token.prefix + encodeValue(value) + token.suffix;
   };
 
   if (optional) {
@@ -454,9 +455,9 @@ function compileTokens<P extends ParamData>(
   options: CompileOptions,
 ): PathFunction<P> {
   const {
-    encode = NOOP_VALUE,
-    validate = true,
+    encode = encodeURIComponent,
     loose = DEFAULT_DELIMITER,
+    validate = true,
   } = options;
   const reFlags = flags(options);
   const stringify = toStringify(loose);
@@ -527,17 +528,16 @@ function matchRegexp<P extends ParamData>(
   re: PathRegExp,
   options: MatchOptions,
 ): MatchFunction<P> {
-  const { decode = NOOP_VALUE, loose = DEFAULT_DELIMITER } = options;
+  const { decode = decodeURIComponent, loose = DEFAULT_DELIMITER } = options;
   const stringify = toStringify(loose);
 
   const decoders = re.keys.map((key) => {
-    if (key.separator) {
+    if (decode && key.separator) {
       const re = new RegExp(stringify(key.separator), "g");
-
       return (value: string) => value.split(re).map(decode);
     }
 
-    return decode;
+    return decode || NOOP_VALUE;
   });
 
   return function match(pathname: string) {
