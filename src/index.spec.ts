@@ -2771,6 +2771,26 @@ const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+
+  /**
+   * No loose.
+   */
+  {
+    path: "/test",
+    options: { loose: "" },
+    tests: [
+      {
+        input: "/test",
+        matches: ["/test"],
+        expected: { path: "/test", index: 0, params: {} },
+      },
+      {
+        input: "//test",
+        matches: null,
+        expected: false,
+      },
+    ],
+  },
 ];
 
 /**

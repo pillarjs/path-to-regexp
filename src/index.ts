@@ -634,10 +634,7 @@ function tokensToRegexp(
     }
   }
 
-  if (trailing) {
-    pattern += `(?:${stringify(data.delimiter)})${loose ? "?" : ""}`;
-  }
-
+  if (trailing) pattern += `(?:${stringify(data.delimiter)})?`;
   pattern += end ? "$" : `(?=${escape(data.delimiter)}|$)`;
 
   return new RegExp(pattern, flags(options));
