@@ -2540,6 +2540,11 @@ const MATCH_TESTS: MatchTestSet[] = [
     path: "name{/:attr1}?{-:attr2}?{-:attr3}?",
     tests: [
       {
+        input: "name",
+        matches: ["name", undefined, undefined, undefined],
+        expected: { path: "name", index: 0, params: {} },
+      },
+      {
         input: "name/test",
         matches: ["name/test", "test", undefined, undefined],
         expected: {
@@ -2573,6 +2578,53 @@ const MATCH_TESTS: MatchTestSet[] = [
           path: "name/1-2-3",
           index: 0,
           params: { attr1: "1", attr2: "2", attr3: "3" },
+        },
+      },
+      {
+        input: "name/foo-bar/route",
+        matches: null,
+        expected: false,
+      },
+      {
+        input: "name/test/route",
+        matches: null,
+        expected: false,
+      },
+    ],
+  },
+  {
+    path: "name{/:attrs;-}*",
+    tests: [
+      {
+        input: "name",
+        matches: ["name", undefined],
+        expected: { path: "name", index: 0, params: {} },
+      },
+      {
+        input: "name/1",
+        matches: ["name/1", "1"],
+        expected: {
+          path: "name/1",
+          index: 0,
+          params: { attrs: ["1"] },
+        },
+      },
+      {
+        input: "name/1-2",
+        matches: ["name/1-2", "1-2"],
+        expected: {
+          path: "name/1-2",
+          index: 0,
+          params: { attrs: ["1", "2"] },
+        },
+      },
+      {
+        input: "name/1-2-3",
+        matches: ["name/1-2-3", "1-2-3"],
+        expected: {
+          path: "name/1-2-3",
+          index: 0,
+          params: { attrs: ["1", "2", "3"] },
         },
       },
       {
