@@ -87,6 +87,7 @@ type TokenType =
   // Reserved for use.
   | "!"
   | "@"
+  | ","
   | ";";
 
 /**
@@ -102,6 +103,7 @@ const SIMPLE_TOKENS: Record<string, TokenType> = {
   "!": "!",
   "@": "@",
   ";": ";",
+  ",": ",",
   "*": "*",
   "+": "+",
   "?": "?",

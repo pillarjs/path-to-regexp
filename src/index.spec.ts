@@ -37,25 +37,29 @@ const PARSER_TESTS: ParserTestSet[] = [
   {
     path: "/:test",
     expected: [
-      { name: "test", prefix: "/", suffix: "", pattern: "", modifier: "" },
+      "/",
+      { name: "test", prefix: "", suffix: "", pattern: "", modifier: "" },
     ],
   },
   {
     path: "/:0",
     expected: [
-      { name: "0", prefix: "/", suffix: "", pattern: "", modifier: "" },
+      "/",
+      { name: "0", prefix: "", suffix: "", pattern: "", modifier: "" },
     ],
   },
   {
     path: "/:_",
     expected: [
-      { name: "_", prefix: "/", suffix: "", pattern: "", modifier: "" },
+      "/",
+      { name: "_", prefix: "", suffix: "", pattern: "", modifier: "" },
     ],
   },
   {
     path: "/:café",
     expected: [
-      { name: "café", prefix: "/", suffix: "", pattern: "", modifier: "" },
+      "/",
+      { name: "café", prefix: "", suffix: "", pattern: "", modifier: "" },
     ],
   },
 ];
@@ -143,7 +147,7 @@ const COMPILE_TESTS: CompileTestSet[] = [
     ],
   },
   {
-    path: "/:test?",
+    path: "{/:test}?",
     options: { encode: false },
     tests: [
       { input: undefined, expected: "" },
@@ -165,7 +169,7 @@ const COMPILE_TESTS: CompileTestSet[] = [
     ],
   },
   {
-    path: "/:test*",
+    path: "{/:test}*",
     tests: [
       { input: undefined, expected: "" },
       { input: {}, expected: "" },
@@ -177,7 +181,7 @@ const COMPILE_TESTS: CompileTestSet[] = [
     ],
   },
   {
-    path: "/:test*",
+    path: "{/:test}*",
     options: { encode: false },
     tests: [
       { input: undefined, expected: "" },
@@ -1115,7 +1119,7 @@ const MATCH_TESTS: MatchTestSet[] = [
    * Optional.
    */
   {
-    path: "/:test?",
+    path: "{/:test}?",
     tests: [
       {
         input: "/route",
@@ -1145,7 +1149,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test?",
+    path: "{/:test}?",
     options: {
       trailing: false,
     },
@@ -1165,7 +1169,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test?/bar",
+    path: "{/:test}?/bar",
     tests: [
       {
         input: "/bar",
@@ -1190,7 +1194,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test?-bar",
+    path: "{/:test}?-bar",
     tests: [
       {
         input: "-bar",
@@ -1209,12 +1213,32 @@ const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "/{:test}?-bar",
+    tests: [
+      {
+        input: "/-bar",
+        matches: ["/-bar", undefined],
+        expected: { path: "/-bar", index: 0, params: {} },
+      },
+      {
+        input: "/foo-bar",
+        matches: ["/foo-bar", "foo"],
+        expected: { path: "/foo-bar", index: 0, params: { test: "foo" } },
+      },
+      {
+        input: "/foo-bar/",
+        matches: ["/foo-bar/", "foo"],
+        expected: { path: "/foo-bar/", index: 0, params: { test: "foo" } },
+      },
+    ],
+  },
 
   /**
    * Zero or more times.
    */
   {
-    path: "/:test*",
+    path: "{/:test}*",
     tests: [
       {
         input: "/",
@@ -1252,7 +1276,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test*-bar",
+    path: "{/:test}*-bar",
     tests: [
       {
         input: "-bar",
@@ -1285,7 +1309,7 @@ const MATCH_TESTS: MatchTestSet[] = [
    * One or more times.
    */
   {
-    path: "/:test+",
+    path: "{/:test}+",
     tests: [
       {
         input: "/",
@@ -1323,7 +1347,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test+-bar",
+    path: "{/:test}+-bar",
     tests: [
       {
         input: "-bar",
@@ -1479,7 +1503,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test(abc|xyz)*",
+    path: "{/:test(abc|xyz)}*",
     tests: [
       {
         input: "/",
@@ -1574,7 +1598,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: ":test?",
+    path: "{:test}?",
     tests: [
       {
         input: "test",
@@ -1589,7 +1613,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: ":test*",
+    path: "{:test}*",
     tests: [
       {
         input: "test",
@@ -1613,7 +1637,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: ":test+",
+    path: "{:test}+",
     tests: [
       {
         input: "test",
@@ -1752,7 +1776,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/test.:format(\\w+)?",
+    path: "/test{.:format(\\w+)}?",
     tests: [
       {
         input: "/test",
@@ -1767,7 +1791,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/test.:format(\\w+)+",
+    path: "/test{.:format(\\w+)}+",
     tests: [
       {
         input: "/test",
@@ -1855,7 +1879,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:test.:format?",
+    path: "/:test{.:format}?",
     tests: [
       {
         input: "/route",
@@ -1926,7 +1950,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/(\\d+)?",
+    path: "{/(\\d+)}?",
     tests: [
       {
         input: "/",
@@ -2029,7 +2053,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/test\\/:uid(u\\d+)?:cid(c\\d+)?",
+    path: "/test/{:uid(u\\d+)}?{:cid(c\\d+)}?",
     tests: [
       {
         input: "/test/u123",
@@ -2147,7 +2171,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:foo+bar",
+    path: "{/:foo}+bar",
     tests: [
       {
         input: "/foobar",
@@ -2171,7 +2195,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "\\/:pre?baz",
+    path: "/{:pre}?baz",
     tests: [
       {
         input: "/foobaz",
@@ -2186,7 +2210,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:foo\\(:bar?\\)",
+    path: "/:foo\\({:bar}?\\)",
     tests: [
       {
         input: "/hello(world)",
@@ -2209,7 +2233,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:postType(video|audio|text)(\\+.+)?",
+    path: "/:postType(video|audio|text){(\\+.+)}?",
     tests: [
       {
         input: "/video",
@@ -2233,7 +2257,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:foo?/:bar?-ext",
+    path: "{/:foo}?{/:bar}?-ext",
     tests: [
       {
         input: "/-ext",
@@ -2271,7 +2295,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:required/:optional?-ext",
+    path: "/:required{/:optional}?-ext",
     tests: [
       {
         input: "/foo-ext",
@@ -2405,7 +2429,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "mail.:domain?.com",
+    path: "mail{.:domain}?.com",
     options: {
       delimiter: ".",
     },
@@ -2507,7 +2531,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "name/:attr1?{-:attr2}?{-:attr3}?",
+    path: "name{/:attr1}?{-:attr2}?{-:attr3}?",
     tests: [
       {
         input: "name/test",
@@ -2611,7 +2635,7 @@ const MATCH_TESTS: MatchTestSet[] = [
    * https://github.com/pillarjs/path-to-regexp/issues/206
    */
   {
-    path: "/user(s)?/:user",
+    path: "/user{(s)}?/:user",
     tests: [
       {
         input: "/user/123",
@@ -2646,57 +2670,10 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * https://github.com/pillarjs/path-to-regexp/issues/260
-   */
-  {
-    path: ":name*",
-    tests: [
-      {
-        input: "foobar",
-        matches: ["foobar", "foobar"],
-        expected: { path: "foobar", index: 0, params: { name: ["foobar"] } },
-      },
-      {
-        input: "foo/bar",
-        matches: ["foo/bar", "foo/bar"],
-        expected: {
-          path: "foo/bar",
-          index: 0,
-          params: { name: ["foo", "bar"] },
-        },
-      },
-    ],
-  },
-  {
-    path: ":name+",
-    tests: [
-      {
-        input: "",
-        matches: null,
-        expected: false,
-      },
-      {
-        input: "foobar",
-        matches: ["foobar", "foobar"],
-        expected: { path: "foobar", index: 0, params: { name: ["foobar"] } },
-      },
-      {
-        input: "foo/bar",
-        matches: ["foo/bar", "foo/bar"],
-        expected: {
-          path: "foo/bar",
-          index: 0,
-          params: { name: ["foo", "bar"] },
-        },
-      },
-    ],
-  },
-
-  /**
    * https://github.com/pillarjs/path-to-regexp/pull/270
    */
   {
-    path: "/files/:path*.:ext*",
+    path: "/files{/:path}*{.:ext}*",
     tests: [
       {
         input: "/files/hello/world.txt",
@@ -2729,7 +2706,7 @@ const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/foo/:bar*",
+    path: "/foo{/:bar}*",
     tests: [
       {
         input: "/foo/test1//test2",
@@ -2851,7 +2828,7 @@ const MATCH_TESTS: MatchTestSet[] = [
    */
   {
     path: "/test",
-    options: { loose: "" },
+    options: { loose: false },
     tests: [
       {
         input: "/test",
@@ -2878,7 +2855,7 @@ describe("path-to-regexp", () => {
       const expectedKeys = [
         {
           name: "id",
-          prefix: "/",
+          prefix: "",
           suffix: "",
           modifier: "",
           pattern: "",
@@ -2928,7 +2905,11 @@ describe("path-to-regexp", () => {
     it("should throw on nested groups", () => {
       expect(() => {
         pathToRegexp.pathToRegexp("/{a{b:foo}}");
-      }).toThrow(new TypeError("Unexpected { at 3, expected }"));
+      }).toThrow(
+        new TypeError(
+          "Unexpected { at 3, expected }: https://git.new/pathToRegexpError",
+        ),
+      );
     });
   });
 
@@ -2992,11 +2973,11 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: "abc" });
-      }).toThrow(new TypeError('Invalid value for "foo": "/abc"'));
+      }).toThrow(new TypeError('Invalid value for "foo": "abc"'));
     });
 
     it("should throw when expecting a repeated value", () => {
-      const toPath = pathToRegexp.compile("/:foo+");
+      const toPath = pathToRegexp.compile("{/:foo}+");
 
       expect(() => {
         toPath({ foo: [] });
@@ -3012,7 +2993,7 @@ describe("path-to-regexp", () => {
     });
 
     it("should throw when a repeated param is not an array", () => {
-      const toPath = pathToRegexp.compile("/:foo+");
+      const toPath = pathToRegexp.compile("{/:foo}+");
 
       expect(() => {
         toPath({ foo: "a" });
@@ -3020,7 +3001,7 @@ describe("path-to-regexp", () => {
     });
 
     it("should throw when an array value is not a string", () => {
-      const toPath = pathToRegexp.compile("/:foo+");
+      const toPath = pathToRegexp.compile("{/:foo}+");
 
       expect(() => {
         toPath({ foo: [1, "a"] });
@@ -3028,7 +3009,7 @@ describe("path-to-regexp", () => {
     });
 
     it("should throw when repeated value does not match", () => {
-      const toPath = pathToRegexp.compile("/:foo(\\d+)+");
+      const toPath = pathToRegexp.compile("{/:foo(\\d+)}+");
 
       expect(() => {
         toPath({ foo: ["1", "2", "3", "a"] });
