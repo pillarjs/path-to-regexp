@@ -166,11 +166,11 @@ regexp.exec("/bar/baz");
 
 #### Wildcard
 
-A wildcard can also be used. It is roughly equivalent to `(.*)` except when decoding in `match` below it splits on the delimiter.
+A wildcard can also be used. It is roughly equivalent to `(.*)`.
 
 ```js
 const regexp = pathToRegexp("/*");
-// keys = [{ name: '0', pattern: '[^\\/]*', modifier: '*' }]
+// keys = [{ name: '0', pattern: '[^\\/]*', separator: '/', modifier: '*' }]
 
 regexp.exec("/");
 //=> [ '/', '', index: 0 ]
@@ -234,7 +234,7 @@ toPathRegexp({ id: "123" }); //=> "/user/123"
 
 - If you are rewriting paths with match and compiler, consider using `encode: false` and `decode: false` to keep raw paths passed around.
 - To ensure matches work on paths containing characters usually encoded, consider using [encodeurl](https://github.com/pillarjs/encodeurl) for `encodePath`.
-- If matches are intended to be exact, you need to set `loose: ''`, `trailing: false`, and `sensitive: true`.
+- If matches are intended to be exact, you need to set `loose: false`, `trailing: false`, and `sensitive: true`.
 
 ### Parse
 
