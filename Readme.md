@@ -242,13 +242,12 @@ A `parse` function is available and returns `TokenData`, the set of tokens and o
 
 ### Token Information
 
-- `name` The name of the token (`string` for named or `number` for unnamed index)
-- `prefix` The prefix string for the segment (e.g. `"/"`)
-- `suffix` The suffix string for the segment (e.g. `""`)
-- `pattern` The RegExp used to match this token (`string`)
-- `modifier` The modifier character used for the segment (e.g. `?`)
-- `separator` _(optional)_ The string used to separate repeated parameters (modifier is `+` or `*`)
-- `optional` _(optional)_ A boolean used to indicate whether the parameter is optional (modifier is `?` or `*`)
+- `name` The name of the token
+- `prefix` _(optional)_ The prefix string for the segment (e.g. `"/"`)
+- `suffix` _(optional)_ The suffix string for the segment (e.g. `""`)
+- `pattern` _(optional)_ The pattern defined to match this token
+- `modifier` _(optional)_ The modifier character used for the segment (e.g. `?`)
+- `separator` _(optional)_ The string used to separate repeated parameters
 
 ## Errors
 
@@ -256,11 +255,13 @@ An effort has been made to ensure ambiguous paths from previous releases throw a
 
 ### Unexpected `?`, `*`, or `+`
 
-In previous major versions, `/` or `.` were used as implicit prefixes of parameters. So `/:key?` was implicitly `{/:key}?`.
+In previous major versions `/` and `.` were used as implicit prefixes of parameters. So `/:key?` was implicitly `{/:key}?`. For example:
 
-This has been made explicit. Assuming `?` as the modifier, if you have a `/` or `.` before the parameter, you want `{.:ext}?` or `{/:ext}?`. If not, you want `{:ext}?`.
+- `/:key?` → `{/:key}?` or `/:key*` → `{/:key}*` or `/:key+` → `{/:key}+`
+- `.:key?` → `{.:key}?` or `.:key*` → `{.:key}*` or `.:key+` → `{.:key}+`
+- `:key?` → `{:key}?` or `:key*` → `{:key}*` or `:key+` → `{:key}+`
 
-### Unexpected `!`, `@`, or `;`
+### Unexpected `!`, `@`, `,`, or `;`
 
 These characters have been reserved for future use.
 

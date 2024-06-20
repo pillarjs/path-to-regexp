@@ -36,31 +36,19 @@ const PARSER_TESTS: ParserTestSet[] = [
   },
   {
     path: "/:test",
-    expected: [
-      "/",
-      { name: "test", prefix: "", suffix: "", pattern: "", modifier: "" },
-    ],
+    expected: ["/", { name: "test" }],
   },
   {
     path: "/:0",
-    expected: [
-      "/",
-      { name: "0", prefix: "", suffix: "", pattern: "", modifier: "" },
-    ],
+    expected: ["/", { name: "0" }],
   },
   {
     path: "/:_",
-    expected: [
-      "/",
-      { name: "_", prefix: "", suffix: "", pattern: "", modifier: "" },
-    ],
+    expected: ["/", { name: "_" }],
   },
   {
     path: "/:café",
-    expected: [
-      "/",
-      { name: "café", prefix: "", suffix: "", pattern: "", modifier: "" },
-    ],
+    expected: ["/", { name: "café" }],
   },
 ];
 
@@ -2913,10 +2901,7 @@ describe("path-to-regexp", () => {
       const expectedKeys = [
         {
           name: "id",
-          prefix: "",
-          suffix: "",
-          modifier: "",
-          pattern: "",
+          pattern: undefined,
         },
       ];
 
