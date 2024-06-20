@@ -1,5 +1,4 @@
 const DEFAULT_DELIMITER = "/";
-const DEFAULT_PREFIXES = "./";
 const NOOP_VALUE = (value: string) => value;
 const ID_CHAR = /^\p{XID_Continue}$/u;
 
@@ -289,7 +288,6 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         pattern: `[^${escape(delimiter)}]*`,
         modifier: "*",
         separator: delimiter,
-        optional: true,
       });
       continue;
     }
@@ -300,15 +298,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       const name = it.tryConsume("NAME");
       const pattern = it.tryConsume("PATTERN") || "";
       const suffix = it.text();
+      const separator = it.tryConsume(";") ? it.text() : prefix + suffix;
 
       it.consume("}");
 
       const modifier = it.modifier();
-      const optional = modifier === "?" || modifier === "*";
-      const separator =
-        modifier === "*" || modifier === "+"
-          ? prefix + suffix || delimiter
-          : undefined;
 
       tokens.push({
         name: name || (pattern ? String(key++) : ""),
@@ -317,7 +311,6 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         pattern,
         modifier,
         separator,
-        optional,
       });
       continue;
     }
@@ -355,8 +348,10 @@ function tokenToFunction(
   }
 
   const encodeValue = encode || NOOP_VALUE;
+  const repeated = token.modifier === "+" || token.modifier === "*";
+  const optional = token.modifier === "?" || token.modifier === "*";
 
-  if (encode && token.separator) {
+  if (encode && repeated) {
     const stringify = (value: string, index: number) => {
       if (typeof value !== "string") {
         throw new TypeError(`Expected "${token.name}/${index}" to be a string`);
@@ -376,7 +371,7 @@ function tokenToFunction(
       );
     };
 
-    if (token.optional) {
+    if (optional) {
       return (data): string => {
         const value = data[token.name];
         if (value == null) return "";
@@ -397,7 +392,7 @@ function tokenToFunction(
     return token.prefix + encodeValue(value) + token.suffix;
   };
 
-  if (token.optional) {
+  if (optional) {
     return (data): string => {
       const value = data[token.name];
       if (value == null) return "";
@@ -488,8 +483,8 @@ export function match<P extends ParamData>(
   const re = tokensToRegexp(data, keys, options);
 
   const decoders = keys.map((key) => {
-    if (decode && key.separator) {
-      const re = new RegExp(stringify(key.separator), "g");
+    if (decode && (key.modifier === "+" || key.modifier === "*")) {
+      const re = new RegExp(stringify(key.separator || ""), "g");
       return (value: string) => value.split(re).map(decode);
     }
 
@@ -556,7 +551,6 @@ export interface Key {
   pattern: string;
   modifier: string;
   separator?: string;
-  optional?: boolean;
 }
 
 /**
@@ -604,13 +598,12 @@ function toKeyRegexp(stringify: Encode, delimiter: string) {
 
     if (key.name) {
       const pattern = key.pattern || segmentPattern;
-      const mod = key.optional ? "?" : "";
-      if (key.separator) {
-        const split = stringify(key.separator);
+      if (key.modifier === "+" || key.modifier === "*") {
+        const mod = key.modifier === "*" ? "?" : "";
+        const split = stringify(key.separator || "");
         return `(?:${prefix}((?:${pattern})(?:${split}(?:${pattern}))*)${suffix})${mod}`;
-      } else {
-        return `(?:${prefix}(${pattern})${suffix})${mod}`;
       }
+      return `(?:${prefix}(${pattern})${suffix})${key.modifier}`;
     }
 
     return `(?:${prefix}${suffix})${key.modifier}`;

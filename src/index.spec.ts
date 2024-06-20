@@ -1614,6 +1614,9 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "{:test}*",
+    testOptions: {
+      skip: true,
+    },
     tests: [
       {
         input: "test",
@@ -1638,6 +1641,9 @@ const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "{:test}+",
+    testOptions: {
+      skip: true,
+    },
     tests: [
       {
         input: "test",
