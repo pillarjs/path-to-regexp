@@ -164,6 +164,20 @@ regexp.exec("/bar/baz");
 //=> [ '/bar/baz', 'bar/baz', index: 0 ]
 ```
 
+##### Custom separator
+
+By default, parameters set the separator as the `prefix + suffix` of the token. Using `;` you can modify this:
+
+```js
+const regexp = pathToRegexp("/name{/:parts;-}+");
+
+regexp.exec("/name");
+//=> null
+
+regexp.exec("/bar/1-2-3");
+//=> [ '/name/1-2-3', '1-2-3', index: 0 ]
+```
+
 #### Wildcard
 
 A wildcard can also be used. It is roughly equivalent to `(.*)`.
@@ -240,7 +254,9 @@ toPathRegexp({ id: "123" }); //=> "/user/123"
 
 A `parse` function is available and returns `TokenData`, the set of tokens and other metadata parsed from the input string. `TokenData` is can passed directly into `pathToRegexp`, `match`, and `compile`. It accepts only two options, `delimiter` and `encodePath`, which makes those options redundant in the above methods.
 
-### Token Information
+### Tokens
+
+The `tokens` returned by `TokenData` is an array of strings or keys, represented as objects, with the following properties:
 
 - `name` The name of the token
 - `prefix` _(optional)_ The prefix string for the segment (e.g. `"/"`)
@@ -248,6 +264,20 @@ A `parse` function is available and returns `TokenData`, the set of tokens and o
 - `pattern` _(optional)_ The pattern defined to match this token
 - `modifier` _(optional)_ The modifier character used for the segment (e.g. `?`)
 - `separator` _(optional)_ The string used to separate repeated parameters
+
+### Custom path
+
+In some applications, you may not be able to use the `path-to-regexp` syntax (e.g. file-based routing), but you can still use this library for `match`, `compile`, and `pathToRegexp` by building your own `TokenData` instance. For example:
+
+```js
+import { TokenData, match } from "path-to-regexp";
+
+const tokens = ["/", { name: "foo" }];
+const path = new TokenData(tokens, "/");
+const fn = match(path);
+
+fn("/test"); //=> { path: '/test', index: 0, params: { foo: 'test' } }
+```
 
 ## Errors
 
