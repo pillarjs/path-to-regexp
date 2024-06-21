@@ -320,7 +320,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 /**
  * Compile a string to a template function for the path.
  */
-export function compile<P extends object = object>(
+export function compile<P extends ParamData = ParamData>(
   path: Path,
   options: CompileOptions = {},
 ) {
