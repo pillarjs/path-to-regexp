@@ -33,6 +33,7 @@ The `pathToRegexp` function returns a regular expression with `keys` as a proper
 - **options** _(optional)_
   - **sensitive** Regexp will be case sensitive. (default: `false`)
   - **trailing** Allows optional trailing delimiter to match. (default: `true`)
+  - **strict** Verify patterns are valid and safe to use. (default: `false`, recommended: `true`)
   - **end** Match to the end of the string. (default: `true`)
   - **start** Match from the beginning of the string. (default: `true`)
   - **loose** Allow the delimiter to be arbitrarily repeated, e.g. `/` or `///`. (default: `true`)
