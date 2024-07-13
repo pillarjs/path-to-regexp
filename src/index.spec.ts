@@ -3047,7 +3047,7 @@ describe("path-to-regexp", () => {
       const toPath = pathToRegexp.compile("{/:foo}+");
 
       expect(() => {
-        toPath({ foo: [1, "a"] });
+        toPath({ foo: [1, "a"] as any });
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
     });
 
