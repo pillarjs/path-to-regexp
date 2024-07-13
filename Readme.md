@@ -202,8 +202,7 @@ The `match` function returns a function for transforming paths into parameters:
   - **decode** Function for decoding strings for params, or `false` to disable entirely. (default: `decodeURIComponent`)
 
 ```js
-// Make sure you consistently `decode` segments.
-const fn = match("/user/:id", { decode: decodeURIComponent });
+const fn = match("/user/:id");
 
 fn("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
 fn("/invalid"); //=> false
@@ -224,15 +223,14 @@ The `compile` function will return a function for transforming parameters into a
 ```js
 const toPath = compile("/user/:id");
 
-toPath({ id: 123 }); //=> "/user/123"
+toPath({ id: "name" }); //=> "/user/name"
 toPath({ id: "café" }); //=> "/user/caf%C3%A9"
-toPath({ id: ":/" }); //=> "/user/%3A%2F"
 
 // When disabling `encode`, you need to make sure inputs are encoded correctly. No arrays are accepted.
 const toPathRaw = compile("/user/:id", { encode: false });
 
 toPathRaw({ id: "%3A%2F" }); //=> "/user/%3A%2F"
-toPathRaw({ id: ":/" }); //=> "/user/:/", throws when `validate: false` is not set.
+toPathRaw({ id: ":/" }); //=> Throws, "/user/:/" when `validate` is `false`.
 
 const toPathRepeated = compile("{/:segment}+");
 
