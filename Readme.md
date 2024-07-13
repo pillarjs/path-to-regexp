@@ -289,7 +289,11 @@ In previous major versions `/` and `.` were used as implicit prefixes of paramet
 - `.:key?` → `{.:key}?` or `.:key*` → `{.:key}*` or `.:key+` → `{.:key}+`
 - `:key?` → `{:key}?` or `:key*` → `{:key}*` or `:key+` → `{:key}+`
 
-### Unexpected `!`, `@`, `,`, or `;`
+### Unexpected `;`
+
+Used as a [custom separator](#custom-separator) for repeated parameters.
+
+### Unexpected `!`, `@`, or `,`
 
 These characters have been reserved for future use.
 
