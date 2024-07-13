@@ -32,12 +32,12 @@ The `pathToRegexp` function returns a regular expression with `keys` as a proper
 - **path** A string.
 - **options** _(optional)_
   - **sensitive** Regexp will be case sensitive. (default: `false`)
-  - **trailing** Regexp allows an optional trailing delimiter to match. (default: `true`)
+  - **trailing** Allows optional trailing delimiter to match. (default: `true`)
   - **end** Match to the end of the string. (default: `true`)
   - **start** Match from the beginning of the string. (default: `true`)
-  - **loose** Allow the delimiter to be repeated an arbitrary number of times. (default: `true`)
+  - **loose** Allow the delimiter to be arbitrarily repeated, e.g. `/` or `///`. (default: `true`)
   - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
-  - **encodePath** A function to encode strings before inserting into `RegExp`. (default: `x => x`, recommended: [`encodeurl`](https://github.com/pillarjs/encodeurl))
+  - **encodePath** A function for encoding input strings. (default: `x => x`, recommended: [`encodeurl`](https://github.com/pillarjs/encodeurl) for unicode encoding)
 
 ```js
 const regexp = pathToRegexp("/foo/:bar");
@@ -247,6 +247,7 @@ toPathRegexp({ id: "123" }); //=> "/user/123"
 - If you are rewriting paths with match and compiler, consider using `encode: false` and `decode: false` to keep raw paths passed around.
 - To ensure matches work on paths containing characters usually encoded, consider using [encodeurl](https://github.com/pillarjs/encodeurl) for `encodePath`.
 - If matches are intended to be exact, you need to set `loose: false`, `trailing: false`, and `sensitive: true`.
+- Enable `strict: true` to detect ReDOS issues.
 
 ### Parse
 

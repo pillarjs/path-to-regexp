@@ -1,6 +1,7 @@
 const DEFAULT_DELIMITER = "/";
 const NOOP_VALUE = (value: string) => value;
 const ID_CHAR = /^\p{XID_Continue}$/u;
+const DEBUG_URL = "https://git.new/pathToRegexpError";
 
 /**
  * Encode a string into another string.
@@ -14,34 +15,38 @@ export type Decode = (value: string) => string;
 
 export interface ParseOptions {
   /**
-   * Set the default delimiter for repeat parameters. (default: `'/'`)
+   * The default delimiter for segments. (default: `'/'`)
    */
   delimiter?: string;
   /**
-   * Function for encoding input strings for output into path.
+   * A function for encoding input strings.
    */
   encodePath?: Encode;
 }
 
 export interface PathToRegexpOptions extends ParseOptions {
   /**
-   * When `true` the regexp will be case sensitive. (default: `false`)
+   * Regexp will be case sensitive. (default: `false`)
    */
   sensitive?: boolean;
   /**
-   * Allow delimiter to be arbitrarily repeated. (default: `true`)
+   * Allow the delimiter to be arbitrarily repeated. (default: `true`)
    */
   loose?: boolean;
   /**
-   * When `true` the regexp will match to the end of the string. (default: `true`)
+   * Verify patterns are valid and safe to use. (default: `false`)
    */
-  end?: boolean;
+  strict?: boolean;
   /**
-   * When `true` the regexp will match from the beginning of the string. (default: `true`)
+   * Match from the beginning of the string. (default: `true`)
    */
   start?: boolean;
   /**
-   * When `true` the regexp allows an optional trailing delimiter to match. (default: `true`)
+   * Match to the end of the string. (default: `true`)
+   */
+  end?: boolean;
+  /**
+   * Allow optional trailing delimiter to match. (default: `true`)
    */
   trailing?: boolean;
 }
@@ -55,15 +60,19 @@ export interface MatchOptions extends PathToRegexpOptions {
 
 export interface CompileOptions extends ParseOptions {
   /**
-   * When `true` the validation will be case sensitive. (default: `false`)
+   * Regexp will be case sensitive. (default: `false`)
    */
   sensitive?: boolean;
   /**
-   * Allow delimiter to be arbitrarily repeated. (default: `true`)
+   * Allow the delimiter to be arbitrarily repeated. (default: `true`)
    */
   loose?: boolean;
   /**
-   * When `false` the function can produce an invalid (unmatched) path. (default: `true`)
+   * Verify patterns are valid and safe to use. (default: `false`)
+   */
+  strict?: boolean;
+  /**
+   * Verifies the function is producing a valid path. (default: `true`)
    */
   validate?: boolean;
   /**
@@ -75,6 +84,7 @@ export interface CompileOptions extends ParseOptions {
 type TokenType =
   | "{"
   | "}"
+  | ";"
   | "*"
   | "+"
   | "?"
@@ -86,8 +96,7 @@ type TokenType =
   // Reserved for use.
   | "!"
   | "@"
-  | ","
-  | ";";
+  | ",";
 
 /**
  * Tokenizer results.
@@ -214,7 +223,7 @@ class Iter {
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
-      `Unexpected ${nextType} at ${index}, expected ${type}: https://git.new/pathToRegexpError`,
+      `Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
     );
   }
 
@@ -227,10 +236,8 @@ class Iter {
     return result;
   }
 
-  modifier(): string {
-    return (
-      this.tryConsume("?") || this.tryConsume("*") || this.tryConsume("+") || ""
-    );
+  modifier(): string | undefined {
+    return this.tryConsume("?") || this.tryConsume("*") || this.tryConsume("+");
   }
 }
 
@@ -248,7 +255,8 @@ export class TokenData {
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
-  const { delimiter = DEFAULT_DELIMITER, encodePath = NOOP_VALUE } = options;
+  const { encodePath = NOOP_VALUE, delimiter = encodePath(DEFAULT_DELIMITER) } =
+    options;
   const tokens: Token[] = [];
   const it = lexer(str);
   let key = 0;
@@ -269,7 +277,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       const next = it.peek();
       if (next.type === "*") {
         throw new TypeError(
-          `Unexpected * at ${next.index}, you probably want \`/*\` or \`{/:foo}*\`: https://git.new/pathToRegexpError`,
+          `Unexpected * at ${next.index}, you probably want \`/*\` or \`{/:foo}*\`: ${DEBUG_URL}`,
         );
       }
 
@@ -280,7 +288,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     if (asterisk) {
       tokens.push({
         name: String(key++),
-        pattern: `[^${escape(delimiter)}]*`,
+        pattern: `(?:(?!${escape(delimiter)}).)*`,
         modifier: "*",
         separator: delimiter,
       });
@@ -293,7 +301,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       const name = it.tryConsume("NAME");
       const pattern = it.tryConsume("PATTERN");
       const suffix = it.text();
-      const separator = it.tryConsume(";") ? it.text() : prefix + suffix;
+      const separator = it.tryConsume(";") && it.text();
 
       it.consume("}");
 
@@ -345,7 +353,7 @@ function tokenToFunction(
   const encodeValue = encode || NOOP_VALUE;
   const repeated = token.modifier === "+" || token.modifier === "*";
   const optional = token.modifier === "?" || token.modifier === "*";
-  const { prefix = "", suffix = "", separator = "" } = token;
+  const { prefix = "", suffix = "", separator = suffix + prefix } = token;
 
   if (encode && repeated) {
     const stringify = (value: string, index: number) => {
@@ -411,19 +419,19 @@ function compileTokens<P extends ParamData>(
     encode = encodeURIComponent,
     loose = true,
     validate = true,
+    strict = false,
   } = options;
-  const reFlags = flags(options);
+  const flags = toFlags(options);
   const stringify = toStringify(loose, data.delimiter);
-  const keyToRegexp = toKeyRegexp(stringify, data.delimiter);
+  const sources = toRegExpSource(data, stringify, [], flags, strict);
 
   // Compile all the tokens into regexps.
   const encoders: Array<(data: ParamData) => string> = data.tokens.map(
-    (token) => {
+    (token, index) => {
       const fn = tokenToFunction(token, encode);
       if (!validate || typeof token === "string") return fn;
 
-      const pattern = keyToRegexp(token);
-      const validRe = new RegExp(`^${pattern}$`, reFlags);
+      const validRe = new RegExp(`^${sources[index]}$`, flags);
 
       return (data) => {
         const value = fn(data);
@@ -478,15 +486,16 @@ export function match<P extends ParamData>(
 
   const decoders = keys.map((key) => {
     if (decode && (key.modifier === "+" || key.modifier === "*")) {
-      const re = new RegExp(stringify(key.separator || ""), "g");
+      const { prefix = "", suffix = "", separator = suffix + prefix } = key;
+      const re = new RegExp(stringify(separator), "g");
       return (value: string) => value.split(re).map(decode);
     }
 
     return decode || NOOP_VALUE;
   });
 
-  return function match(pathname: string) {
-    const m = re.exec(pathname);
+  return function match(input: string) {
+    const m = re.exec(input);
     if (!m) return false;
 
     const { 0: path, index } = m;
@@ -508,14 +517,15 @@ export function match<P extends ParamData>(
  * Escape a regular expression string.
  */
 function escape(str: string) {
-  return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
+  return str.replace(/([.+*?^${}()[\]|/\\])/g, "\\$1");
 }
 
 /**
  * Escape and repeat loose characters for regular expressions.
  */
 function looseReplacer(value: string, loose: string) {
-  return loose ? `${escape(value)}+` : escape(value);
+  const escaped = escape(value);
+  return loose ? `(?:${escaped})+(?!${escaped})` : escaped;
 }
 
 /**
@@ -524,14 +534,14 @@ function looseReplacer(value: string, loose: string) {
 function toStringify(loose: boolean, delimiter: string) {
   if (!loose) return escape;
 
-  const re = new RegExp(`[^${escape(delimiter)}]+|(.)`, "g");
+  const re = new RegExp(`(?:(?!${escape(delimiter)}).)+|(.)`, "g");
   return (value: string) => value.replace(re, looseReplacer);
 }
 
 /**
  * Get the flags for a regexp from the options.
  */
-function flags(options: { sensitive?: boolean }) {
+function toFlags(options: { sensitive?: boolean }) {
   return options.sensitive ? "" : "i";
 }
 
@@ -560,57 +570,113 @@ function tokensToRegexp(
   keys: Key[],
   options: PathToRegexpOptions,
 ): RegExp {
-  const { trailing = true, start = true, end = true, loose = true } = options;
+  const {
+    trailing = true,
+    loose = true,
+    start = true,
+    end = true,
+    strict = false,
+  } = options;
+  const flags = toFlags(options);
   const stringify = toStringify(loose, data.delimiter);
-  const keyToRegexp = toKeyRegexp(stringify, data.delimiter);
+  const sources = toRegExpSource(data, stringify, keys, flags, strict);
   let pattern = start ? "^" : "";
-
-  for (const token of data.tokens) {
-    if (typeof token === "string") {
-      pattern += stringify(token);
-    } else {
-      if (token.name) keys.push(token);
-      pattern += keyToRegexp(token);
-    }
-  }
-
+  pattern += sources.join("");
   if (trailing) pattern += `(?:${stringify(data.delimiter)})?`;
   pattern += end ? "$" : `(?=${escape(data.delimiter)}|$)`;
 
-  return new RegExp(pattern, flags(options));
+  return new RegExp(pattern, flags);
 }
 
 /**
  * Convert a token into a regexp string (re-used for path validation).
  */
-function toKeyRegexp(stringify: Encode, delimiter: string) {
-  const segmentPattern = `[^${escape(delimiter)}]+?`;
+function toRegExpSource(
+  data: TokenData,
+  stringify: Encode,
+  keys: Key[],
+  flags: string,
+  strict: boolean,
+): string[] {
+  const defaultPattern = `(?:(?!${escape(data.delimiter)}).)+?`;
+  let backtrack = "";
+  let safe = true;
 
-  return (key: Key) => {
-    const prefix = key.prefix ? stringify(key.prefix) : "";
-    const suffix = key.suffix ? stringify(key.suffix) : "";
-    const modifier = key.modifier || "";
-
-    if (key.name) {
-      const pattern = key.pattern || segmentPattern;
-      if (key.modifier === "+" || key.modifier === "*") {
-        const mod = key.modifier === "*" ? "?" : "";
-        const split = key.separator ? stringify(key.separator) : "";
-        return `(?:${prefix}((?:${pattern})(?:${split}(?:${pattern}))*)${suffix})${mod}`;
-      }
-      return `(?:${prefix}(${pattern})${suffix})${modifier}`;
+  return data.tokens.map((token, index) => {
+    if (typeof token === "string") {
+      backtrack = token;
+      return stringify(token);
     }
 
-    return `(?:${prefix}${suffix})${modifier}`;
-  };
+    const {
+      prefix = "",
+      suffix = "",
+      separator = suffix + prefix,
+      modifier = "",
+    } = token;
+
+    const pre = stringify(prefix);
+    const post = stringify(suffix);
+
+    if (token.name) {
+      const pattern = token.pattern ? `(?:${token.pattern})` : defaultPattern;
+      const re = checkPattern(pattern, token.name, flags);
+
+      safe ||= safePattern(re, prefix || backtrack);
+      if (!safe) {
+        throw new TypeError(
+          `Ambiguous pattern for "${token.name}": ${DEBUG_URL}`,
+        );
+      }
+      safe = !strict || safePattern(re, suffix);
+      backtrack = "";
+
+      keys.push(token);
+
+      if (modifier === "+" || modifier === "*") {
+        const mod = modifier === "*" ? "?" : "";
+        const sep = stringify(separator);
+
+        if (!sep) {
+          throw new TypeError(
+            `Missing separator for "${token.name}": ${DEBUG_URL}`,
+          );
+        }
+
+        safe ||= !strict || safePattern(re, separator);
+        if (!safe) {
+          throw new TypeError(
+            `Ambiguous pattern for "${token.name}" separator: ${DEBUG_URL}`,
+          );
+        }
+        safe = !strict;
+
+        return `(?:${pre}(${pattern}(?:${sep}${pattern})*)${post})${mod}`;
+      }
+
+      return `(?:${pre}(${pattern})${post})${modifier}`;
+    }
+
+    return `(?:${pre}${post})${modifier}`;
+  });
+}
+
+function checkPattern(pattern: string, name: string, flags: string) {
+  try {
+    return new RegExp(`^${pattern}$`, flags);
+  } catch (err: any) {
+    throw new TypeError(`Invalid pattern for "${name}": ${err.message}`);
+  }
+}
+
+function safePattern(re: RegExp, value: string) {
+  return value ? !re.test(value) : false;
 }
 
 /**
  * Repeated and simple input types.
  */
 export type Path = string | TokenData;
-
-export type PathRegExp = RegExp & { keys: Key[] };
 
 /**
  * Normalize the given path string, returning a regular expression.
