@@ -1,6 +1,7 @@
 const DEFAULT_DELIMITER = "/";
 const NOOP_VALUE = (value: string) => value;
-const ID_CHAR = /^\p{XID_Continue}$/u;
+const ID_START = /^[$_\p{ID_Start}]$/u;
+const ID_CONTINUE = /^[$\u200c\u200d\p{ID_Continue}]$/u;
 const DEBUG_URL = "https://git.new/pathToRegexpError";
 
 /**
@@ -144,12 +145,35 @@ function lexer(str: string) {
     if (value === ":") {
       let name = "";
 
-      while (ID_CHAR.test(chars[++i])) {
+      if (ID_START.test(chars[++i])) {
         name += chars[i];
+        while (ID_CONTINUE.test(chars[++i])) {
+          name += chars[i];
+        }
+      } else if (chars[i] === '"') {
+        let pos = i;
+
+        while (i < chars.length) {
+          if (chars[++i] === '"') {
+            i++;
+            pos = 0;
+            break;
+          }
+
+          if (chars[i] === "\\") {
+            name += chars[++i];
+          } else {
+            name += chars[i];
+          }
+        }
+
+        if (pos) {
+          throw new TypeError(`Unterminated quote at ${pos}: ${DEBUG_URL}`);
+        }
       }
 
       if (!name) {
-        throw new TypeError(`Missing parameter name at ${i}`);
+        throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
       }
 
       tokens.push({ type: "NAME", index: i, value: name });
