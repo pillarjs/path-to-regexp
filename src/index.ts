@@ -199,6 +199,10 @@ function lexer(str: string) {
       continue;
     }
 
+    if (value === ")") {
+      throw new TypeError(`Unmatched ) at ${i}: ${DEBUG_URL}`);
+    }
+
     tokens.push({ type: "CHAR", index: i, value: chars[i++] });
   }
 

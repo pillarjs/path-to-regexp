@@ -31,6 +31,18 @@ describe("path-to-regexp", () => {
       );
     });
 
+    it("should throw on unmatched )", function () {
+      expect(() => match("/:fooab)c")).toThrow(
+        new TypeError("Unmatched ) at 7: https://git.new/pathToRegexpError"),
+      );
+    });
+
+    it("should throw on unmatched ) after other patterns", function () {
+      expect(() => match("/:test(\\w+)/:foo(\\d+))")).toThrow(
+        new TypeError("Unmatched ) at 21: https://git.new/pathToRegexpError"),
+      );
+    });
+
     it("should throw on missing pattern", () => {
       expect(() => match("/:foo()")).toThrow(
         new TypeError(
