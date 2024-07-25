@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pathToRegexp, parse, compile, match } from "./index.js";
+import { parse, compile, match } from "./index.js";
 import { PARSER_TESTS, COMPILE_TESTS, MATCH_TESTS } from "./cases.spec.js";
 
 /**
@@ -7,60 +7,48 @@ import { PARSER_TESTS, COMPILE_TESTS, MATCH_TESTS } from "./cases.spec.js";
  */
 describe("path-to-regexp", () => {
   describe("arguments", () => {
-    it("should accept an array of keys as the second argument", () => {
-      const re = pathToRegexp("/user/:id", { end: false });
-
-      const expectedKeys = [
-        {
-          name: "id",
-          pattern: undefined,
-        },
-      ];
-
-      expect(re.keys).toEqual(expectedKeys);
-      expect(exec(re, "/user/123/show")).toEqual(["/user/123", "123"]);
-    });
-
-    it("should accept parse result as input", () => {
-      const tokens = parse("/user/:id");
-      const re = pathToRegexp(tokens);
-      expect(exec(re, "/user/123")).toEqual(["/user/123", "123"]);
-    });
-
     it("should throw on non-capturing pattern", () => {
-      expect(() => {
-        pathToRegexp("/:foo(?:\\d+(\\.\\d+)?)");
-      }).toThrow(new TypeError('Pattern cannot start with "?" at 6'));
+      expect(() => match("/:foo(?:\\d+(\\.\\d+)?)")).toThrow(
+        new TypeError(
+          'Pattern cannot start with "?" at 6: https://git.new/pathToRegexpError',
+        ),
+      );
     });
 
     it("should throw on nested capturing group", () => {
-      expect(() => {
-        pathToRegexp("/:foo(\\d+(\\.\\d+)?)");
-      }).toThrow(new TypeError("Capturing groups are not allowed at 9"));
+      expect(() => match("/:foo(\\d+(\\.\\d+)?)")).toThrow(
+        new TypeError(
+          "Capturing groups are not allowed at 9: https://git.new/pathToRegexpError",
+        ),
+      );
     });
 
     it("should throw on unbalanced pattern", () => {
-      expect(() => {
-        pathToRegexp("/:foo(abc");
-      }).toThrow(new TypeError("Unbalanced pattern at 5"));
+      expect(() => match("/:foo(abc")).toThrow(
+        new TypeError(
+          "Unbalanced pattern at 5: https://git.new/pathToRegexpError",
+        ),
+      );
     });
 
     it("should throw on missing pattern", () => {
-      expect(() => {
-        pathToRegexp("/:foo()");
-      }).toThrow(new TypeError("Missing pattern at 5"));
+      expect(() => match("/:foo()")).toThrow(
+        new TypeError(
+          "Missing pattern at 5: https://git.new/pathToRegexpError",
+        ),
+      );
     });
 
     it("should throw on missing name", () => {
-      expect(() => {
-        pathToRegexp("/:(test)");
-      }).toThrow(new TypeError("Missing parameter name at 2"));
+      expect(() => match("/:(test)")).toThrow(
+        new TypeError(
+          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+        ),
+      );
     });
 
     it("should throw on nested groups", () => {
-      expect(() => {
-        pathToRegexp("/{a{b:foo}}");
-      }).toThrow(
+      expect(() => match("/{a{b:foo}}")).toThrow(
         new TypeError(
           "Unexpected { at 3, expected }: https://git.new/pathToRegexpError",
         ),
@@ -68,11 +56,25 @@ describe("path-to-regexp", () => {
     });
 
     it("should throw on repeat parameters without a separator", () => {
-      expect(() => {
-        pathToRegexp("{:x}*");
-      }).toThrow(
+      expect(() => match("{:x}*")).toThrow(
         new TypeError(
           `Missing separator for "x": https://git.new/pathToRegexpError`,
+        ),
+      );
+    });
+
+    it("should throw on unterminated quote", () => {
+      expect(() => match('/:"foo')).toThrow(
+        new TypeError(
+          "Unterminated quote at 2: https://git.new/pathToRegexpError",
+        ),
+      );
+    });
+
+    it("should throw on invalid *", () => {
+      expect(() => match("/:foo*")).toThrow(
+        new TypeError(
+          "Unexpected * at 5, you probably want `/*` or `{/:foo}*`: https://git.new/pathToRegexpError",
         ),
       );
     });
@@ -107,10 +109,9 @@ describe("path-to-regexp", () => {
     "match $path with $options",
     ({ path, options, tests }) => {
       it.each(tests)("should match $input", ({ input, matches, expected }) => {
-        const re = pathToRegexp(path, options);
         const fn = match(path, options);
 
-        expect(exec(re, input)).toEqual(matches);
+        expect(exec(fn.re, input)).toEqual(matches);
         expect(fn(input)).toEqual(expected);
       });
     },

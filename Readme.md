@@ -17,51 +17,42 @@ npm install path-to-regexp --save
 ## Usage
 
 ```js
-const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
+const { match, compile, parse } = require("path-to-regexp");
 
-// pathToRegexp(path, options?)
 // match(path, options?)
-// parse(path, options?)
 // compile(path, options?)
+// parse(path, options?)
 ```
 
-### Path to regexp
+### Match
 
-The `pathToRegexp` function returns a regular expression with `keys` as a property. It accepts the following arguments:
+The `match` function returns a function for transforming paths into parameters:
 
 - **path** A string.
-- **options** _(optional)_
+- **options** _(optional)_ (See [parse](#parse) for more options)
   - **sensitive** Regexp will be case sensitive. (default: `false`)
-  - **trailing** Allows optional trailing delimiter to match. (default: `true`)
-  - **strict** Verify patterns are valid and safe to use. (default: `false`, recommended: `true`)
-  - **end** Match to the end of the string. (default: `true`)
-  - **start** Match from the beginning of the string. (default: `true`)
-  - **loose** Allow the delimiter to be arbitrarily repeated, e.g. `/` or `///`. (default: `true`)
-  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
-  - **encodePath** A function for encoding input strings. (default: `x => x`, recommended: [`encodeurl`](https://github.com/pillarjs/encodeurl) for unicode encoding)
+  - **end** Validate the match reaches the end of the string. (default: `true`)
+  - **decode** Function for decoding strings to params, or `false` to disable all processing. (default: `decodeURIComponent`)
 
 ```js
-const regexp = pathToRegexp("/foo/:bar");
-// regexp = /^\/+foo(?:\/+([^\/]+?))(?:\/+)?$/i
-// keys = [{ name: 'bar', prefix: '', suffix: '', pattern: '', modifier: '' }]
+const fn = match("/foo/:bar");
 ```
 
-**Please note:** The `RegExp` returned by `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
+**Please note:** `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
 
 ### Parameters
 
-The path argument is used to define parameters and populate keys.
+Parameters match arbitrary strings in a path by matching up to the end of the segment, or up to any proceeding tokens.
 
 #### Named parameters
 
-Named parameters are defined by prefixing a colon to the parameter name (`:foo`). Parameter names can use any valid unicode identifier characters (similar to JavaScript).
+Named parameters are defined by prefixing a colon to the parameter name (`:foo`). Parameter names can use any valid unicode identifier characters, similar to JavaScript.
 
 ```js
-const regexp = pathToRegexp("/:foo/:bar");
-// keys = [{ name: 'foo', ... }, { name: 'bar', ... }]
+const fn = match("/:foo/:bar");
 
-regexp.exec("/test/route");
-//=> [ '/test/route', 'test', 'route', index: 0 ]
+fn("/test/route");
+//=> { path: '/test/route', params: { foo: 'test', bar: 'route' } }
 ```
 
 ##### Custom matching parameters
@@ -69,23 +60,21 @@ regexp.exec("/test/route");
 Parameters can have a custom regexp, which overrides the default match (`[^/]+`). For example, you can match digits or names in a path:
 
 ```js
-const regexpNumbers = pathToRegexp("/icon-:foo(\\d+).png");
-// keys = [{ name: 'foo', ... }]
+const exampleNumbers = match("/icon-:foo(\\d+).png");
 
-regexpNumbers.exec("/icon-123.png");
-//=> ['/icon-123.png', '123']
+exampleNumbers("/icon-123.png");
+//=> { path: '/icon-123.png', params: { foo: '123' } }
 
-regexpNumbers.exec("/icon-abc.png");
-//=> null
+exampleNumbers("/icon-abc.png");
+//=> false
 
-const regexpWord = pathToRegexp("/(user|u)");
-// keys = [{ name: 0, ... }]
+const exampleWord = pathToRegexp("/(user|u)");
 
-regexpWord.exec("/u");
-//=> ['/u', 'u']
+exampleWord("/u");
+//=> { path: '/u', params: { '0': 'u' } }
 
-regexpWord.exec("/users");
-//=> null
+exampleWord("/users");
+//=> false
 ```
 
 **Tip:** Backslashes need to be escaped with another backslash in JavaScript strings.
@@ -95,25 +84,24 @@ regexpWord.exec("/users");
 It is possible to define a parameter without a name. The name will be numerically indexed:
 
 ```js
-const regexp = pathToRegexp("/:foo/(.*)");
-// keys = [{ name: 'foo', ... }, { name: '0', ... }]
+const fn = match("/:foo/(.*)");
 
-regexp.exec("/test/route");
-//=> [ '/test/route', 'test', 'route', index: 0 ]
+fn("/test/route");
+//=> { path: '/test/route', params: { '0': 'route', foo: 'test' } }
 ```
 
-##### Custom prefix and suffix
+#### Custom prefix and suffix
 
 Parameters can be wrapped in `{}` to create custom prefixes or suffixes for your segment:
 
 ```js
-const regexp = pathToRegexp("{/:attr1}?{-:attr2}?{-:attr3}?");
+const fn = match("{/:attr1}?{-:attr2}?{-:attr3}?");
 
-regexp.exec("/test");
-// => ['/test', 'test', undefined, undefined]
+fn("/test");
+//=> { path: '/test', params: { attr1: 'test' } }
 
-regexp.exec("/test-test");
-// => ['/test', 'test', 'test', undefined]
+fn("/test-test");
+//=> { path: '/test-test', params: { attr1: 'test', attr2: 'test' } }
 ```
 
 #### Modifiers
@@ -125,14 +113,13 @@ Modifiers are used after parameters with custom prefixes and suffixes (`{}`).
 Parameters can be suffixed with a question mark (`?`) to make the parameter optional.
 
 ```js
-const regexp = pathToRegexp("/:foo{/:bar}?");
-// keys = [{ name: 'foo', ... }, { name: 'bar', prefix: '/', modifier: '?' }]
+const fn = match("/:foo{/:bar}?");
 
-regexp.exec("/test");
-//=> [ '/test', 'test', undefined, index: 0 ]
+fn("/test");
+//=> { path: '/test', params: { foo: 'test' } }
 
-regexp.exec("/test/route");
-//=> [ '/test/route', 'test', 'route', index: 0 ]
+fn("/test/route");
+//=> { path: '/test/route', params: { foo: 'test', bar: 'route' } }
 ```
 
 ##### Zero or more
@@ -140,14 +127,13 @@ regexp.exec("/test/route");
 Parameters can be suffixed with an asterisk (`*`) to denote a zero or more parameter matches.
 
 ```js
-const regexp = pathToRegexp("{/:foo}*");
-// keys = [{ name: 'foo', prefix: '/', modifier: '*' }]
+const fn = match("{/:foo}*");
 
-regexp.exec("/foo");
-//=> [ '/foo', "foo", index: 0 ]
+fn("/foo");
+//=> { path: '/foo', params: { foo: [ 'foo' ] } }
 
-regexp.exec("/bar/baz");
-//=> [ '/bar/baz', 'bar/baz', index: 0 ]
+fn("/bar/baz");
+//=> { path: '/bar/baz', params: { foo: [ 'bar', 'baz' ] } }
 ```
 
 ##### One or more
@@ -155,14 +141,13 @@ regexp.exec("/bar/baz");
 Parameters can be suffixed with a plus sign (`+`) to denote a one or more parameter matches.
 
 ```js
-const regexp = pathToRegexp("{/:foo}+");
-// keys = [{ name: 'foo', prefix: '/', modifier: '+' }]
+const fn = match("{/:foo}+");
 
-regexp.exec("/");
-//=> null
+fn("/");
+//=> false
 
-regexp.exec("/bar/baz");
-//=> [ '/bar/baz', 'bar/baz', index: 0 ]
+fn("/bar/baz");
+//=> { path: '/bar/baz', params: { foo: [ 'bar', 'baz' ] } }
 ```
 
 ##### Custom separator
@@ -170,54 +155,36 @@ regexp.exec("/bar/baz");
 By default, parameters set the separator as the `prefix + suffix` of the token. Using `;` you can modify this:
 
 ```js
-const regexp = pathToRegexp("/name{/:parts;-}+");
+const fn = match("/name{/:parts;-}+");
 
-regexp.exec("/name");
-//=> null
+fn("/name");
+//=> false
 
-regexp.exec("/bar/1-2-3");
-//=> [ '/name/1-2-3', '1-2-3', index: 0 ]
+fn("/bar/1-2-3");
+//=> { path: '/name/1-2-3', params: { parts: [ '1', '2', '3' ] } }
 ```
 
 #### Wildcard
 
-A wildcard can also be used. It is roughly equivalent to `(.*)`.
+A wildcard is also supported. It is roughly equivalent to `(.*)`.
 
 ```js
-const regexp = pathToRegexp("/*");
-// keys = [{ name: '0', pattern: '[^\\/]*', separator: '/', modifier: '*' }]
+const fn = match("/*");
 
-regexp.exec("/");
-//=> [ '/', '', index: 0 ]
+fn("/");
+//=> { path: '/', params: {} }
 
-regexp.exec("/bar/baz");
-//=> [ '/bar/baz', 'bar/baz', index: 0 ]
+fn("/bar/baz");
+//=> { path: '/bar/baz', params: { '0': [ 'bar', 'baz' ] } }
 ```
-
-### Match
-
-The `match` function returns a function for transforming paths into parameters:
-
-- **path** A string.
-- **options** _(optional)_ The same options as `pathToRegexp`, plus:
-  - **decode** Function for decoding strings for params, or `false` to disable entirely. (default: `decodeURIComponent`)
-
-```js
-const fn = match("/user/:id");
-
-fn("/user/123"); //=> { path: '/user/123', index: 0, params: { id: '123' } }
-fn("/invalid"); //=> false
-fn("/user/caf%C3%A9"); //=> { path: '/user/caf%C3%A9', index: 0, params: { id: 'café' } }
-```
-
-**Note:** Setting `decode: false` disables the "splitting" behavior of repeated parameters, which is useful if you need the exactly matched parameter back.
 
 ### Compile ("Reverse" Path-To-RegExp)
 
 The `compile` function will return a function for transforming parameters into a valid path:
 
 - **path** A string.
-- **options** _(optional)_ Similar to `pathToRegexp` (`delimiter`, `encodePath`, `sensitive`, and `loose`), plus:
+- **options** (See [parse](#parse) for more options)
+  - **sensitive** Regexp will be case sensitive. (default: `false`)
   - **validate** When `false` the function can produce an invalid (unmatched) path. (default: `true`)
   - **encode** Function for encoding input strings for output into the path, or `false` to disable entirely. (default: `encodeURIComponent`)
 
@@ -245,14 +212,17 @@ toPathRegexp({ id: "123" }); //=> "/user/123"
 
 ## Developers
 
-- If you are rewriting paths with match and compiler, consider using `encode: false` and `decode: false` to keep raw paths passed around.
+- If you are rewriting paths with match and compile, consider using `encode: false` and `decode: false` to keep raw paths passed around.
 - To ensure matches work on paths containing characters usually encoded, consider using [encodeurl](https://github.com/pillarjs/encodeurl) for `encodePath`.
-- If matches are intended to be exact, you need to set `loose: false`, `trailing: false`, and `sensitive: true`.
-- Enable `strict: true` to detect ReDOS issues.
 
 ### Parse
 
-A `parse` function is available and returns `TokenData`, the set of tokens and other metadata parsed from the input string. `TokenData` is can passed directly into `pathToRegexp`, `match`, and `compile`. It accepts only two options, `delimiter` and `encodePath`, which makes those options redundant in the above methods.
+The `parse` function accepts a string and returns `TokenData`, the set of tokens and other metadata parsed from the input string. `TokenData` is can used with `$match` and `$compile`.
+
+- **path** A string.
+- **options** _(optional)_
+  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
+  - **encodePath** A function for encoding input strings. (default: `x => x`, recommended: [`encodeurl`](https://github.com/pillarjs/encodeurl) for unicode encoding)
 
 ### Tokens
 
@@ -267,14 +237,14 @@ The `tokens` returned by `TokenData` is an array of strings or keys, represented
 
 ### Custom path
 
-In some applications, you may not be able to use the `path-to-regexp` syntax (e.g. file-based routing), but you can still use this library for `match`, `compile`, and `pathToRegexp` by building your own `TokenData` instance. For example:
+In some applications, you may not be able to use the `path-to-regexp` syntax, but still want to use this library for `match` and `compile`. For example:
 
 ```js
 import { TokenData, match } from "path-to-regexp";
 
 const tokens = ["/", { name: "foo" }];
 const path = new TokenData(tokens, "/");
-const fn = match(path);
+const fn = $match(path);
 
 fn("/test"); //=> { path: '/test', index: 0, params: { foo: 'test' } }
 ```
@@ -298,6 +268,30 @@ Used as a [custom separator](#custom-separator) for repeated parameters.
 ### Unexpected `!`, `@`, or `,`
 
 These characters have been reserved for future use.
+
+### Missing separator
+
+Repeated parameters must have a separator to be valid. For example, `{:foo}*` can't be used. Separators can be defined manually, such as `{:foo;/}*`, or they default to the suffix and prefix with the parameter, such as `{/:foo}*`.
+
+### Missing parameter name
+
+Parameter names, the part after `:`, must be a valid JavaScript identifier. For example, it cannot start with a number or dash. If you want a parameter name that uses these characters you can wrap the name in quotes, e.g. `:"my-name"`.
+
+### Unterminated quote
+
+Parameter names can be wrapped in double quote characters, and this error means you forgot to close the quote character.
+
+### Pattern cannot start with "?"
+
+Parameters in `path-to-regexp` must be basic groups. However, you can use features that require the `?` nested within the pattern. For example, `:foo((?!login)[^/]+)` is valid, but `:foo(?!login)` is not.
+
+### Capturing groups are not allowed
+
+A parameter pattern can not contain nested capturing groups.
+
+### Unbalanced or missing pattern
+
+A parameter pattern must have the expected number of parentheses. An unbalanced amount, such as `((?!login)` implies something has been written that is invalid. Check you didn't forget any parentheses.
 
 ### Express <= 4.x
 

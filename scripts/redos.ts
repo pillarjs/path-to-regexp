@@ -1,36 +1,28 @@
 import { checkSync } from "recheck";
-import { pathToRegexp } from "../src/index.js";
+import { match } from "../src/index.js";
+import { MATCH_TESTS } from "../src/cases.spec.js";
 
-const TESTS = [
-  "/abc{abc:foo}?",
-  "/:foo{abc:foo}?",
-  "{:attr1}?{:attr2/}?",
-  "{:attr1/}?{:attr2/}?",
-  "{:foo.}?{:bar.}?",
-  "{:foo([^\\.]+).}?{:bar.}?",
-  ":foo(a+):bar(b+)",
-];
+let safe = 0;
+let fail = 0;
+
+const TESTS = new Set(MATCH_TESTS.map((test) => test.path));
+// const TESTS = [
+//   ":path([^\\.]+).:ext",
+//   ":path.:ext(\\w+)",
+//   ":path{.:ext([^\\.]+)}",
+//   "/:path.:ext(\\\\w+)",
+// ];
 
 for (const path of TESTS) {
-  try {
-    const re = pathToRegexp(path, { strict: true });
-    const result = checkSync(re.source, re.flags);
-    if (result.status === "safe") {
-      console.log("Safe:", path, String(re));
-    } else {
-      console.log("Fail:", path, String(re));
-    }
-  } catch (err) {
-    try {
-      const re = pathToRegexp(path);
-      const result = checkSync(re.source, re.flags);
-      if (result.status === "safe") {
-        console.log("Invalid:", path, String(re));
-      } else {
-        console.log("Pass:", path, String(re));
-      }
-    } catch (err) {
-      console.log("Error:", path, err.message);
-    }
+  const { re } = match(path);
+  const result = checkSync(re.source, re.flags);
+  if (result.status === "safe") {
+    safe++;
+    console.log("Safe:", path, String(re));
+  } else {
+    fail++;
+    console.log("Fail:", path, String(re));
   }
 }
+
+console.log("Safe:", safe, "Fail:", fail);
