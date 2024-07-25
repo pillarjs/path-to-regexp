@@ -186,7 +186,9 @@ function lexer(str: string) {
       let pattern = "";
 
       if (chars[i] === "?") {
-        throw new TypeError(`Pattern cannot start with "?" at ${i}`);
+        throw new TypeError(
+          `Pattern cannot start with "?" at ${i}: ${DEBUG_URL}`,
+        );
       }
 
       while (i < chars.length) {
@@ -204,15 +206,22 @@ function lexer(str: string) {
         } else if (chars[i] === "(") {
           count++;
           if (chars[i + 1] !== "?") {
-            throw new TypeError(`Capturing groups are not allowed at ${i}`);
+            throw new TypeError(
+              `Capturing groups are not allowed at ${i}: ${DEBUG_URL}`,
+            );
           }
         }
 
         pattern += chars[i++];
       }
 
-      if (count) throw new TypeError(`Unbalanced pattern at ${pos}`);
-      if (!pattern) throw new TypeError(`Missing pattern at ${pos}`);
+      if (count) {
+        throw new TypeError(`Unbalanced pattern at ${pos}: ${DEBUG_URL}`);
+      }
+
+      if (!pattern) {
+        throw new TypeError(`Missing pattern at ${pos}: ${DEBUG_URL}`);
+      }
 
       tokens.push({ type: "PATTERN", index: i, value: pattern });
       continue;
