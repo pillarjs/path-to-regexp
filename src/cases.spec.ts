@@ -299,6 +299,14 @@ export const MATCH_TESTS: MatchTestSet[] = [
           params: { test: ";,:@&=+$-_.!~*()" },
         },
       },
+      {
+        input: "/param%2523",
+        matches: ["/param%2523", "param%2523"],
+        expected: {
+          path: "/param%2523",
+          params: { test: "param%23" },
+        },
+      },
     ],
   },
 
