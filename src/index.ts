@@ -506,8 +506,7 @@ export function $match<P extends ParamData>(
   const decoders = re.keys.map((key) => {
     if (decode && (key.modifier === "+" || key.modifier === "*")) {
       const { prefix = "", suffix = "", separator = suffix + prefix } = key;
-      const re = new RegExp(escape(separator), "g");
-      return (value: string) => value.split(re).map(decode);
+      return (value: string) => value.split(separator).map(decode);
     }
 
     return decode || NOOP_VALUE;
