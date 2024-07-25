@@ -2,14 +2,16 @@ name: CI
 on:
   - push
   - pull_request
+permissions:
+  contents: read
 jobs:
   test:
     name: Node.js ${{ matrix.node-version }}
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
-          - "12"
+          - "16"
           - "*"
     steps:
       - uses: actions/checkout@v2
@@ -22,7 +24,6 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      - run: npm install -g npm@8
       - run: npm ci
       - run: npm test
       - uses: codecov/codecov-action@v1
