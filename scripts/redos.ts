@@ -14,7 +14,7 @@ const TESTS = new Set(MATCH_TESTS.map((test) => test.path));
 // ];
 
 for (const path of TESTS) {
-  const { re } = match(path);
+  const { re } = match(path) as any;
   const result = checkSync(re.source, re.flags);
   if (result.status === "safe") {
     safe++;

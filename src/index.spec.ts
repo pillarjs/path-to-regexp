@@ -120,10 +120,8 @@ describe("path-to-regexp", () => {
   describe.each(MATCH_TESTS)(
     "match $path with $options",
     ({ path, options, tests }) => {
-      it.each(tests)("should match $input", ({ input, matches, expected }) => {
+      it.each(tests)("should match $input", ({ input, expected }) => {
         const fn = match(path, options);
-
-        expect(exec(fn.re, input)).toEqual(matches);
         expect(fn(input)).toEqual(expected);
       });
     },

@@ -365,23 +365,23 @@ export function isOptional(key: Key) {
  * Convert a single token into a path building function.
  */
 function keyToFunction(
-  token: Key,
+  key: Key,
   encode: Encode | false,
 ): (data: ParamData) => string {
   const encodeValue = encode || NOOP_VALUE;
-  const { prefix = "", suffix = "", separator = suffix + prefix } = token;
+  const { prefix = "", suffix = "", separator = suffix + prefix } = key;
 
-  if (encode && isRepeat(token)) {
+  if (encode && isRepeat(key)) {
     const stringify = (value: string, index: number) => {
       if (typeof value !== "string") {
-        throw new TypeError(`Expected "${token.name}/${index}" to be a string`);
+        throw new TypeError(`Expected "${key.name}/${index}" to be a string`);
       }
       return encodeValue(value);
     };
 
     const compile = (value: unknown) => {
       if (!Array.isArray(value)) {
-        throw new TypeError(`Expected "${token.name}" to be an array`);
+        throw new TypeError(`Expected "${key.name}" to be an array`);
       }
 
       if (value.length === 0) return "";
@@ -389,37 +389,37 @@ function keyToFunction(
       return prefix + value.map(stringify).join(separator) + suffix;
     };
 
-    if (isOptional(token)) {
+    if (isOptional(key)) {
       return (data): string => {
-        const value = data[token.name];
+        const value = data[key.name];
         if (value == null) return "";
         return value.length ? compile(value) : "";
       };
     }
 
     return (data): string => {
-      const value = data[token.name];
+      const value = data[key.name];
       return compile(value);
     };
   }
 
   const stringify = (value: unknown) => {
     if (typeof value !== "string") {
-      throw new TypeError(`Expected "${token.name}" to be a string`);
+      throw new TypeError(`Expected "${key.name}" to be a string`);
     }
     return prefix + encodeValue(value) + suffix;
   };
 
-  if (isOptional(token)) {
+  if (isOptional(key)) {
     return (data): string => {
-      const value = data[token.name];
+      const value = data[key.name];
       if (value == null) return "";
       return stringify(value);
     };
   }
 
   return (data): string => {
-    const value = data[token.name];
+    const value = data[key.name];
     return stringify(value);
   };
 }
@@ -480,18 +480,7 @@ export type Match<P extends ParamData> = false | MatchResult<P>;
 /**
  * The match function takes a string and returns whether it matched the path.
  */
-export type MatchFunction<P extends ParamData> = ((
-  path: string,
-) => Match<P>) & { re: RegExp };
-
-const isEnd = (input: string, match: string) => input.length === match.length;
-const isDelimiterOrEnd =
-  (delimiter: string) => (input: string, match: string) => {
-    return (
-      match.length === input.length ||
-      input.slice(match.length, match.length + delimiter.length) === delimiter
-    );
-  };
+export type MatchFunction<P extends ParamData> = (path: string) => Match<P>;
 
 /**
  * Create path match function from `path-to-regexp` spec.
@@ -501,18 +490,29 @@ export function $match<P extends ParamData>(
   options: MatchOptions = {},
 ): MatchFunction<P> {
   const { decode = decodeURIComponent, end = true } = options;
-  const re = tokensToRegexp(data, options);
+  const { delimiter } = data;
+  const keys: Key[] = [];
+  const flags = toFlags(options);
+  const sources = toRegExpSource(data, keys);
+  const re = new RegExp(
+    `^${sources.join("")}(?=${escape(delimiter)}|$)`,
+    flags,
+  );
 
-  const decoders = re.keys.map((key) => {
-    if (decode && (key.modifier === "+" || key.modifier === "*")) {
+  const decoders = keys.map((key) => {
+    if (!decode) return NOOP_VALUE;
+
+    if (isRepeat(key)) {
       const { prefix = "", suffix = "", separator = suffix + prefix } = key;
       return (value: string) => value.split(separator).map(decode);
     }
 
-    return decode || NOOP_VALUE;
+    return decode;
   });
 
-  const validate = end ? isEnd : isDelimiterOrEnd(data.delimiter);
+  const isValid = end
+    ? (a: string, b: string) => a.length === b.length
+    : () => true;
 
   return Object.assign(
     function match(input: string) {
@@ -520,13 +520,13 @@ export function $match<P extends ParamData>(
       if (!m) return false;
 
       const { 0: path } = m;
-      if (!validate(input, path)) return false;
+      if (!isValid(input, path)) return false;
       const params = Object.create(null);
 
       for (let i = 1; i < m.length; i++) {
         if (m[i] === undefined) continue;
 
-        const key = re.keys[i - 1];
+        const key = keys[i - 1];
         const decoder = decoders[i - 1];
         params[key.name] = decoder(m[i]);
       }
@@ -574,17 +574,6 @@ export interface Key {
  * A token is a string (nothing special) or key metadata (capture group).
  */
 export type Token = string | Key;
-
-/**
- * Expose a function for taking tokens and returning a RegExp.
- */
-function tokensToRegexp(data: TokenData, options: PathOptions) {
-  const flags = toFlags(options);
-  const keys: Key[] = [];
-  const sources = toRegExpSource(data, keys);
-  const regexp = new RegExp(`^${sources.join("")}`, flags);
-  return Object.assign(regexp, { keys });
-}
 
 /**
  * Convert a token into a regexp string (re-used for path validation).
