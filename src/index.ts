@@ -297,7 +297,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     if (asterisk) {
       tokens.push({
         name: String(key++),
-        pattern: `${negate(escape(delimiter))}*`,
+        pattern: `${negate(delimiter)}*`,
         modifier: "*",
         separator: delimiter,
       });
@@ -590,7 +590,6 @@ function tokensToRegexp(data: TokenData, options: PathOptions) {
  * Convert a token into a regexp string (re-used for path validation).
  */
 function toRegExpSource(data: TokenData, keys: Key[]): string[] {
-  const delim = escape(data.delimiter);
   const sources = Array(data.tokens.length);
   let backtrack = "";
 
@@ -600,7 +599,8 @@ function toRegExpSource(data: TokenData, keys: Key[]): string[] {
     const token = data.tokens[i];
 
     if (typeof token === "string") {
-      sources[i] = backtrack = escape(token);
+      backtrack = token;
+      sources[i] = escape(token);
       continue;
     }
 
@@ -615,32 +615,40 @@ function toRegExpSource(data: TokenData, keys: Key[]): string[] {
     const post = escape(suffix);
 
     if (token.name) {
-      let pattern = token.pattern || "";
-
+      backtrack = suffix || backtrack;
       keys.unshift(token);
 
       if (isRepeat(token)) {
-        const mod = modifier === "*" ? "?" : "";
-        const sep = escape(separator);
-
-        if (!sep) {
+        if (!separator) {
           throw new TypeError(
             `Missing separator for "${token.name}": ${DEBUG_URL}`,
           );
         }
 
-        pattern ||= `${negate(delim, sep, post || backtrack)}+`;
-        sources[i] =
-          `(?:${pre}((?:${pattern})(?:${sep}(?:${pattern}))*)${post})${mod}`;
+        const mod = modifier === "*" ? "?" : "";
+        const sep = escape(separator);
+        const pattern =
+          token.pattern || `${negate(data.delimiter, separator, backtrack)}+`;
+
+        sources[i] = wrap(
+          pre,
+          `(?:${pattern})(?:${sep}(?:${pattern}))*`,
+          post,
+          mod,
+        );
       } else {
-        pattern ||= `${negate(delim, post || backtrack)}+`;
-        sources[i] = `(?:${pre}(${pattern})${post})${modifier}`;
+        sources[i] = wrap(
+          pre,
+          token.pattern || `${negate(data.delimiter, backtrack)}+`,
+          post,
+          modifier,
+        );
       }
 
-      backtrack = pre || pattern;
+      backtrack = prefix;
     } else {
       sources[i] = `(?:${pre}${post})${modifier}`;
-      backtrack = `${pre}${post}`;
+      backtrack = `${prefix}${suffix}`;
     }
   }
 
@@ -648,6 +656,24 @@ function toRegExpSource(data: TokenData, keys: Key[]): string[] {
 }
 
 function negate(...args: string[]) {
-  const values = Array.from(new Set(args)).filter(Boolean);
-  return `(?:(?!${values.join("|")}).)`;
+  const values = args.sort().filter((value, index, array) => {
+    for (let i = 0; i < index; i++) {
+      const v = array[i];
+      if (v.length && value.startsWith(v)) return false;
+    }
+    return value.length > 0;
+  });
+
+  const isSimple = values.every((value) => value.length === 1);
+  if (isSimple) return `[^${escape(values.join(""))}]`;
+
+  return `(?:(?!${values.map(escape).join("|")}).)`;
+}
+
+function wrap(pre: string, pattern: string, post: string, modifier: string) {
+  if (pre || post) {
+    return `(?:${pre}(${pattern})${post})${modifier}`;
+  }
+
+  return `(${pattern})${modifier}`;
 }
