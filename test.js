@@ -516,14 +516,15 @@ describe('path-to-regexp', function () {
 
     it('should do non-ending matches', function () {
       var params = [];
-      var m = pathToRegExp('/:test', params, { end: false }).exec('/test/route');
+      var re = pathToRegExp('/:test', params, { end: false })
+      var m = re.exec('/test/route');
 
       assert.equal(params.length, 1);
       assert.equal(params[0].name, 'test');
       assert.equal(params[0].optional, false);
 
       assert.equal(m.length, 2);
-      assert.equal(m[0], '/test');
+      assert.equal(m[0], '/test/');
       assert.equal(m[1], 'test');
     });
 
@@ -558,7 +559,7 @@ describe('path-to-regexp', function () {
       m = re.exec('/route/test');
 
       assert.equal(m.length, 1);
-      assert.equal(m[0], '/route');
+      assert.equal(m[0], '/route/');
 
       m = re.exec('/route');
 
@@ -568,7 +569,7 @@ describe('path-to-regexp', function () {
       m = re.exec('/route//');
 
       assert.equal(m.length, 1);
-      assert.equal(m[0], '/route/');
+      assert.equal(m[0], '/route//');
     });
 
     it('should match trailing slashing in non-ending strict mode', function () {
@@ -613,7 +614,7 @@ describe('path-to-regexp', function () {
       m = re.exec('/route/');
 
       assert.ok(m.length, 1);
-      assert.equal(m[0], '/route');
+      assert.equal(m[0], '/route/');
     });
 
     it('should match text after an express param', function () {
