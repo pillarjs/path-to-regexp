@@ -31,6 +31,7 @@ function pathtoRegexp(path, keys, options) {
   var strict = options.strict;
   var end = options.end !== false;
   var flags = options.sensitive ? '' : 'i';
+  var lookahead = options.lookahead !== false;
   var extraOffset = 0;
   var keysOffset = keys.length;
   var i = 0;
@@ -123,7 +124,11 @@ function pathtoRegexp(path, keys, options) {
   }
 
   // If the path is non-ending, match until the end or a slash.
-  path += (end ? '$' : (path[path.length - 1] === '/' ? '' : '(?:\/|$)'));
+  if (end) {
+    path += '$';
+  } else if (path[path.length - 1] !== '/') {
+    path += lookahead ? '(?=\\/|$)' : '(?:\/|$)';
+  }
 
   return new RegExp(path, flags);
 };
