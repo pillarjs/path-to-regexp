@@ -527,6 +527,19 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'test');
     });
 
+    it('should do non-ending matches (no lookahead)', function () {
+      var params = [];
+      var m = pathToRegExp('/:test', params, { end: false, lookahead: false }).exec('/test/route');
+
+      assert.equal(params.length, 1);
+      assert.equal(params[0].name, 'test');
+      assert.equal(params[0].optional, false);
+
+      assert.equal(m.length, 2);
+      assert.equal(m[0], '/test/');
+      assert.equal(m[1], 'test');
+    });
+
     it('should match trailing slashes in non-ending non-strict mode', function () {
       var params = [];
       var re = pathToRegExp('/:test', params, { end: false });
@@ -569,6 +582,34 @@ describe('path-to-regexp', function () {
 
       assert.equal(m.length, 1);
       assert.equal(m[0], '/route/');
+    });
+
+    it('should match trailing slashes in non-ending non-strict mode (no lookahead)', function () {
+      var params = [];
+      var re = pathToRegExp('/route/', params, { end: false, lookahead: false });
+      var m;
+
+      assert.equal(params.length, 0);
+
+      m = re.exec('/route/');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+
+      m = re.exec('/route/test');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route/');
+
+      m = re.exec('/route');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route');
+
+      m = re.exec('/route//');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route//');
     });
 
     it('should match trailing slashing in non-ending strict mode', function () {
@@ -614,6 +655,24 @@ describe('path-to-regexp', function () {
 
       assert.ok(m.length, 1);
       assert.equal(m[0], '/route');
+    });
+
+    it('should not match trailing slashes in non-ending strict mode (no lookahead)', function () {
+      var params = [];
+      var re = pathToRegExp('/route', params, { end: false, strict: true, lookahead: false });
+      var m;
+
+      assert.equal(params.length, 0);
+
+      m = re.exec('/route');
+
+      assert.equal(m.length, 1);
+      assert.equal(m[0], '/route');
+
+      m = re.exec('/route/');
+
+      assert.ok(m.length, 1);
+      assert.equal(m[0], '/route/');
     });
 
     it('should match text after an express param', function () {
@@ -728,6 +787,12 @@ describe('path-to-regexp', function () {
     });
 
     it('should pull out matching named groups', function () {
+      const majorVersion = Number(process.version.split('.')[0].replace('v', ''));
+      if (majorVersion < 10) {
+        console.log('skipping test: node <10 does not support named capture groups');
+        return;
+      }
+
       var params = [];
       var re = pathToRegExp(/\/(.*)\/(?<foo>.*)\/(.*)/, params);
       var m;
