@@ -763,6 +763,44 @@ describe('path-to-regexp', function () {
       assert.equal(m[0], '/test.json');
       assert.equal(m[1], 'test.json');
     });
+
+    it('should match after a non-slash or format character', function () {
+      var params = [];
+      var re = pathToRegExp('/:x-:y', params);
+      var m;
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'x');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 'y');
+      assert.equal(params[1].optional, false);
+
+      m = re.exec('/1-2');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/1-2');
+      assert.equal(m[1], '1');
+      assert.equal(m[2], '2');
+    });
+
+    it('should replace asterisk in capture group', function () {
+      var params = [];
+      var re = pathToRegExp('/files/:file(*)', params);
+      var m;
+
+      assert.equal(params.length, 2);
+      assert.equal(params[0].name, 'file');
+      assert.equal(params[0].optional, false);
+      assert.equal(params[1].name, 0);
+      assert.equal(params[1].optional, false);
+
+      m = re.exec('/files/test');
+
+      assert.equal(m.length, 3);
+      assert.equal(m[0], '/files/test');
+      assert.equal(m[1], 'test');
+      assert.equal(m[2], 'test');
+    })
   });
 
   describe('regexps', function () {
@@ -812,7 +850,7 @@ describe('path-to-regexp', function () {
       assert.equal(m[1], 'foo');
       assert.equal(m[2], 'bar');
       assert.equal(m[3], 'baz');
-    })
+    });
   });
 
   describe('arrays', function () {

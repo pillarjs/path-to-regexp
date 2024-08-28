@@ -1,13 +1,13 @@
 /**
- * Expose `pathtoRegexp`.
+ * Expose `pathToRegexp`.
  */
 
-module.exports = pathtoRegexp;
+module.exports = pathToRegexp;
 
 /**
  * Match matching groups in a regular expression.
  */
-var MATCHING_GROUP_REGEXP = /\((?:\?<(.*?)>)?(?!\?)/g;
+var MATCHING_GROUP_REGEXP = /\\.|\((?:\?<(.*?)>)?(?!\?)/g;
 
 /**
  * Normalize the given path string,
@@ -25,7 +25,7 @@ var MATCHING_GROUP_REGEXP = /\((?:\?<(.*?)>)?(?!\?)/g;
  * @api private
  */
 
-function pathtoRegexp(path, keys, options) {
+function pathToRegexp(path, keys, options) {
   options = options || {};
   keys = keys || [];
   var strict = options.strict;
@@ -36,10 +36,14 @@ function pathtoRegexp(path, keys, options) {
   var keysOffset = keys.length;
   var i = 0;
   var name = 0;
+  var pos = 0;
+  var backtrack = '';
   var m;
 
   if (path instanceof RegExp) {
     while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
+      if (m[0][0] === '\\') continue;
+
       keys.push({
         name: m[1] || name++,
         optional: false,
@@ -55,20 +59,47 @@ function pathtoRegexp(path, keys, options) {
     // the same keys and options instance into every generation to get
     // consistent matching groups before we join the sources together.
     path = path.map(function (value) {
-      return pathtoRegexp(value, keys, options).source;
+      return pathToRegexp(value, keys, options).source;
     });
 
-    return new RegExp('(?:' + path.join('|') + ')', flags);
+    return new RegExp(path.join('|'), flags);
   }
 
-  path = ('^' + path + (strict ? '' : path[path.length - 1] === '/' ? '?' : '/?'))
-    .replace(/\/\(/g, '/(?:')
-    .replace(/([\/\.])/g, '\\$1')
-    .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional, offset) {
+  path = path.replace(
+    /\\.|(\/)?(\.)?:(\w+)(\(.*?\))?(\*)?(\?)?|[.*]|\/\(/g,
+    function (match, slash, format, key, capture, star, optional, offset) {
+      pos = offset + match.length;
+
+      if (match[0] === '\\') {
+        backtrack += match;
+        return match;
+      }
+
+      if (match === '.') {
+        backtrack += '\\.';
+        extraOffset += 1;
+        return '\\.';
+      }
+
+      backtrack = slash || format ? '' : path.slice(pos, offset);
+
+      if (match === '*') {
+        extraOffset += 3;
+        return '(.*)';
+      }
+
+      if (match === '/(') {
+        backtrack += '/';
+        extraOffset += 2;
+        return '/(?:';
+      }
+
       slash = slash || '';
-      format = format || '';
-      capture = capture || '([^\\/' + format + ']+?)';
+      format = format ? '\\.' : '';
       optional = optional || '';
+      capture = capture ?
+        capture.replace(/\\.|\*/, function (m) { return m === '*' ? '(.*)' : m; }) :
+        (backtrack ? '((?:(?!/|' + backtrack + ').)+?)' : '([^/' + format + ']+?)');
 
       keys.push({
         name: key,
@@ -76,41 +107,20 @@ function pathtoRegexp(path, keys, options) {
         offset: offset + extraOffset
       });
 
-      var result = ''
-        + (optional ? '' : slash)
-        + '(?:'
-        + format + (optional ? slash : '') + capture
-        + (star ? '((?:[\\/' + format + '].+?)?)' : '')
+      var result = '(?:'
+        + format + slash + capture
+        + (star ? '((?:[/' + format + '].+?)?)' : '')
         + ')'
         + optional;
 
       extraOffset += result.length - match.length;
 
       return result;
-    })
-    .replace(/\*/g, function (star, index) {
-      var len = keys.length
-
-      while (len-- > keysOffset && keys[len].offset > index) {
-        keys[len].offset += 3; // Replacement length minus asterisk length.
-      }
-
-      return '(.*)';
     });
 
   // This is a workaround for handling unnamed matching groups.
   while (m = MATCHING_GROUP_REGEXP.exec(path)) {
-    var escapeCount = 0;
-    var index = m.index;
-
-    while (path.charAt(--index) === '\\') {
-      escapeCount++;
-    }
-
-    // It's possible to escape the bracket.
-    if (escapeCount % 2 === 1) {
-      continue;
-    }
+    if (m[0][0] === '\\') continue;
 
     if (keysOffset + i === keys.length || keys[keysOffset + i].offset > m.index) {
       keys.splice(keysOffset + i, 0, {
@@ -123,12 +133,14 @@ function pathtoRegexp(path, keys, options) {
     i++;
   }
 
+  path += strict ? '' : path[path.length - 1] === '/' ? '?' : '/?';
+
   // If the path is non-ending, match until the end or a slash.
   if (end) {
     path += '$';
   } else if (path[path.length - 1] !== '/') {
-    path += lookahead ? '(?=\\/|$)' : '(?:\/|$)';
+    path += lookahead ? '(?=/|$)' : '(?:/|$)';
   }
 
-  return new RegExp(path, flags);
+  return new RegExp('^' + path, flags);
 };
