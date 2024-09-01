@@ -34,31 +34,56 @@ export interface MatchTestSet {
 export const PARSER_TESTS: ParserTestSet[] = [
   {
     path: "/",
-    expected: ["/"],
+    expected: [{ type: "text", value: "/" }],
   },
   {
     path: "/:test",
-    expected: ["/", { name: "test" }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+    ],
   },
   {
     path: '/:"0"',
-    expected: ["/", { name: "0" }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: "0" },
+    ],
   },
   {
     path: "/:_",
-    expected: ["/", { name: "_" }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: "_" },
+    ],
   },
   {
     path: "/:café",
-    expected: ["/", { name: "café" }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: "café" },
+    ],
   },
   {
     path: '/:"123"',
-    expected: ["/", { name: "123" }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: "123" },
+    ],
   },
   {
     path: '/:"1\\"\\2\\"3"',
-    expected: ["/", { name: '1"2"3' }],
+    expected: [
+      { type: "text", value: "/" },
+      { type: "param", name: '1"2"3' },
+    ],
+  },
+  {
+    path: "/*path",
+    expected: [
+      { type: "text", value: "/" },
+      { type: "wildcard", name: "path" },
+    ],
   },
 ];
 
@@ -106,7 +131,6 @@ export const COMPILE_TESTS: CompileTestSet[] = [
   },
   {
     path: "/:test",
-    options: { validate: false },
     tests: [
       { input: undefined, expected: null },
       { input: {}, expected: null },
@@ -116,22 +140,12 @@ export const COMPILE_TESTS: CompileTestSet[] = [
   },
   {
     path: "/:test",
-    options: { validate: false, encode: false },
+    options: { encode: false },
     tests: [
       { input: undefined, expected: null },
       { input: {}, expected: null },
       { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
-    ],
-  },
-  {
-    path: "/:test",
-    options: { encode: encodeURIComponent },
-    tests: [
-      { input: undefined, expected: null },
-      { input: {}, expected: null },
-      { input: { test: "123" }, expected: "/123" },
-      { input: { test: "123/xyz" }, expected: "/123%2Fxyz" },
     ],
   },
   {
@@ -145,56 +159,32 @@ export const COMPILE_TESTS: CompileTestSet[] = [
     ],
   },
   {
-    path: "{/:test}?",
+    path: "{/:test}",
     options: { encode: false },
     tests: [
       { input: undefined, expected: "" },
       { input: {}, expected: "" },
       { input: { test: undefined }, expected: "" },
       { input: { test: "123" }, expected: "/123" },
-      { input: { test: "123/xyz" }, expected: null },
-    ],
-  },
-  {
-    path: "/:test(.*)",
-    options: { encode: false },
-    tests: [
-      { input: undefined, expected: null },
-      { input: {}, expected: null },
-      { input: { test: "" }, expected: "/" },
-      { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
     ],
   },
   {
-    path: "{/:test}*",
+    path: "/*test",
     tests: [
-      { input: undefined, expected: "" },
-      { input: {}, expected: "" },
-      { input: { test: [] }, expected: "" },
-      { input: { test: [""] }, expected: null },
+      { input: undefined, expected: null },
+      { input: {}, expected: null },
+      { input: { test: [] }, expected: null },
       { input: { test: ["123"] }, expected: "/123" },
-      { input: { test: "123/xyz" }, expected: null },
       { input: { test: ["123", "xyz"] }, expected: "/123/xyz" },
     ],
   },
   {
-    path: "{/:test}*",
+    path: "/*test",
     options: { encode: false },
     tests: [
-      { input: undefined, expected: "" },
-      { input: {}, expected: "" },
-      { input: { test: "" }, expected: null },
       { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
-      { input: { test: ["123", "xyz"] }, expected: null },
-    ],
-  },
-  {
-    path: "/{<:foo>}+",
-    tests: [
-      { input: undefined, expected: null },
-      { input: { foo: ["x", "y", "z"] }, expected: "/<x><y><z>" },
     ],
   },
 ];
@@ -227,7 +217,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       { input: "/test/route", expected: false },
       {
         input: "/test/",
-        expected: false,
+        expected: { path: "/test/", params: {} },
       },
     ],
   },
@@ -242,7 +232,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       { input: "/test", expected: false },
       {
         input: "/test//",
-        expected: false,
+        expected: { path: "/test//", params: {} },
       },
     ],
   },
@@ -255,7 +245,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/route/",
-        expected: false,
+        expected: { path: "/route/", params: { test: "route" } },
       },
       {
         input: "/route.json",
@@ -266,7 +256,10 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/route.json/",
-        expected: false,
+        expected: {
+          path: "/route.json/",
+          params: { test: "route.json" },
+        },
       },
       {
         input: "/route/test",
@@ -341,7 +334,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/test/",
-        expected: { path: "/test", params: {} },
+        expected: { path: "/test/", params: {} },
       },
       {
         input: "/test////",
@@ -377,7 +370,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/test//",
-        expected: { path: "/test/", params: {} },
+        expected: { path: "/test//", params: {} },
       },
       {
         input: "/test/route",
@@ -401,7 +394,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/route/",
-        expected: { path: "/route", params: { test: "route" } },
+        expected: { path: "/route/", params: { test: "route" } },
       },
       {
         input: "/route.json",
@@ -413,7 +406,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       {
         input: "/route.json/",
         expected: {
-          path: "/route.json",
+          path: "/route.json/",
           params: { test: "route.json" },
         },
       },
@@ -477,7 +470,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/",
-        expected: { path: "", params: {} },
+        expected: { path: "/", params: {} },
       },
       {
         input: "route",
@@ -498,7 +491,28 @@ export const MATCH_TESTS: MatchTestSet[] = [
    * Optional.
    */
   {
-    path: "{/:test}?",
+    path: "{/route}",
+    tests: [
+      {
+        input: "",
+        expected: { path: "", params: {} },
+      },
+      {
+        input: "/",
+        expected: { path: "/", params: {} },
+      },
+      {
+        input: "/foo",
+        expected: false,
+      },
+      {
+        input: "/route",
+        expected: { path: "/route", params: {} },
+      },
+    ],
+  },
+  {
+    path: "{/:test}",
     tests: [
       {
         input: "/route",
@@ -510,12 +524,12 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/",
-        expected: false,
+        expected: { path: "/", params: {} },
       },
     ],
   },
   {
-    path: "{/:test}?/bar",
+    path: "{/:test}/bar",
     tests: [
       {
         input: "/bar",
@@ -527,12 +541,12 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/foo/bar/",
-        expected: false,
+        expected: { path: "/foo/bar/", params: { test: "foo" } },
       },
     ],
   },
   {
-    path: "{/:test}?-bar",
+    path: "{/:test}-bar",
     tests: [
       {
         input: "-bar",
@@ -544,12 +558,12 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/foo-bar/",
-        expected: false,
+        expected: { path: "/foo-bar/", params: { test: "foo" } },
       },
     ],
   },
   {
-    path: "/{:test}?-bar",
+    path: "/{:test}-bar",
     tests: [
       {
         input: "/-bar",
@@ -561,263 +575,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/foo-bar/",
-        expected: false,
-      },
-    ],
-  },
-
-  /**
-   * Zero or more times.
-   */
-  {
-    path: "{/:test}*",
-    tests: [
-      {
-        input: "/",
-        expected: false,
-      },
-      {
-        input: "//",
-        expected: false,
-      },
-      {
-        input: "/route",
-        expected: { path: "/route", params: { test: ["route"] } },
-      },
-      {
-        input: "/some/basic/route",
-        expected: {
-          path: "/some/basic/route",
-          params: { test: ["some", "basic", "route"] },
-        },
-      },
-    ],
-  },
-  {
-    path: "{/:test}*-bar",
-    tests: [
-      {
-        input: "-bar",
-        expected: { path: "-bar", params: {} },
-      },
-      {
-        input: "/-bar",
-        expected: false,
-      },
-      {
-        input: "/foo-bar",
-        expected: { path: "/foo-bar", params: { test: ["foo"] } },
-      },
-      {
-        input: "/foo/baz-bar",
-        expected: {
-          path: "/foo/baz-bar",
-          params: { test: ["foo", "baz"] },
-        },
-      },
-    ],
-  },
-
-  /**
-   * One or more times.
-   */
-  {
-    path: "{/:test}+",
-    tests: [
-      {
-        input: "/",
-        expected: false,
-      },
-      {
-        input: "//",
-        expected: false,
-      },
-      {
-        input: "/route",
-        expected: { path: "/route", params: { test: ["route"] } },
-      },
-      {
-        input: "/some/basic/route",
-        expected: {
-          path: "/some/basic/route",
-          params: { test: ["some", "basic", "route"] },
-        },
-      },
-    ],
-  },
-  {
-    path: "{/:test}+-bar",
-    tests: [
-      {
-        input: "-bar",
-        expected: false,
-      },
-      {
-        input: "/-bar",
-        expected: false,
-      },
-      {
-        input: "/foo-bar",
-        expected: { path: "/foo-bar", params: { test: ["foo"] } },
-      },
-      {
-        input: "/foo/baz-bar",
-        expected: {
-          path: "/foo/baz-bar",
-          params: { test: ["foo", "baz"] },
-        },
-      },
-    ],
-  },
-
-  /**
-   * Custom parameters.
-   */
-  {
-    path: String.raw`/:test(\d+)`,
-    tests: [
-      {
-        input: "/123",
-        expected: { path: "/123", params: { test: "123" } },
-      },
-      {
-        input: "/abc",
-        expected: false,
-      },
-      {
-        input: "/123/abc",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: String.raw`/:test(\d+)-bar`,
-    tests: [
-      {
-        input: "-bar",
-        expected: false,
-      },
-      {
-        input: "/-bar",
-        expected: false,
-      },
-      {
-        input: "/abc-bar",
-        expected: false,
-      },
-      {
-        input: "/123-bar",
-        expected: { path: "/123-bar", params: { test: "123" } },
-      },
-      {
-        input: "/123/456-bar",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/:test(.*)",
-    tests: [
-      {
-        input: "/",
-        expected: { path: "/", params: { test: "" } },
-      },
-      {
-        input: "/route",
-        expected: { path: "/route", params: { test: "route" } },
-      },
-      {
-        input: "/route/123",
-        expected: {
-          path: "/route/123",
-          params: { test: "route/123" },
-        },
-      },
-      {
-        input: "/;,:@&=/+$-_.!/~*()",
-        expected: {
-          path: "/;,:@&=/+$-_.!/~*()",
-          params: { test: ";,:@&=/+$-_.!/~*()" },
-        },
-      },
-    ],
-  },
-  {
-    path: "/:test([a-z]+)",
-    tests: [
-      {
-        input: "/abc",
-        expected: { path: "/abc", params: { test: "abc" } },
-      },
-      {
-        input: "/123",
-        expected: false,
-      },
-      {
-        input: "/abc/123",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/:test(this|that)",
-    tests: [
-      {
-        input: "/this",
-        expected: { path: "/this", params: { test: "this" } },
-      },
-      {
-        input: "/that",
-        expected: { path: "/that", params: { test: "that" } },
-      },
-      {
-        input: "/foo",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "{/:test(abc|xyz)}*",
-    tests: [
-      {
-        input: "/",
-        expected: false,
-      },
-      {
-        input: "/abc",
-        expected: { path: "/abc", params: { test: ["abc"] } },
-      },
-      {
-        input: "/abc/abc",
-        expected: {
-          path: "/abc/abc",
-          params: { test: ["abc", "abc"] },
-        },
-      },
-      {
-        input: "/xyz/xyz",
-        expected: {
-          path: "/xyz/xyz",
-          params: { test: ["xyz", "xyz"] },
-        },
-      },
-      {
-        input: "/abc/xyz",
-        expected: {
-          path: "/abc/xyz",
-          params: { test: ["abc", "xyz"] },
-        },
-      },
-      {
-        input: "/abc/xyz/abc/xyz",
-        expected: {
-          path: "/abc/xyz/abc/xyz",
-          params: { test: ["abc", "xyz", "abc", "xyz"] },
-        },
-      },
-      {
-        input: "/xyzxyz",
-        expected: false,
+        expected: { path: "/foo-bar/", params: { test: "foo" } },
       },
     ],
   },
@@ -851,12 +609,12 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "route/",
-        expected: false,
+        expected: { path: "route/", params: { test: "route" } },
       },
     ],
   },
   {
-    path: "{:test}?",
+    path: "{:test}",
     tests: [
       {
         input: "test",
@@ -865,30 +623,6 @@ export const MATCH_TESTS: MatchTestSet[] = [
       {
         input: "",
         expected: { path: "", params: {} },
-      },
-    ],
-  },
-  {
-    path: "{:test/}+",
-    tests: [
-      {
-        input: "route/",
-        expected: { path: "route/", params: { test: ["route"] } },
-      },
-      {
-        input: "/route",
-        expected: false,
-      },
-      {
-        input: "",
-        expected: false,
-      },
-      {
-        input: "foo/bar/",
-        expected: {
-          path: "foo/bar/",
-          params: { test: ["foo", "bar"] },
-        },
       },
     ],
   },
@@ -926,111 +660,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/route.json.json",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/:test([^/]+).json",
-    tests: [
-      {
-        input: "/route.json.json",
-        expected: {
-          path: "/route.json.json",
-          params: { test: "route.json" },
-        },
-      },
-    ],
-  },
-
-  /**
-   * Format params.
-   */
-  {
-    path: "/test.:format(\\w+)",
-    tests: [
-      {
-        input: "/test.html",
-        expected: { path: "/test.html", params: { format: "html" } },
-      },
-      {
-        input: "/test",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/test.:format(\\w+).:format(\\w+)",
-    tests: [
-      {
-        input: "/test.html.json",
-        expected: {
-          path: "/test.html.json",
-          params: { format: "json" },
-        },
-      },
-      {
-        input: "/test.html",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/test{.:format(\\w+)}?",
-    tests: [
-      {
-        input: "/test",
-        expected: { path: "/test", params: { format: undefined } },
-      },
-      {
-        input: "/test.html",
-        expected: { path: "/test.html", params: { format: "html" } },
-      },
-    ],
-  },
-  {
-    path: "/test{.:format(\\w+)}+",
-    tests: [
-      {
-        input: "/test",
-        expected: false,
-      },
-      {
-        input: "/test.html",
-        expected: {
-          path: "/test.html",
-          params: { format: ["html"] },
-        },
-      },
-      {
-        input: "/test.html.json",
-        expected: {
-          path: "/test.html.json",
-          params: { format: ["html", "json"] },
-        },
-      },
-    ],
-  },
-  {
-    path: "/test{.:format}+",
-    tests: [
-      {
-        input: "/test",
-        expected: false,
-      },
-      {
-        input: "/test.html",
-        expected: {
-          path: "/test.html",
-          params: { format: ["html"] },
-        },
-      },
-      {
-        input: "/test.hbs.html",
-        expected: {
-          path: "/test.hbs.html",
-          params: { format: ["hbs", "html"] },
-        },
+        expected: { path: "/route.json.json", params: { test: "route.json" } },
       },
     ],
   },
@@ -1056,13 +686,13 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.html.json",
         expected: {
           path: "/route.html.json",
-          params: { test: "route", format: "html.json" },
+          params: { test: "route.html", format: "json" },
         },
       },
     ],
   },
   {
-    path: "/:test{.:format}?",
+    path: "/:test{.:format}",
     tests: [
       {
         input: "/route",
@@ -1079,7 +709,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.json.html",
         expected: {
           path: "/route.json.html",
-          params: { test: "route", format: "json.html" },
+          params: { test: "route.json", format: "html" },
         },
       },
     ],
@@ -1102,90 +732,6 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Unnamed params.
-   */
-  {
-    path: "/(\\d+)",
-    tests: [
-      {
-        input: "/123",
-        expected: { path: "/123", params: { "0": "123" } },
-      },
-      {
-        input: "/abc",
-        expected: false,
-      },
-      {
-        input: "/123/abc",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "{/(\\d+)}?",
-    tests: [
-      {
-        input: "/",
-        expected: false,
-      },
-      {
-        input: "/123",
-        expected: { path: "/123", params: { "0": "123" } },
-      },
-    ],
-  },
-  {
-    path: "/route\\(\\\\(\\d+\\\\)\\)",
-    tests: [
-      {
-        input: "/route(\\123\\)",
-        expected: {
-          path: "/route(\\123\\)",
-          params: { "0": "123\\" },
-        },
-      },
-      {
-        input: "/route(\\123)",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "{/route}?",
-    tests: [
-      {
-        input: "",
-        expected: { path: "", params: {} },
-      },
-      {
-        input: "/",
-        expected: false,
-      },
-      {
-        input: "/foo",
-        expected: false,
-      },
-      {
-        input: "/route",
-        expected: { path: "/route", params: {} },
-      },
-    ],
-  },
-  {
-    path: "{/(.*)}",
-    tests: [
-      {
-        input: "/",
-        expected: { path: "/", params: { "0": "" } },
-      },
-      {
-        input: "/login",
-        expected: { path: "/login", params: { "0": "login" } },
-      },
-    ],
-  },
-
-  /**
    * Escaped characters.
    */
   {
@@ -1202,44 +748,11 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/.\\+\\*\\?\\{\\}=^\\!\\:$[]\\|",
+    path: "/.\\+\\*\\?\\{\\}=^\\!\\:$\\[\\]\\|",
     tests: [
       {
         input: "/.+*?{}=^!:$[]|",
         expected: { path: "/.+*?{}=^!:$[]|", params: {} },
-      },
-    ],
-  },
-  {
-    path: "/test/{:uid(u\\d+)}?{:cid(c\\d+)}?",
-    tests: [
-      {
-        input: "/test/u123",
-        expected: { path: "/test/u123", params: { uid: "u123" } },
-      },
-      {
-        input: "/test/c123",
-        expected: { path: "/test/c123", params: { cid: "c123" } },
-      },
-    ],
-  },
-
-  /**
-   * Unnamed group prefix.
-   */
-  {
-    path: "/{apple-}?icon-:res(\\d+).png",
-    tests: [
-      {
-        input: "/icon-240.png",
-        expected: { path: "/icon-240.png", params: { res: "240" } },
-      },
-      {
-        input: "/apple-icon-240.png",
-        expected: {
-          path: "/apple-icon-240.png",
-          params: { res: "240" },
-        },
       },
     ],
   },
@@ -1273,32 +786,6 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:remote([\\w\\-\\.]+)/:user([\\w-]+)",
-    tests: [
-      {
-        input: "/endpoint/user",
-        expected: {
-          path: "/endpoint/user",
-          params: { remote: "endpoint", user: "user" },
-        },
-      },
-      {
-        input: "/endpoint/user-name",
-        expected: {
-          path: "/endpoint/user-name",
-          params: { remote: "endpoint", user: "user-name" },
-        },
-      },
-      {
-        input: "/foo.bar/user-name",
-        expected: {
-          path: "/foo.bar/user-name",
-          params: { remote: "foo.bar", user: "user-name" },
-        },
-      },
-    ],
-  },
-  {
     path: "/:foo\\?",
     tests: [
       {
@@ -1312,24 +799,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "{/:foo}+bar",
-    tests: [
-      {
-        input: "/foobar",
-        expected: { path: "/foobar", params: { foo: ["foo"] } },
-      },
-      {
-        input: "/foo/bar",
-        expected: false,
-      },
-      {
-        input: "/foo/barbar",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/{:pre}?baz",
+    path: "/{:pre}baz",
     tests: [
       {
         input: "/foobaz",
@@ -1358,7 +828,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:foo\\({:bar}?\\)",
+    path: "/:foo\\({:bar}\\)",
     tests: [
       {
         input: "/hello(world)",
@@ -1377,27 +847,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:postType(video|audio|text){(\\+.+)}?",
-    tests: [
-      {
-        input: "/video",
-        expected: { path: "/video", params: { postType: "video" } },
-      },
-      {
-        input: "/video+test",
-        expected: {
-          path: "/video+test",
-          params: { 0: "+test", postType: "video" },
-        },
-      },
-      {
-        input: "/video+",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "{/:foo}?{/:bar}?-ext",
+    path: "{/:foo}{/:bar}-ext",
     tests: [
       {
         input: "/-ext",
@@ -1428,7 +878,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:required{/:optional}?-ext",
+    path: "/:required{/:optional}-ext",
     tests: [
       {
         input: "/foo-ext",
@@ -1545,7 +995,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "mail{.:domain}?.com",
+    path: "mail{.:domain}.com",
     options: {
       delimiter: ".",
     },
@@ -1608,7 +1058,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
    * Prefixes.
    */
   {
-    path: "{$:foo}{$:bar}?",
+    path: "$:foo{$:bar}",
     tests: [
       {
         input: "$x",
@@ -1621,20 +1071,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "{$:foo}+",
-    tests: [
-      {
-        input: "$x",
-        expected: { path: "$x", params: { foo: ["x"] } },
-      },
-      {
-        input: "$x$y",
-        expected: { path: "$x$y", params: { foo: ["x", "y"] } },
-      },
-    ],
-  },
-  {
-    path: "name{/:attr1}?{-:attr2}?{-:attr3}?",
+    path: "name{/:attr1}{-:attr2}{-:attr3}",
     tests: [
       {
         input: "name",
@@ -1678,108 +1115,12 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
-  {
-    path: "name{/:attrs;-}*",
-    tests: [
-      {
-        input: "name",
-        expected: { path: "name", params: {} },
-      },
-      {
-        input: "name/1",
-        expected: {
-          path: "name/1",
-          params: { attrs: ["1"] },
-        },
-      },
-      {
-        input: "name/1-2",
-        expected: {
-          path: "name/1-2",
-          params: { attrs: ["1", "2"] },
-        },
-      },
-      {
-        input: "name/1-2-3",
-        expected: {
-          path: "name/1-2-3",
-          params: { attrs: ["1", "2", "3"] },
-        },
-      },
-      {
-        input: "name/foo-bar/route",
-        expected: false,
-      },
-      {
-        input: "name/test/route",
-        expected: false,
-      },
-    ],
-  },
-
-  /**
-   * Nested parentheses.
-   */
-  {
-    path: "/:test(\\d+(?:\\.\\d+)?)",
-    tests: [
-      {
-        input: "/123",
-        expected: { path: "/123", params: { test: "123" } },
-      },
-      {
-        input: "/abc",
-        expected: false,
-      },
-      {
-        input: "/123/abc",
-        expected: false,
-      },
-      {
-        input: "/123.123",
-        expected: { path: "/123.123", params: { test: "123.123" } },
-      },
-      {
-        input: "/123.abc",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/:test((?!login)[^/]+)",
-    tests: [
-      {
-        input: "/route",
-        expected: { path: "/route", params: { test: "route" } },
-      },
-      {
-        input: "/login",
-        expected: false,
-      },
-    ],
-  },
 
   /**
    * https://github.com/pillarjs/path-to-regexp/issues/206
    */
   {
-    path: "/user{(s)}?/:user",
-    tests: [
-      {
-        input: "/user/123",
-        expected: { path: "/user/123", params: { user: "123" } },
-      },
-      {
-        input: "/users/123",
-        expected: {
-          path: "/users/123",
-          params: { 0: "s", user: "123" },
-        },
-      },
-    ],
-  },
-  {
-    path: "/user{s}?/:user",
+    path: "/user{s}/:user",
     tests: [
       {
         input: "/user/123",
@@ -1793,210 +1134,156 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * https://github.com/pillarjs/path-to-regexp/pull/270
+   * Wildcard.
    */
   {
-    path: "/files{/:path}*{.:ext}*",
+    path: "/*path",
     tests: [
       {
-        input: "/files/hello/world.txt",
-        expected: {
-          path: "/files/hello/world.txt",
-          params: { path: ["hello", "world"], ext: ["txt"] },
-        },
-      },
-      {
-        input: "/files/hello/world.txt.png",
-        expected: {
-          path: "/files/hello/world.txt.png",
-          params: { path: ["hello", "world"], ext: ["txt", "png"] },
-        },
-      },
-      {
-        input: "/files/my/photo.jpg/gif",
+        input: "/",
         expected: false,
       },
+      {
+        input: "/route",
+        expected: { path: "/route", params: { path: ["route"] } },
+      },
+      {
+        input: "/route/nested",
+        expected: {
+          path: "/route/nested",
+          params: { path: ["route", "nested"] },
+        },
+      },
     ],
   },
   {
-    path: "/files{/:path}*{.:ext}?",
+    path: "*path",
     tests: [
       {
-        input: "/files/hello/world.txt",
+        input: "/",
+        expected: { path: "/", params: { path: ["", ""] } },
+      },
+      {
+        input: "/test",
+        expected: { path: "/test", params: { path: ["", "test"] } },
+      },
+    ],
+  },
+  {
+    path: "*path",
+    options: { decode: false },
+    tests: [
+      {
+        input: "/",
+        expected: { path: "/", params: { path: "/" } },
+      },
+      {
+        input: "/test",
+        expected: { path: "/test", params: { path: "/test" } },
+      },
+    ],
+  },
+  {
+    path: "/*path.:ext",
+    tests: [
+      {
+        input: "/test.html",
         expected: {
-          path: "/files/hello/world.txt",
-          params: { path: ["hello", "world"], ext: "txt" },
+          path: "/test.html",
+          params: { path: ["test"], ext: "html" },
         },
       },
       {
-        input: "/files/my/photo.jpg/gif",
+        input: "/test.html/nested",
         expected: false,
       },
-    ],
-  },
-  {
-    path: "#/*",
-    tests: [
       {
-        input: "#/",
-        expected: { path: "#/", params: {} },
-      },
-    ],
-  },
-  {
-    path: "/foo{/:bar}*",
-    tests: [
-      {
-        input: "/foo/test1/test2",
+        input: "/test.html/nested.json",
         expected: {
-          path: "/foo/test1/test2",
-          params: { bar: ["test1", "test2"] },
+          path: "/test.html/nested.json",
+          params: { path: ["test.html", "nested"], ext: "json" },
         },
       },
     ],
   },
   {
-    path: "/entity/:id/*",
+    path: "/:path.*ext",
+    tests: [
+      {
+        input: "/test.html",
+        expected: {
+          path: "/test.html",
+          params: { path: "test", ext: ["html"] },
+        },
+      },
+      {
+        input: "/test.html/nested",
+        expected: {
+          path: "/test.html/nested",
+          params: { path: "test", ext: ["html", "nested"] },
+        },
+      },
+      {
+        input: "/test.html/nested.json",
+        expected: {
+          path: "/test.html/nested.json",
+          params: { path: "test", ext: ["html", "nested.json"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*path{.:ext}",
+    tests: [
+      {
+        input: "/test.html",
+        expected: {
+          path: "/test.html",
+          params: { path: ["test"], ext: "html" },
+        },
+      },
+      {
+        input: "/test.html/nested",
+        expected: {
+          params: {
+            path: ["test.html", "nested"],
+          },
+          path: "/test.html/nested",
+        },
+      },
+    ],
+  },
+  {
+    path: "/entity/:id/*path",
     tests: [
       {
         input: "/entity/foo",
         expected: false,
       },
       {
-        input: "/entity/foo/",
-        expected: { path: "/entity/foo/", params: { id: "foo" } },
-      },
-    ],
-  },
-  {
-    path: "/test/*",
-    tests: [
-      {
-        input: "/test",
-        expected: false,
-      },
-      {
-        input: "/test/",
-        expected: { path: "/test/", params: {} },
-      },
-      {
-        input: "/test/route",
-        expected: { path: "/test/route", params: { "0": ["route"] } },
-      },
-      {
-        input: "/test/route/nested",
+        input: "/entity/foo/path",
         expected: {
-          path: "/test/route/nested",
-          params: { "0": ["route", "nested"] },
-        },
-      },
-    ],
-  },
-
-  /**
-   * Asterisk wildcard.
-   */
-  {
-    path: "/*",
-    tests: [
-      {
-        input: "/",
-        expected: { path: "/", params: { "0": undefined } },
-      },
-      {
-        input: "/route",
-        expected: { path: "/route", params: { "0": ["route"] } },
-      },
-      {
-        input: "/route/nested",
-        expected: {
-          path: "/route/nested",
-          params: { "0": ["route", "nested"] },
+          path: "/entity/foo/path",
+          params: { id: "foo", path: ["path"] },
         },
       },
     ],
   },
   {
-    path: "*",
+    path: "/*foo/:bar/*baz",
     tests: [
       {
-        input: "/",
-        expected: { path: "/", params: { "0": ["", ""] } },
-      },
-      {
-        input: "/test",
-        expected: { path: "/test", params: { "0": ["", "test"] } },
-      },
-    ],
-  },
-  {
-    path: "*",
-    options: { decode: false },
-    tests: [
-      {
-        input: "/",
-        expected: { path: "/", params: { "0": "/" } },
-      },
-      {
-        input: "/test",
-        expected: { path: "/test", params: { "0": "/test" } },
-      },
-    ],
-  },
-  {
-    path: "/*.:ext",
-    tests: [
-      {
-        input: "/test.html",
+        input: "/x/y/z",
         expected: {
-          path: "/test.html",
-          params: { "0": ["test"], ext: "html" },
+          path: "/x/y/z",
+          params: { foo: ["x"], bar: "y", baz: ["z"] },
         },
       },
       {
-        input: "/test.html/nested",
-        expected: false,
-      },
-    ],
-  },
-  {
-    path: "/*{.:ext}?",
-    tests: [
-      {
-        input: "/test.html",
+        input: "/1/2/3/4/5",
         expected: {
-          path: "/test.html",
-          params: { "0": ["test.html"], ext: undefined },
-        },
-      },
-      {
-        input: "/test.html/nested",
-        expected: {
-          params: {
-            "0": ["test.html", "nested"],
-          },
-          path: "/test.html/nested",
-        },
-      },
-    ],
-  },
-  {
-    path: "/*{.:ext}*",
-    tests: [
-      {
-        input: "/test.html",
-        expected: {
-          path: "/test.html",
-          params: { "0": ["test.html"], ext: undefined },
-        },
-      },
-      {
-        input: "/test.html/nested",
-        expected: {
-          params: {
-            "0": ["test.html", "nested"],
-          },
-          path: "/test.html/nested",
+          path: "/1/2/3/4/5",
+          params: { foo: ["1", "2", "3"], bar: "4", baz: ["5"] },
         },
       },
     ],
@@ -2006,7 +1293,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
    * Longer prefix.
    */
   {
-    path: "/:foo{/test/:bar}?",
+    path: "/:foo{/test/:bar}",
     tests: [
       {
         input: "/route",
@@ -2023,30 +1310,10 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Prefix and suffix as separator.
-   */
-  {
-    path: "/{<:foo>}+",
-    tests: [
-      {
-        input: "/<test>",
-        expected: { path: "/<test>", params: { foo: ["test"] } },
-      },
-      {
-        input: "/<test><again>",
-        expected: {
-          path: "/<test><again>",
-          params: { foo: ["test", "again"] },
-        },
-      },
-    ],
-  },
-
-  /**
    * Backtracking tests.
    */
   {
-    path: "{:foo/}?{:bar.}?",
+    path: "{:foo/}{:bar.}",
     tests: [
       {
         input: "",
@@ -2066,7 +1333,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/abc{abc:foo}?",
+    path: "/abc{abc:foo}",
     tests: [
       {
         input: "/abc",
@@ -2094,19 +1361,28 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
-    path: "/:foo{abc:bar}?",
+    path: "/:foo{abc:bar}",
     tests: [
       {
         input: "/abc",
-        expected: false,
+        expected: {
+          params: { foo: "abc" },
+          path: "/abc",
+        },
       },
       {
         input: "/abcabc",
-        expected: false,
+        expected: {
+          params: { foo: "abcabc" },
+          path: "/abcabc",
+        },
       },
       {
         input: "/abcabc123",
-        expected: false,
+        expected: {
+          params: { foo: "abc", bar: "123" },
+          path: "/abcabc123",
+        },
       },
       {
         input: "/acb",
@@ -2116,10 +1392,17 @@ export const MATCH_TESTS: MatchTestSet[] = [
         },
       },
       {
-        input: "/acbabc123",
+        input: "/123",
         expected: {
-          path: "/acbabc123",
-          params: { foo: "acb", bar: "123" },
+          path: "/123",
+          params: { foo: "123" },
+        },
+      },
+      {
+        input: "/123abcabc",
+        expected: {
+          path: "/123abcabc",
+          params: { foo: "123abcabc" },
         },
       },
     ],
@@ -2137,20 +1420,14 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/abcabc123",
+        expected: {
+          path: "/abcabc123",
+          params: { foo: "abc", bar: "123" },
+        },
+      },
+      {
+        input: "/123abcabc",
         expected: false,
-      },
-    ],
-  },
-  {
-    path: "/:foo(.*){.:ext}?",
-    tests: [
-      {
-        input: "/abc",
-        expected: { path: "/abc", params: { foo: "abc" } },
-      },
-      {
-        input: "/abc.txt",
-        expected: { path: "/abc.txt", params: { foo: "abc.txt" } },
       },
     ],
   },
@@ -2187,6 +1464,22 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
+    path: "/:foo{|:bar|}",
+    tests: [
+      {
+        input: "/hello|world|",
+        expected: {
+          path: "/hello|world|",
+          params: { foo: "hello", bar: "world" },
+        },
+      },
+      {
+        input: "/hello||",
+        expected: { path: "/hello||", params: { foo: "hello||" } },
+      },
+    ],
+  },
+  {
     path: ":foo\\@:bar",
     tests: [
       {
@@ -2204,7 +1497,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
    * Multi character delimiters.
    */
   {
-    path: "%25:foo{%25:bar}?",
+    path: "%25:foo{%25:bar}",
     options: {
       delimiter: "%25",
     },
