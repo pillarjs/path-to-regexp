@@ -1,16 +1,23 @@
-import type {
-  MatchOptions,
-  Match,
-  ParseOptions,
-  Token,
-  CompileOptions,
-  ParamData,
+import {
+  type MatchOptions,
+  type Match,
+  type ParseOptions,
+  type Token,
+  type CompileOptions,
+  type ParamData,
+  TokenData,
 } from "./index.js";
 
 export interface ParserTestSet {
   path: string;
   options?: ParseOptions;
-  expected: Token[];
+  expected: TokenData;
+}
+
+export interface StringifyTestSet {
+  data: TokenData;
+  options?: ParseOptions;
+  expected: string;
 }
 
 export interface CompileTestSet {
@@ -34,56 +41,116 @@ export interface MatchTestSet {
 export const PARSER_TESTS: ParserTestSet[] = [
   {
     path: "/",
-    expected: [{ type: "text", value: "/" }],
+    expected: new TokenData([{ type: "text", value: "/" }]),
   },
   {
     path: "/:test",
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: "test" },
-    ],
+    ]),
   },
   {
     path: '/:"0"',
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: "0" },
-    ],
+    ]),
   },
   {
     path: "/:_",
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: "_" },
-    ],
+    ]),
   },
   {
     path: "/:café",
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: "café" },
-    ],
+    ]),
   },
   {
     path: '/:"123"',
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: "123" },
-    ],
+    ]),
   },
   {
     path: '/:"1\\"\\2\\"3"',
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "param", name: '1"2"3' },
-    ],
+    ]),
   },
   {
     path: "/*path",
-    expected: [
+    expected: new TokenData([
       { type: "text", value: "/" },
       { type: "wildcard", name: "path" },
-    ],
+    ]),
+  },
+];
+
+export const STRINGIFY_TESTS: StringifyTestSet[] = [
+  {
+    data: new TokenData([{ type: "text", value: "/" }]),
+    expected: "/",
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+    ]),
+    expected: "/:test",
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "café" },
+    ]),
+    expected: "/:café",
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "0" },
+    ]),
+    expected: '/:"0"',
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "wildcard", name: "test" },
+    ]),
+    expected: "/*test",
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "wildcard", name: "0" },
+    ]),
+    expected: '/*"0"',
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/users" },
+      {
+        type: "group",
+        tokens: [
+          { type: "text", value: "/" },
+          { type: "param", name: "id" },
+        ],
+      },
+      { type: "text", value: "/delete" },
+    ]),
+    expected: "/users{/:id}/delete",
+  },
+  {
+    data: new TokenData([{ type: "text", value: "/:+?*" }]),
+    expected: "/\\:\\+\\?\\*",
   },
 ];
 

@@ -96,6 +96,13 @@ const SIMPLE_TOKENS: Record<string, TokenType> = {
 };
 
 /**
+ * Escape text for stringify to path.
+ */
+function escapeText(str: string) {
+  return str.replace(/[{}()\[\]+?!:*]/g, "\\$&");
+}
+
+/**
  * Escape a regular expression string.
  */
 function escape(str: string) {
@@ -594,4 +601,31 @@ function negate(delimiter: string, backtrack: string) {
   const isSimple = values.every((value) => value.length === 1);
   if (isSimple) return `[^${escape(values.join(""))}]`;
   return `(?:(?!${values.map(escape).join("|")}).)`;
+}
+
+/**
+ * Stringify token data into a path string.
+ */
+export function stringify(data: TokenData) {
+  return data.tokens.map(stringifyToken).join("");
+}
+
+function stringifyToken(token: Token): string {
+  if (token.type === "text") return escapeText(token.value);
+  if (token.type === "group") {
+    return `{${token.tokens.map(stringifyToken).join("")}}`;
+  }
+
+  const isSafe = isNameSafe(token.name);
+  const key = isSafe ? token.name : JSON.stringify(token.name);
+
+  if (token.type === "param") return `:${key}`;
+  if (token.type === "wildcard") return `*${key}`;
+  throw new TypeError(`Unexpected token: ${token}`);
+}
+
+function isNameSafe(name: string) {
+  const [first, ...rest] = name;
+  if (!ID_START.test(first)) return false;
+  return rest.every((char) => ID_CONTINUE.test(char));
 }

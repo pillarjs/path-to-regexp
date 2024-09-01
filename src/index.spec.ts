@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parse, compile, match } from "./index.js";
-import { PARSER_TESTS, COMPILE_TESTS, MATCH_TESTS } from "./cases.spec.js";
+import { parse, compile, match, stringify } from "./index.js";
+import {
+  PARSER_TESTS,
+  COMPILE_TESTS,
+  MATCH_TESTS,
+  STRINGIFY_TESTS,
+} from "./cases.spec.js";
 
 /**
  * Dynamically generate the entire test suite.
@@ -94,7 +99,17 @@ describe("path-to-regexp", () => {
     ({ path, options, expected }) => {
       it("should parse the path", () => {
         const data = parse(path, options);
-        expect(data.tokens).toEqual(expected);
+        expect(data).toEqual(expected);
+      });
+    },
+  );
+
+  describe.each(STRINGIFY_TESTS)(
+    "stringify $tokens with $options",
+    ({ data, expected }) => {
+      it("should stringify the path", () => {
+        const path = stringify(data);
+        expect(path).toEqual(expected);
       });
     },
   );
