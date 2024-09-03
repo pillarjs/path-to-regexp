@@ -68,6 +68,7 @@ The `match` function returns a function for matching strings against a path:
 - **options** _(optional)_ (See [parse](#parse) for more options)
   - **sensitive** Regexp will be case sensitive. (default: `false`)
   - **end** Validate the match reaches the end of the string. (default: `true`)
+  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
   - **trailing** Allows optional trailing delimiter to match. (default: `true`)
   - **decode** Function for decoding strings to params, or `false` to disable all processing. (default: `decodeURIComponent`)
 
@@ -83,6 +84,7 @@ The `compile` function will return a function for transforming parameters into a
 
 - **path** A string.
 - **options** (See [parse](#parse) for more options)
+  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
   - **encode** Function for encoding input strings for output into the path, or `false` to disable entirely. (default: `encodeURIComponent`)
 
 ```js
@@ -113,7 +115,6 @@ The `parse` function accepts a string and returns `TokenData`, the set of tokens
 
 - **path** A string.
 - **options** _(optional)_
-  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
   - **encodePath** A function for encoding input strings. (default: `x => x`, recommended: [`encodeurl`](https://github.com/pillarjs/encodeurl))
 
 ### Tokens
