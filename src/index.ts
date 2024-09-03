@@ -607,25 +607,31 @@ function negate(delimiter: string, backtrack: string) {
  * Stringify token data into a path string.
  */
 export function stringify(data: TokenData) {
-  return data.tokens.map(stringifyToken).join("");
-}
+  return data.tokens
+    .map(function stringifyToken(token, index, tokens): string {
+      if (token.type === "text") return escapeText(token.value);
+      if (token.type === "group") {
+        return `{${token.tokens.map(stringifyToken).join("")}}`;
+      }
 
-function stringifyToken(token: Token): string {
-  if (token.type === "text") return escapeText(token.value);
-  if (token.type === "group") {
-    return `{${token.tokens.map(stringifyToken).join("")}}`;
-  }
+      const isSafe =
+        isNameSafe(token.name) && isNextNameSafe(tokens[index + 1]);
+      const key = isSafe ? token.name : JSON.stringify(token.name);
 
-  const isSafe = isNameSafe(token.name);
-  const key = isSafe ? token.name : JSON.stringify(token.name);
-
-  if (token.type === "param") return `:${key}`;
-  if (token.type === "wildcard") return `*${key}`;
-  throw new TypeError(`Unexpected token: ${token}`);
+      if (token.type === "param") return `:${key}`;
+      if (token.type === "wildcard") return `*${key}`;
+      throw new TypeError(`Unexpected token: ${token}`);
+    })
+    .join("");
 }
 
 function isNameSafe(name: string) {
   const [first, ...rest] = name;
   if (!ID_START.test(first)) return false;
   return rest.every((char) => ID_CONTINUE.test(char));
+}
+
+function isNextNameSafe(token: Token | undefined) {
+  if (token?.type !== "text") return true;
+  return !ID_CONTINUE.test(token.value[0]);
 }

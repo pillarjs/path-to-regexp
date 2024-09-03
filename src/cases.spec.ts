@@ -92,6 +92,14 @@ export const PARSER_TESTS: ParserTestSet[] = [
       { type: "wildcard", name: "path" },
     ]),
   },
+  {
+    path: '/:"test"stuff',
+    expected: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+      { type: "text", value: "stuff" },
+    ]),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
@@ -151,6 +159,14 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
   {
     data: new TokenData([{ type: "text", value: "/:+?*" }]),
     expected: "/\\:\\+\\?\\*",
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+      { type: "text", value: "stuff" },
+    ]),
+    expected: '/:"test"stuff',
   },
 ];
 
