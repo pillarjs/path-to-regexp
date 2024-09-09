@@ -17,11 +17,7 @@ npm install path-to-regexp --save
 ## Usage
 
 ```js
-const { match, compile, parse } = require("path-to-regexp");
-
-// match(path, options?)
-// compile(path, options?)
-// parse(path, options?)
+const { match, pathToRegexp, compile, parse } = require("path-to-regexp");
 ```
 
 ### Parameters
@@ -65,18 +61,29 @@ fn("/users/123/delete");
 The `match` function returns a function for matching strings against a path:
 
 - **path** String or array of strings.
-- **options** _(optional)_ (See [parse](#parse) for more options)
-  - **sensitive** Regexp will be case sensitive. (default: `false`)
-  - **end** Validate the match reaches the end of the string. (default: `true`)
-  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
-  - **trailing** Allows optional trailing delimiter to match. (default: `true`)
+- **options** _(optional)_ (Extends [pathToRegexp](#pathToRegexp) options)
   - **decode** Function for decoding strings to params, or `false` to disable all processing. (default: `decodeURIComponent`)
 
 ```js
 const fn = match("/foo/:bar");
 ```
 
-**Please note:** `path-to-regexp` is intended for ordered data (e.g. pathnames, hostnames). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
+**Please note:** `path-to-regexp` is intended for ordered data (e.g. paths, hosts). It can not handle arbitrarily ordered data (e.g. query strings, URL fragments, JSON, etc).
+
+## PathToRegexp
+
+The `pathToRegexp` function returns a regular expression for matching strings against paths. It
+
+- **path** String or array of strings.
+- **options** _(optional)_ (See [parse](#parse) for more options)
+  - **sensitive** Regexp will be case sensitive. (default: `false`)
+  - **end** Validate the match reaches the end of the string. (default: `true`)
+  - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
+  - **trailing** Allows optional trailing delimiter to match. (default: `true`)
+
+```js
+const { regexp, keys } = pathToRegexp("/foo/:bar");
+```
 
 ## Compile ("Reverse" Path-To-RegExp)
 

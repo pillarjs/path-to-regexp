@@ -21,11 +21,7 @@ export interface ParseOptions {
   encodePath?: Encode;
 }
 
-export interface MatchOptions {
-  /**
-   * Function for decoding strings for params, or `false` to disable entirely. (default: `decodeURIComponent`)
-   */
-  decode?: Decode | false;
+export interface PathToRegexpOptions {
   /**
    * Matches the path completely without trailing characters. (default: `true`)
    */
@@ -42,6 +38,13 @@ export interface MatchOptions {
    * The default delimiter for segments. (default: `'/'`)
    */
   delimiter?: string;
+}
+
+export interface MatchOptions extends PathToRegexpOptions {
+  /**
+   * Function for decoding strings for params, or `false` to disable entirely. (default: `decodeURIComponent`)
+   */
+  decode?: Decode | false;
 }
 
 export interface CompileOptions {
@@ -107,13 +110,6 @@ function escapeText(str: string) {
  */
 function escape(str: string) {
   return str.replace(/[.+*?^${}()[\]|/\\]/g, "\\$&");
-}
-
-/**
- * Get the flags for a regexp from the options.
- */
-function toFlags(options: { sensitive?: boolean }) {
-  return options.sensitive ? "s" : "is";
 }
 
 /**
@@ -254,6 +250,16 @@ export interface Group {
 }
 
 /**
+ * A token that corresponds with a regexp capture.
+ */
+export type Key = Parameter | Wildcard;
+
+/**
+ * A sequence of `path-to-regexp` keys that match capturing groups.
+ */
+export type Keys = Array<Key>;
+
+/**
  * A sequence of path match characters.
  */
 export type Token = Text | Parameter | Wildcard | Group;
@@ -316,14 +322,15 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 }
 
 /**
- * Transform tokens into a path building function.
+ * Compile a string to a template function for the path.
  */
-function $compile<P extends ParamData>(
-  data: TokenData,
-  options: CompileOptions,
-): PathFunction<P> {
+export function compile<P extends ParamData = ParamData>(
+  path: Path,
+  options: CompileOptions & ParseOptions = {},
+) {
   const { encode = encodeURIComponent, delimiter = DEFAULT_DELIMITER } =
     options;
+  const data = path instanceof TokenData ? path : parse(path, options);
   const fn = tokensToFunction(data.tokens, delimiter, encode);
 
   return function path(data: P = {} as P) {
@@ -333,19 +340,6 @@ function $compile<P extends ParamData>(
     }
     return path;
   };
-}
-
-/**
- * Compile a string to a template function for the path.
- */
-export function compile<P extends ParamData = ParamData>(
-  path: Path,
-  options: CompileOptions & ParseOptions = {},
-) {
-  return $compile<P>(
-    path instanceof TokenData ? path : parse(path, options),
-    options,
-  );
 }
 
 export type ParamData = Partial<Record<string, string | string[]>>;
@@ -451,23 +445,65 @@ export type Match<P extends ParamData> = false | MatchResult<P>;
 export type MatchFunction<P extends ParamData> = (path: string) => Match<P>;
 
 /**
- * Create path match function from `path-to-regexp` spec.
+ * Supported path types.
  */
-function $match<P extends ParamData>(
-  data: TokenData[],
-  options: MatchOptions = {},
+export type Path = string | TokenData;
+
+/**
+ * Transform a path into a match function.
+ */
+export function match<P extends ParamData>(
+  path: Path | Path[],
+  options: MatchOptions & ParseOptions = {},
 ): MatchFunction<P> {
+  const { decode = decodeURIComponent, delimiter = DEFAULT_DELIMITER } =
+    options;
+  const { regexp, keys } = pathToRegexp(path, options);
+
+  const decoders = keys.map((key) => {
+    if (decode === false) return NOOP_VALUE;
+    if (key.type === "param") return decode;
+    return (value: string) => value.split(delimiter).map(decode);
+  });
+
+  return function match(input: string) {
+    const m = regexp.exec(input);
+    if (!m) return false;
+
+    const path = m[0];
+    const params = Object.create(null);
+
+    for (let i = 1; i < m.length; i++) {
+      if (m[i] === undefined) continue;
+
+      const key = keys[i - 1];
+      const decoder = decoders[i - 1];
+      params[key.name] = decoder(m[i]);
+    }
+
+    return { path, params };
+  };
+}
+
+export function pathToRegexp(
+  path: Path | Path[],
+  options: PathToRegexpOptions & ParseOptions = {},
+) {
   const {
-    decode = decodeURIComponent,
     delimiter = DEFAULT_DELIMITER,
     end = true,
+    sensitive = false,
     trailing = true,
   } = options;
-  const flags = toFlags(options);
+  const keys: Keys = [];
   const sources: string[] = [];
-  const keys: Array<Parameter | Wildcard> = [];
+  const flags = sensitive ? "s" : "is";
+  const paths = Array.isArray(path) ? path : [path];
+  const items = paths.map((path) =>
+    path instanceof TokenData ? path : parse(path, options),
+  );
 
-  for (const { tokens } of data) {
+  for (const { tokens } of items) {
     for (const seq of flatten(tokens, 0, [])) {
       const regexp = sequenceToRegExp(seq, delimiter, keys);
       sources.push(regexp);
@@ -478,48 +514,8 @@ function $match<P extends ParamData>(
   if (trailing) pattern += `(?:${escape(delimiter)}$)?`;
   pattern += end ? "$" : `(?=${escape(delimiter)}|$)`;
 
-  const re = new RegExp(pattern, flags);
-
-  const decoders = keys.map((key) => {
-    if (decode === false) return NOOP_VALUE;
-    if (key.type === "param") return decode;
-    return (value: string) => value.split(delimiter).map(decode);
-  });
-
-  return Object.assign(
-    function match(input: string) {
-      const m = re.exec(input);
-      if (!m) return false;
-
-      const { 0: path } = m;
-      const params = Object.create(null);
-
-      for (let i = 1; i < m.length; i++) {
-        if (m[i] === undefined) continue;
-
-        const key = keys[i - 1];
-        const decoder = decoders[i - 1];
-        params[key.name] = decoder(m[i]);
-      }
-
-      return { path, params };
-    },
-    { re },
-  );
-}
-
-export type Path = string | TokenData;
-
-export function match<P extends ParamData>(
-  path: Path | Path[],
-  options: MatchOptions & ParseOptions = {},
-): MatchFunction<P> {
-  const paths = Array.isArray(path) ? path : [path];
-  const items = paths.map((path) =>
-    path instanceof TokenData ? path : parse(path, options),
-  );
-
-  return $match(items, options);
+  const regexp = new RegExp(pattern, flags);
+  return { regexp, keys };
 }
 
 /**
@@ -556,11 +552,7 @@ function* flatten(
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
-function sequenceToRegExp(
-  tokens: Flattened[],
-  delimiter: string,
-  keys: Array<Parameter | Wildcard>,
-): string {
+function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
   let result = "";
   let backtrack = "";
   let isSafeSegmentParam = true;
