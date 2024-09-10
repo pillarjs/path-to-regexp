@@ -1,27 +1,17 @@
 /* global describe, it */
 
-/// <reference path="typings/index.d.ts" />
-
-import util = require('util')
-import chai = require('chai')
-import pathToRegexp = require('./index')
+const util = require('util')
+const chai = require('chai')
+const pathToRegexp = require('./index')
 
 const expect = chai.expect
-
-type Test = [
-  pathToRegexp.Path,
-  pathToRegexp.RegExpOptions & pathToRegexp.ParseOptions,
-  pathToRegexp.Token[],
-  Array<[string, string[]]>,
-  Array<[any, string]>
-]
 
 /**
  * An array of test cases with expected inputs and outputs.
  *
  * @type {Array}
  */
-var TESTS: Test[] = [
+var TESTS = [
   /**
    * Simple paths.
    */
@@ -2062,7 +2052,7 @@ var TESTS: Test[] = [
         repeat: false,
         partial: false,
         asterisk: false,
-        pattern: '[^\\/]+?'
+        pattern: '\\(|(?:(?!\\()[^\\/])+?'
       },
       ')'
     ],
@@ -2376,8 +2366,6 @@ describe('path-to-regexp', function () {
       })
 
       describe(util.inspect(path), function () {
-        var re = pathToRegexp(path as string, opts)
-
         // Parsing and compiling is only supported with string input.
         if (typeof path === 'string') {
           it('should parse', function () {
@@ -2385,18 +2373,18 @@ describe('path-to-regexp', function () {
           })
 
           describe('compile', function () {
-            var toPath = pathToRegexp.compile(path as string, opts)
-
             compileCases.forEach(function (io) {
               var input = io[0]
               var output = io[1]
 
               if (output != null) {
                 it('should compile using ' + util.inspect(input), function () {
+                  var toPath = pathToRegexp.compile(path, opts)
                   expect(toPath(input)).to.equal(output)
                 })
               } else {
                 it('should not compile using ' + util.inspect(input), function () {
+                  var toPath = pathToRegexp.compile(path, opts)
                   expect(function () {
                     toPath(input)
                   }).to.throw(TypeError)
@@ -2406,6 +2394,7 @@ describe('path-to-regexp', function () {
           })
         } else {
           it('should parse keys', function () {
+            var re = pathToRegexp(path, opts)
             expect(re.keys).to.deep.equal(keys)
           })
         }
@@ -2417,6 +2406,7 @@ describe('path-to-regexp', function () {
             var message = 'should' + (output ? ' ' : ' not ') + 'match ' + util.inspect(input)
 
             it(message, function () {
+              var re = pathToRegexp(path, opts)
               expect(exec(re, input)).to.deep.equal(output)
             })
           })
