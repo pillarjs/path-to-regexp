@@ -17,7 +17,13 @@ npm install path-to-regexp --save
 ## Usage
 
 ```js
-const { match, pathToRegexp, compile, parse } = require("path-to-regexp");
+const {
+  match,
+  pathToRegexp,
+  compile,
+  parse,
+  stringify,
+} = require("path-to-regexp");
 ```
 
 ### Parameters
@@ -109,6 +115,21 @@ toPathRepeated({ segment: ["a", "b", "c"] }); //=> "/a/b/c"
 const toPathRaw = compile("/user/:id", { encode: false });
 
 toPathRaw({ id: "%3A%2F" }); //=> "/user/%3A%2F"
+```
+
+## Stringify
+
+Transform `TokenData` (a sequence of tokens) back into a Path-to-RegExp string.
+
+- **data** A `TokenData` instance
+
+```js
+const data = new TokenData([
+  { type: "text", value: "/" },
+  { type: "param", name: "foo" },
+]);
+
+const path = stringify(data); //=> "/:foo"
 ```
 
 ## Developers
