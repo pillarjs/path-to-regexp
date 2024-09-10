@@ -2206,7 +2206,7 @@ var TESTS: Test[] = [
         delimiter: '/',
         optional: true,
         repeat: false,
-        pattern: '[^\\/]+?'
+        pattern: '\\(|(?:(?!\\()[^\\/])+?'
       },
       ')'
     ],
@@ -2633,7 +2633,7 @@ var TESTS: Test[] = [
         delimiter: '/',
         name: 'attr2',
         optional: true,
-        pattern: '[^\\/]+?',
+        pattern: '-|(?:(?!-)[^\\/])+?',
         prefix: '',
         repeat: false
       }
@@ -2642,7 +2642,7 @@ var TESTS: Test[] = [
       ['name/1', null],
       ['name/1-', ['name/1-', '1', undefined]],
       ['name/1-2', ['name/1-2', '1', '2']],
-      ['name/1-2-3', ['name/1-2-3', '1', '2-3']],
+      ['name/1-2-3', ['name/1-2-3', '1-2', '3']],
       ['name/foo-bar/route', null],
       ['name/test/route', null]
     ],
