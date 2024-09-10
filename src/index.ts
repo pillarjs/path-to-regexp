@@ -475,16 +475,18 @@ export type MatchFunction<P extends ParamData> = (path: string) => Match<P>;
  * Create path match function from `path-to-regexp` spec.
  */
 export function match<P extends ParamData>(
-  path: Path,
+  path: Path | Path[],
   options: MatchOptions = {},
 ): MatchFunction<P> {
-  const { decode = decodeURIComponent, loose = true } = options;
-  const data = path instanceof TokenData ? path : parse(path, options);
-  const stringify = toStringify(loose, data.delimiter);
-  const keys: Key[] = [];
-  const re = tokensToRegexp(data, keys, options);
+  const {
+    decode = decodeURIComponent,
+    loose = true,
+    delimiter = DEFAULT_DELIMITER,
+  } = options;
+  const re = pathToRegexp(path, options);
+  const stringify = toStringify(loose, delimiter);
 
-  const decoders = keys.map((key) => {
+  const decoders = re.keys.map((key) => {
     if (decode && (key.modifier === "+" || key.modifier === "*")) {
       const { prefix = "", suffix = "", separator = suffix + prefix } = key;
       const re = new RegExp(stringify(separator), "g");
@@ -504,7 +506,7 @@ export function match<P extends ParamData>(
     for (let i = 1; i < m.length; i++) {
       if (m[i] === undefined) continue;
 
-      const key = keys[i - 1];
+      const key = re.keys[i - 1];
       const decoder = decoders[i - 1];
       params[key.name] = decoder(m[i]);
     }
@@ -517,7 +519,7 @@ export function match<P extends ParamData>(
  * Escape a regular expression string.
  */
 function escape(str: string) {
-  return str.replace(/([.+*?^${}()[\]|/\\])/g, "\\$1");
+  return str.replace(/[.+*?^${}()[\]|/\\]/g, "\\$&");
 }
 
 /**
@@ -565,11 +567,13 @@ export type Token = string | Key;
 /**
  * Expose a function for taking tokens and returning a RegExp.
  */
-function tokensToRegexp(
-  data: TokenData,
+function pathToSource(
+  path: Path,
   keys: Key[],
+  flags: string,
   options: PathToRegexpOptions,
-): RegExp {
+): string {
+  const data = path instanceof TokenData ? path : parse(path, options);
   const {
     trailing = true,
     loose = true,
@@ -577,15 +581,13 @@ function tokensToRegexp(
     end = true,
     strict = false,
   } = options;
-  const flags = toFlags(options);
   const stringify = toStringify(loose, data.delimiter);
   const sources = toRegExpSource(data, stringify, keys, flags, strict);
   let pattern = start ? "^" : "";
   pattern += sources.join("");
-  if (trailing) pattern += `(?:${stringify(data.delimiter)})?`;
+  if (trailing) pattern += `(?:${stringify(data.delimiter)}$)?`;
   pattern += end ? "$" : `(?=${escape(data.delimiter)}|$)`;
-
-  return new RegExp(pattern, flags);
+  return pattern;
 }
 
 /**
@@ -602,7 +604,7 @@ function toRegExpSource(
   let backtrack = "";
   let safe = true;
 
-  return data.tokens.map((token, index) => {
+  return data.tokens.map((token) => {
     if (typeof token === "string") {
       backtrack = token;
       return stringify(token);
@@ -685,9 +687,18 @@ export type Path = string | TokenData;
  * placeholder key descriptions. For example, using `/user/:id`, `keys` will
  * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
  */
-export function pathToRegexp(path: Path, options: PathToRegexpOptions = {}) {
-  const data = path instanceof TokenData ? path : parse(path, options);
+export function pathToRegexp(
+  path: Path | Path[],
+  options: PathToRegexpOptions = {},
+) {
   const keys: Key[] = [];
-  const regexp = tokensToRegexp(data, keys, options);
-  return Object.assign(regexp, { keys });
+  const flags = toFlags(options);
+
+  if (Array.isArray(path)) {
+    const regexps = path.map((p) => pathToSource(p, keys, flags, options));
+    return Object.assign(new RegExp(regexps.join("|")), { keys });
+  }
+
+  const regexp = pathToSource(path, keys, flags, options);
+  return Object.assign(new RegExp(regexp), { keys });
 }

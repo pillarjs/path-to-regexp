@@ -15,7 +15,7 @@ export interface ParserTestSet {
 }
 
 export interface CompileTestSet {
-  path: string;
+  path: Path;
   options?: CompileOptions;
   tests: Array<{
     input: ParamData | undefined;
@@ -24,7 +24,7 @@ export interface CompileTestSet {
 }
 
 export interface MatchTestSet {
-  path: Path;
+  path: Path | Path[];
   options?: MatchOptions;
   tests: Array<{
     input: string;
@@ -3188,6 +3188,35 @@ export const MATCH_TESTS: MatchTestSet[] = [
           index: 0,
           params: { foo: "555", bar: "222" },
         },
+      },
+    ],
+  },
+
+  /**
+   * Array input.
+   */
+  {
+    path: ["/a", "/b"],
+    tests: [
+      {
+        input: "/a",
+        matches: ["/a"],
+        expected: { path: "/a", index: 0, params: {} },
+      },
+      {
+        input: "/b",
+        matches: ["/b"],
+        expected: { path: "/b", index: 0, params: {} },
+      },
+      {
+        input: "/c",
+        matches: null,
+        expected: false,
+      },
+      {
+        input: "/a/b",
+        matches: null,
+        expected: false,
       },
     ],
   },
