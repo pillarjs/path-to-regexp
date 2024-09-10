@@ -90,6 +90,7 @@ function parse (str, options) {
     var optional = modifier === '?' || modifier === '*'
     var pattern = capture || group
     var delimiter = prev || defaultDelimiter
+    var prevText = prev || (typeof tokens[tokens.length - 1] === 'string' ? tokens[tokens.length - 1] : '')
 
     tokens.push({
       name: name || key++,
@@ -99,7 +100,7 @@ function parse (str, options) {
       repeat: repeat,
       pattern: pattern
         ? escapeGroup(pattern)
-        : '[^' + escapeString(delimiter === defaultDelimiter ? delimiter : (delimiter + defaultDelimiter)) + ']+?'
+        : restrictBacktrack(delimiter, defaultDelimiter, prevText)
     })
   }
 
@@ -109,6 +110,16 @@ function parse (str, options) {
   }
 
   return tokens
+}
+
+function restrictBacktrack (delimiter, defaultDelimiter, prevText) {
+  var charGroup = '[^' + escapeString(delimiter === defaultDelimiter ? delimiter : (delimiter + defaultDelimiter)) + ']'
+
+  if (!prevText || prevText.indexOf(delimiter) > -1 || prevText.indexOf(defaultDelimiter) > -1) {
+    return charGroup + '+?'
+  }
+
+  return escapeString(prevText) + '|(?:(?!' + escapeString(prevText) + ')' + charGroup + ')+?'
 }
 
 /**
