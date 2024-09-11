@@ -184,7 +184,7 @@ Previous versions of Path-to-RegExp used these for RegExp features. This version
 
 ### Missing parameter name
 
-Parameter names, the part after `:` or `*`, must be a valid JavaScript identifier. For example, it cannot start with a number or contain a dash. If you want a parameter name that uses these characters you can wrap the name in quotes, e.g. `:"my-name"`.
+Parameter names must be provided after `:` or `*`, and they must be a valid JavaScript identifier. If you want an parameter name that isn't a JavaScript identifier, such as starting with a number, you can wrap the name in quotes like `:"my-name"`.
 
 ### Unterminated quote
 
@@ -194,10 +194,11 @@ Parameter names can be wrapped in double quote characters, and this error means 
 
 Path-To-RegExp breaks compatibility with Express <= `4.x` in the following ways:
 
-- Regexp characters can no longer be provided.
+- The wildcard `*` must have a name, matching the behavior of parameters `:`.
 - The optional character `?` is no longer supported, use braces instead: `/:file{.:ext}`.
-- Some characters have new meaning or have been reserved (`{}?*+@!;`).
-- The parameter name now supports all JavaScript identifier characters, previously it was only `[a-z0-9]`.
+- Regexp characters are not supported.
+- Some characters have been reserved to avoid confusion during upgrade (`()[]?+!`).
+- Parameter names now support valid JavaScript identifiers, or quoted like `:"this"`.
 
 ## License
 
