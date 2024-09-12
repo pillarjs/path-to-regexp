@@ -1353,7 +1353,7 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "+",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
     ],
     [
@@ -1397,7 +1397,7 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
       ".",
     ],
@@ -1430,13 +1430,13 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
     ],
     [
       ["/route.html", ["/route.html", "route", "html"]],
       ["/route", null],
-      ["/route.html.json", ["/route.html.json", "route", "html.json"]],
+      ["/route.html.json", ["/route.html.json", "route.html", "json"]],
     ],
     [
       [{}, null],
@@ -1459,13 +1459,13 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "?",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
     ],
     [
       ["/route", ["/route", "route", undefined]],
       ["/route.json", ["/route.json", "route", "json"]],
-      ["/route.json.html", ["/route.json.html", "route", "json.html"]],
+      ["/route.json.html", ["/route.json.html", "route.json", "html"]],
     ],
     [
       [{ test: "route" }, "/route"],
@@ -1491,13 +1491,13 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "?",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
     ],
     [
       ["/route", ["/route", "route", undefined]],
       ["/route.json", ["/route.json", "route", "json"]],
-      ["/route.json.html", ["/route.json.html", "route", "json.html"]],
+      ["/route.json.html", ["/route.json.html", "route.json", "html"]],
     ],
     [
       [{ test: "route" }, "/route"],
@@ -2084,7 +2084,7 @@ const TESTS: Test[] = [
         prefix: "",
         suffix: "",
         modifier: "?",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\()[^\\/#\\?])+?",
       },
       ")",
     ],
@@ -2290,7 +2290,7 @@ const TESTS: Test[] = [
         prefix: ".",
         suffix: "",
         modifier: "",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\.)[^\\/#\\?])+?",
       },
     ],
     [
@@ -2356,14 +2356,14 @@ const TESTS: Test[] = [
     [
       {
         name: "foo",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\$)[^\\/#\\?])+?",
         prefix: "$",
         suffix: "",
         modifier: "",
       },
       {
         name: "bar",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!\\$)[^\\/#\\?])+?",
         prefix: "$",
         suffix: "",
         modifier: "?",
@@ -2392,14 +2392,14 @@ const TESTS: Test[] = [
       },
       {
         name: "attr2",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!-)[^\\/#\\?])+?",
         prefix: "-",
         suffix: "",
         modifier: "?",
       },
       {
         name: "attr3",
-        pattern: "[^\\/#\\?]+?",
+        pattern: "(?:(?!-)[^\\/#\\?])+?",
         prefix: "-",
         suffix: "",
         modifier: "?",
@@ -2597,39 +2597,6 @@ const TESTS: Test[] = [
       [{ foo: "#" }, null],
     ],
   ],
-  /**
-   * https://github.com/pillarjs/path-to-regexp/issues/260
-   */
-  [
-    ":name*",
-    undefined,
-    [
-      {
-        name: "name",
-        prefix: "",
-        suffix: "",
-        modifier: "*",
-        pattern: "[^\\/#\\?]+?",
-      },
-    ],
-    [["foobar", ["foobar", "foobar"]]],
-    [[{ name: "foobar" }, "foobar"]],
-  ],
-  [
-    ":name+",
-    undefined,
-    [
-      {
-        name: "name",
-        prefix: "",
-        suffix: "",
-        modifier: "+",
-        pattern: "[^\\/#\\?]+?",
-      },
-    ],
-    [["foobar", ["foobar", "foobar"]]],
-    [[{ name: "foobar" }, "foobar"]],
-  ],
 ];
 
 /**
@@ -2798,6 +2765,24 @@ describe("path-to-regexp", () => {
       expect(() => {
         pathToRegexp.pathToRegexp("/foo?");
       }).toThrow(new TypeError("Unexpected MODIFIER at 4, expected END"));
+    });
+
+    it("should throw on parameters without text between them", () => {
+      expect(() => {
+        pathToRegexp.pathToRegexp("/:x:y");
+      }).toThrow(
+        new TypeError(
+          `Must have text between two parameters, missing text after "x"`,
+        ),
+      );
+    });
+
+    it("should throw on unrepeatable params", () => {
+      expect(() => {
+        pathToRegexp.pathToRegexp("/foo:x*");
+      }).toThrow(
+        new TypeError(`Can not repeat "x" without a prefix and suffix`),
+      );
     });
   });
 
