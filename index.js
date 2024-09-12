@@ -65,7 +65,7 @@ function pathToRegexp(path, keys, options) {
     return new RegExp(path.join('|'), flags);
   }
 
-  path = path.replace(
+  path = String(path).replace(
     /\\.|(\/)?(\.)?:(\w+)(\(.*?\))?(\*)?(\?)?|[.*]|\/\(/g,
     function (match, slash, format, key, capture, star, optional, offset) {
       pos = offset + match.length;
