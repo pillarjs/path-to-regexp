@@ -2,6 +2,12 @@ var pathToRegExp = require('./');
 var assert = require('assert');
 
 describe('path-to-regexp', function () {
+  it('should throw on invalid input', function () {
+    assert.throws(function () {
+      pathToRegExp(function () {});
+    }, /path must be a string, array of strings, or regular expression/);
+  });
+
   describe('strings', function () {
     it('should match simple paths', function () {
       var params = [];

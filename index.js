@@ -65,6 +65,10 @@ function pathToRegexp(path, keys, options) {
     return new RegExp(path.join('|'), flags);
   }
 
+  if (typeof path !== 'string') {
+    throw new TypeError('path must be a string, array of strings, or regular expression');
+  }
+
   path = path.replace(
     /\\.|(\/)?(\.)?:(\w+)(\(.*?\))?(\*)?(\?)?|[.*]|\/\(/g,
     function (match, slash, format, key, capture, star, optional, offset) {
