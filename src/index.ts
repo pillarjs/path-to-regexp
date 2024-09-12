@@ -139,8 +139,7 @@ export interface ParseOptions {
  */
 export function parse(str: string, options: ParseOptions = {}): Token[] {
   const tokens = lexer(str);
-  const { prefixes = "./" } = options;
-  const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]+?`;
+  const { prefixes = "./", delimiter = "/#?" } = options;
   const result: Token[] = [];
   let key = 0;
   let i = 0;
@@ -166,6 +165,25 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
     return result;
   };
 
+  const isSafe = (value: string): boolean => {
+    for (const char of delimiter) if (value.indexOf(char) > -1) return true;
+    return false;
+  };
+
+  const safePattern = (prefix: string) => {
+    const prev = result[result.length - 1];
+    const prevText = prefix || (prev && typeof prev === "string" ? prev : "");
+
+    if (prev && !prevText) {
+      throw new TypeError(
+        `No support for parameters without text between them after "${(prev as Key).name}"`,
+      );
+    }
+
+    if (!prevText || isSafe(prevText)) return `[^${escapeString(delimiter)}]+?`;
+    return `(?:(?!${escapeString(prevText)})[^${escapeString(delimiter)}])+?`;
+  };
+
   while (i < tokens.length) {
     const char = tryConsume("CHAR");
     const name = tryConsume("NAME");
@@ -188,7 +206,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
         name: name || key++,
         prefix,
         suffix: "",
-        pattern: pattern || defaultPattern,
+        pattern: pattern || safePattern(prefix),
         modifier: tryConsume("MODIFIER") || "",
       });
       continue;
@@ -216,7 +234,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
 
       result.push({
         name: name || (pattern ? key++ : ""),
-        pattern: name && !pattern ? defaultPattern : pattern,
+        pattern: name && !pattern ? safePattern(prefix) : pattern,
         prefix,
         suffix,
         modifier: tryConsume("MODIFIER") || "",
@@ -564,10 +582,12 @@ export function tokensToRegexp(
           }
         } else {
           if (token.modifier === "+" || token.modifier === "*") {
-            route += `((?:${token.pattern})${token.modifier})`;
-          } else {
-            route += `(${token.pattern})${token.modifier}`;
+            throw new TypeError(
+              `Can not repeat ${token.name} with no prefix or suffix, e.g. "/:param${token.modifier}"`,
+            );
           }
+
+          route += `(${token.pattern})${token.modifier}`;
         }
       } else {
         route += `(?:${prefix}${suffix})${token.modifier}`;
