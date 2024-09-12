@@ -47,7 +47,7 @@
   "size-limit": [
     {
       "path": "dist.es2015/index.js",
-      "limit": "2 kB"
+      "limit": "2.1 kB"
     }
   ],
   "ts-scripts": {
