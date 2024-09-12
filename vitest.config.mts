@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   test: {
     coverage: {
-      exclude: ["scripts/**"],
+      exclude: ["scripts/**", "**/*.bench.ts"],
     },
   },
 });

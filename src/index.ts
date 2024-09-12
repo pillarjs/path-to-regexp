@@ -562,7 +562,7 @@ function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
 
     if (token.type === "text") {
       result += escape(token.value);
-      backtrack = token.value;
+      backtrack += token.value;
       isSafeSegmentParam ||= token.value.includes(delimiter);
       continue;
     }
