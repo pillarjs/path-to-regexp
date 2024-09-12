@@ -2766,6 +2766,24 @@ describe("path-to-regexp", () => {
         pathToRegexp.pathToRegexp("/foo?");
       }).toThrow(new TypeError("Unexpected MODIFIER at 4, expected END"));
     });
+
+    it("should throw on parameters without text between them", () => {
+      expect(() => {
+        pathToRegexp.pathToRegexp("/:x:y");
+      }).toThrow(
+        new TypeError(
+          `Must have text between two parameters, missing text after "x"`,
+        ),
+      );
+    });
+
+    it("should throw on unrepeatable params", () => {
+      expect(() => {
+        pathToRegexp.pathToRegexp("/foo:x*");
+      }).toThrow(
+        new TypeError(`Can not repeat "x" without a prefix and suffix`),
+      );
+    });
   });
 
   describe("tokens", () => {

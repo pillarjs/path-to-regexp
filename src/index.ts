@@ -176,7 +176,7 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
 
     if (prev && !prevText) {
       throw new TypeError(
-        `No support for parameters without text between them after "${(prev as Key).name}"`,
+        `Must have text between two parameters, missing text after "${(prev as Key).name}"`,
       );
     }
 
@@ -583,7 +583,7 @@ export function tokensToRegexp(
         } else {
           if (token.modifier === "+" || token.modifier === "*") {
             throw new TypeError(
-              `Can not repeat ${token.name} with no prefix or suffix, e.g. "/:param${token.modifier}"`,
+              `Can not repeat "${token.name}" without a prefix and suffix`,
             );
           }
 
