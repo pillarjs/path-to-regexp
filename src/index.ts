@@ -466,7 +466,7 @@ export function match<P extends ParamData>(
     return (value: string) => value.split(delimiter).map(decode);
   });
 
-  return function match(input: string) {
+  const match = function match(input: string) {
     const m = regexp.exec(input);
     if (!m) return false;
 
@@ -483,6 +483,8 @@ export function match<P extends ParamData>(
 
     return { path, params };
   };
+  match.regexp = regexp;
+  return match;
 }
 
 export function pathToRegexp(
