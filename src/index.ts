@@ -497,7 +497,7 @@ export function pathToRegexp(
   } = options;
   const keys: Keys = [];
   const sources: string[] = [];
-  const flags = sensitive ? "s" : "is";
+  const flags = sensitive ? "" : "i";
   const paths = Array.isArray(path) ? path : [path];
   const items = paths.map((path) =>
     path instanceof TokenData ? path : parse(path, options),
@@ -575,7 +575,7 @@ function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
       if (token.type === "param") {
         result += `(${negate(delimiter, isSafeSegmentParam ? "" : backtrack)}+)`;
       } else {
-        result += `(.+)`;
+        result += `([\\s\\S]+)`;
       }
 
       keys.push(token);
