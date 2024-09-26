@@ -32,9 +32,9 @@
   "devDependencies": {
     "@borderless/ts-scripts": "^0.15.0",
     "@size-limit/preset-small-lib": "^11.1.2",
-    "@types/node": "^20.4.9",
+    "@types/node": "^22.7.2",
     "@types/semver": "^7.3.1",
-    "@vitest/coverage-v8": "^1.4.0",
+    "@vitest/coverage-v8": "^2.1.1",
     "recheck": "^4.4.5",
     "size-limit": "^11.1.2",
     "typescript": "^5.5.3"
