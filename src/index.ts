@@ -179,22 +179,22 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
 }
 
 class Iter {
-  #peek?: LexToken;
+  private _peek?: LexToken;
 
   constructor(private tokens: Generator<LexToken, LexToken>) {}
 
   peek(): LexToken {
-    if (!this.#peek) {
+    if (!this._peek) {
       const next = this.tokens.next();
-      this.#peek = next.value;
+      this._peek = next.value;
     }
-    return this.#peek;
+    return this._peek;
   }
 
   tryConsume(type: TokenType): string | undefined {
     const token = this.peek();
     if (token.type !== type) return;
-    this.#peek = undefined; // Reset after consumed.
+    this._peek = undefined; // Reset after consumed.
     return token.value;
   }
 
