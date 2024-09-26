@@ -589,10 +589,14 @@ function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
 }
 
 function negate(delimiter: string, backtrack: string) {
-  const values = [delimiter, backtrack].filter(Boolean);
-  const isSimple = values.every((value) => value.length === 1);
-  if (isSimple) return `[^${escape(values.join(""))}]`;
-  return `(?:(?!${values.map(escape).join("|")}).)`;
+  if (backtrack.length < 2) {
+    if (delimiter.length < 2) return `[^${escape(delimiter + backtrack)}]`;
+    return `(?:(?!${escape(delimiter)})[^${escape(backtrack)}])`;
+  }
+  if (delimiter.length < 2) {
+    return `(?:(?!${escape(backtrack)})[^${escape(delimiter)}])`;
+  }
+  return `(?:(?!${escape(backtrack)}|${escape(delimiter)})[\\s\\S])`;
 }
 
 /**
