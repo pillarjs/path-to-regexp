@@ -628,6 +628,6 @@ function isNameSafe(name: string) {
 }
 
 function isNextNameSafe(token: Token | undefined) {
-  if (token?.type !== "text") return true;
+  if (!token || token.type !== "text") return true;
   return !ID_CONTINUE.test(token.value[0]);
 }
