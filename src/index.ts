@@ -333,8 +333,8 @@ export function compile<P extends ParamData = ParamData>(
   const data = path instanceof TokenData ? path : parse(path, options);
   const fn = tokensToFunction(data.tokens, delimiter, encode);
 
-  return function path(data: P = {} as P) {
-    const [path, ...missing] = fn(data);
+  return function path(params: P = {} as P) {
+    const [path, ...missing] = fn(params);
     if (missing.length) {
       throw new TypeError(`Missing parameters: ${missing.join(", ")}`);
     }
@@ -498,16 +498,9 @@ export function pathToRegexp(
   const keys: Keys = [];
   const sources: string[] = [];
   const flags = sensitive ? "" : "i";
-  const paths = Array.isArray(path) ? path : [path];
-  const items = paths.map((path) =>
-    path instanceof TokenData ? path : parse(path, options),
-  );
 
-  for (const { tokens } of items) {
-    for (const seq of flatten(tokens, 0, [])) {
-      const regexp = sequenceToRegExp(seq, delimiter, keys);
-      sources.push(regexp);
-    }
+  for (const seq of flat(path, options)) {
+    sources.push(toRegExp(seq, delimiter, keys));
   }
 
   let pattern = `^(?:${sources.join("|")})`;
@@ -524,6 +517,22 @@ export function pathToRegexp(
 type Flattened = Text | Parameter | Wildcard;
 
 /**
+ * Path or array of paths to normalize.
+ */
+function* flat(
+  path: Path | Path[],
+  options: ParseOptions,
+): Generator<Flattened[]> {
+  if (Array.isArray(path)) {
+    for (const p of path) yield* flat(p, options);
+    return;
+  }
+
+  const data = path instanceof TokenData ? path : parse(path, options);
+  yield* flatten(data.tokens, 0, []);
+}
+
+/**
  * Generate a flat list of sequence tokens from the given tokens.
  */
 function* flatten(
@@ -538,8 +547,7 @@ function* flatten(
   const token = tokens[index];
 
   if (token.type === "group") {
-    const fork = init.slice();
-    for (const seq of flatten(token.tokens, 0, fork)) {
+    for (const seq of flatten(token.tokens, 0, init.slice())) {
       yield* flatten(tokens, index + 1, seq);
     }
   } else {
@@ -552,14 +560,12 @@ function* flatten(
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
-function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
+function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
   let result = "";
   let backtrack = "";
   let isSafeSegmentParam = true;
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-
+  for (const token of tokens) {
     if (token.type === "text") {
       result += escape(token.value);
       backtrack += token.value;
@@ -588,6 +594,9 @@ function sequenceToRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
   return result;
 }
 
+/**
+ * Block backtracking on previous text and ignore delimiter string.
+ */
 function negate(delimiter: string, backtrack: string) {
   if (backtrack.length < 2) {
     if (delimiter.length < 2) return `[^${escape(delimiter + backtrack)}]`;
@@ -621,12 +630,18 @@ export function stringify(data: TokenData) {
     .join("");
 }
 
+/**
+ * Validate the parameter name contains valid ID characters.
+ */
 function isNameSafe(name: string) {
   const [first, ...rest] = name;
   if (!ID_START.test(first)) return false;
   return rest.every((char) => ID_CONTINUE.test(char));
 }
 
+/**
+ * Validate the next token does not interfere with the current param name.
+ */
 function isNextNameSafe(token: Token | undefined) {
   if (!token || token.type !== "text") return true;
   return !ID_CONTINUE.test(token.value[0]);
