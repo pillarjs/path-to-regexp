@@ -8,6 +8,10 @@ describe('path-to-regexp', function () {
     }, /path must be a string, array of strings, or regular expression/);
   });
 
+  it('should generate a regex without backtracking', function () {
+    assert.deepEqual(pathToRegExp('/:a-:b'), /^(?:\/([^/]+?))-(?:((?:(?!\/|-).)+?))\/?$/i);
+  });
+
   describe('strings', function () {
     it('should match simple paths', function () {
       var params = [];
