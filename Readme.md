@@ -78,7 +78,7 @@ const fn = match("/foo/:bar");
 
 ## PathToRegexp
 
-The `pathToRegexp` function returns a regular expression for matching strings against paths. It
+The `pathToRegexp` function returns the `regexp` for matching strings against paths, and an array of `keys` for understanding the `RegExp#exec` matches.
 
 - **path** String or array of strings.
 - **options** _(optional)_ (See [parse](#parse) for more options)
@@ -89,6 +89,8 @@ The `pathToRegexp` function returns a regular expression for matching strings ag
 
 ```js
 const { regexp, keys } = pathToRegexp("/foo/:bar");
+
+regexp.exec("/foo/123"); //=> ["/foo/123", "123"]
 ```
 
 ## Compile ("Reverse" Path-To-RegExp)
