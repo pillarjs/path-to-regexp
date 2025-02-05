@@ -34,13 +34,14 @@
     "@size-limit/preset-small-lib": "^11.1.2",
     "@types/node": "^22.7.2",
     "@types/semver": "^7.3.1",
-    "@vitest/coverage-v8": "^2.1.1",
+    "@vitest/coverage-v8": "^3.0.5",
     "recheck": "^4.4.5",
     "size-limit": "^11.1.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "publishConfig": {
     "access": "public"
