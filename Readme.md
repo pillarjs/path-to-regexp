@@ -1,6 +1,6 @@
 # Path-to-RegExp
 
-> Turn a path string such as `/user/:name` into a regular expression.
+> Turn a path string such as `/user/:name` into a regular expression.?
 
 [![NPM version][npm-image]][npm-url]
 [![NPM downloads][downloads-image]][downloads-url]
