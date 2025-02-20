@@ -27,7 +27,8 @@
     "prepare": "ts-scripts install && npm run build",
     "size": "size-limit",
     "specs": "ts-scripts specs",
-    "test": "ts-scripts test && npm run size"
+    "test": "ts-scripts test && npm run size",
+    "test:bun": "bun test && bun run size"
   },
   "devDependencies": {
     "@borderless/ts-scripts": "^0.15.0",

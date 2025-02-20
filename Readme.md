@@ -10,8 +10,12 @@
 
 ## Installation
 
-```
-npm install path-to-regexp --save
+Install with your choice of package manager: npm, yarn, or bun.
+
+```sh
+npm install path-to-regexp
+yarn add path-to-regexp
+bun add path-to-regexp
 ```
 
 ## Usage
@@ -25,6 +29,8 @@ const {
   stringify,
 } = require("path-to-regexp");
 ```
+
+This library is compatible and tested with Node.js 16+ and Bun 1.2+.
 
 ### Parameters
 
