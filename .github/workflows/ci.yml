@@ -5,27 +5,42 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
-    name: Node.js ${{ matrix.node-version }}
+  test-node:
+    name: Node.js (${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
           - "16"
-          - "*"
+          - "latest"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v2
+      - uses: oven-sh/setup-bun@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - run: npm ci
-      - run: npm test
-      - uses: codecov/codecov-action@v1
+          bun-version: "1.2.0"
+      - run: bun install
+      - run: bun run test # runs tests with Vitest
+      - uses: codecov/codecov-action@v5
         with:
-          name: Node.js ${{ matrix.node-version }}
+          name: Node.js (${{ matrix.node-version }})
+  test-bun:
+    name: Bun (${{ matrix.bun-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bun-version:
+          - "1.2.0"
+          - "latest"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun-version }}
+      - run: bun install
+      - run: bun run test:bun # runs tests with Bun
+      - uses: codecov/codecov-action@v5
+        with:
+          name: Bun (${{ matrix.bun-version }})
