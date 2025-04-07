@@ -15,14 +15,14 @@ describe("path-to-regexp", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
         new TypeError(
-          "Unexpected END at 7, expected }: https://git.new/pathToRegexpError",
+          "'/{:foo,': Unexpected END at 7, expected }: https://git.new/pathToRegexpError",
         ),
       );
     });
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
         new TypeError(
-          "Unexpected END at 12, expected }: https://git.new/pathToRegexpError",
+          "'/{:foo/{x,y}': Unexpected END at 12, expected }: https://git.new/pathToRegexpError",
         ),
       );
     });
@@ -30,7 +30,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "'/:/': Missing parameter name at 2: https://git.new/pathToRegexpError",
         ),
       );
     });
@@ -38,7 +38,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "'/*/': Missing parameter name at 2: https://git.new/pathToRegexpError",
         ),
       );
     });
@@ -46,7 +46,7 @@ describe("path-to-regexp", () => {
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
         new TypeError(
-          "Unterminated quote at 2: https://git.new/pathToRegexpError",
+          `'/:"foo': Unterminated quote at 2: https://git.new/pathToRegexpError`,
         ),
       );
     });
@@ -58,7 +58,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath();
-      }).toThrow(new TypeError("Missing parameters: b"));
+      }).toThrow(new TypeError("'/a/:b/c': Missing parameters: b"));
     });
 
     it("should throw when expecting a repeated value", () => {
@@ -66,7 +66,9 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [] });
-      }).toThrow(new TypeError('Expected "foo" to be a non-empty array'));
+      }).toThrow(
+        new TypeError(`'/*foo': Expected "foo" to be a non-empty array`),
+      );
     });
 
     it("should throw when param gets an array", () => {
@@ -74,7 +76,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [] });
-      }).toThrow(new TypeError('Expected "foo" to be a string'));
+      }).toThrow(new TypeError(`'/:foo': Expected "foo" to be a string`));
     });
 
     it("should throw when a wildcard is not an array", () => {
@@ -82,7 +84,9 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: "a" });
-      }).toThrow(new TypeError('Expected "foo" to be a non-empty array'));
+      }).toThrow(
+        new TypeError(`'/*foo': Expected "foo" to be a non-empty array`),
+      );
     });
 
     it("should throw when a wildcard array value is not a string", () => {
@@ -90,7 +94,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [1, "a"] as any });
-      }).toThrow(new TypeError('Expected "foo/0" to be a string'));
+      }).toThrow(new TypeError(`'/*foo': Expected "foo/0" to be a string`));
     });
   });
 
