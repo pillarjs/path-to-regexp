@@ -15,14 +15,14 @@ describe("path-to-regexp", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
         new TypeError(
-          "Unexpected END at 7, expected }: https://git.new/pathToRegexpError",
+          "Unexpected END at 7, expected }: visit https://git.new/pathToRegexpError for more information.",
         ),
       );
     });
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
         new TypeError(
-          "Unexpected END at 12, expected }: https://git.new/pathToRegexpError",
+          "Unexpected END at 12, expected }: visit https://git.new/pathToRegexpError for more information.",
         ),
       );
     });
@@ -30,7 +30,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "Missing parameter name at 2: visit https://git.new/pathToRegexpError for more information.",
         ),
       );
     });
@@ -38,7 +38,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "Missing parameter name at 2: visit https://git.new/pathToRegexpError for more information.",
         ),
       );
     });
@@ -46,7 +46,7 @@ describe("path-to-regexp", () => {
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
         new TypeError(
-          "Unterminated quote at 2: https://git.new/pathToRegexpError",
+          "Unterminated quote at 2: visit https://git.new/pathToRegexpError for more information.",
         ),
       );
     });
