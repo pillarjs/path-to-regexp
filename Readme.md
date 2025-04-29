@@ -141,7 +141,7 @@ const path = stringify(data); //=> "/:foo"
 
 ### Parse
 
-The `parse` function accepts a string and returns `TokenData`, the set of tokens and other metadata parsed from the input string. `TokenData` is can used with `match` and `compile`.
+The `parse` function accepts a string and returns `TokenData`, which can be used with `match` and `compile`.
 
 - **path** A string.
 - **options** _(optional)_
