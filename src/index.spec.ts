@@ -50,6 +50,14 @@ describe("path-to-regexp", () => {
         ),
       );
     });
+
+    it("should throw on unterminated parameter pattern", () => {
+      expect(() => parse("/:foo((bar")).toThrow(
+        new TypeError(
+          "Unterminated parameter pattern at 10: https://git.new/pathToRegexpError",
+        ),
+      );
+    });
   });
 
   describe("compile errors", () => {

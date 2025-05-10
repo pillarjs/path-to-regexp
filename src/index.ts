@@ -81,7 +81,7 @@ type TokenType =
 interface LexToken {
   type: TokenType;
   index: number;
-  value: string;
+  value: string | { name: string; pattern?: string };
 }
 
 const SIMPLE_TOKENS: Record<string, TokenType> = {
@@ -119,7 +119,10 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
   const chars = [...str];
   let i = 0;
 
-  function name() {
+  function name(options?: { pattern?: boolean }): {
+    name: string;
+    pattern?: string;
+  } {
     let value = "";
 
     if (ID_START.test(chars[++i])) {
@@ -153,7 +156,29 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
       throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
     }
 
-    return value;
+    if (chars[i] === "(" && options?.pattern) {
+      let depth = 1;
+      let pattern = "";
+      i++;
+      while (i < chars.length && depth > 0) {
+        if (chars[i] === "(") {
+          depth++;
+        } else if (chars[i] === ")") {
+          depth--;
+        }
+        if (depth > 0) {
+          pattern += chars[i++];
+        }
+      }
+      if (depth !== 0) {
+        throw new TypeError(
+          `Unterminated parameter pattern at ${i}: ${DEBUG_URL}`,
+        );
+      }
+      i++;
+      return { name: value, pattern };
+    }
+    return { name: value };
   }
 
   while (i < chars.length) {
@@ -165,10 +190,14 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
     } else if (value === "\\") {
       yield { type: "ESCAPED", index: i++, value: chars[i++] };
     } else if (value === ":") {
-      const value = name();
-      yield { type: "PARAM", index: i, value };
+      const value = name({ pattern: true });
+      yield {
+        type: "PARAM",
+        index: i,
+        value,
+      };
     } else if (value === "*") {
-      const value = name();
+      const { name: value } = name();
       yield { type: "WILDCARD", index: i, value };
     } else {
       yield { type: "CHAR", index: i, value: chars[i++] };
@@ -191,15 +220,23 @@ class Iter {
     return this._peek;
   }
 
-  tryConsume(type: TokenType): string | undefined {
+  tryConsume(type: Extract<TokenType, "PARAM">): {
+    name: string;
+    pattern?: string;
+  };
+  tryConsume(type: Exclude<TokenType, "PARAM">): string;
+  tryConsume(
+    type: TokenType,
+  ): string | { name: string; pattern?: string } | undefined {
     const token = this.peek();
     if (token.type !== type) return;
     this._peek = undefined; // Reset after consumed.
     return token.value;
   }
 
-  consume(type: TokenType): string {
-    const value = this.tryConsume(type);
+  consume(type: TokenType): string | { name: string; pattern?: string } {
+    const value =
+      type === "PARAM" ? this.tryConsume(type) : this.tryConsume(type);
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
@@ -231,6 +268,7 @@ export interface Text {
 export interface Parameter {
   type: "param";
   name: string;
+  pattern?: string;
 }
 
 /**
@@ -287,9 +325,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
       const param = it.tryConsume("PARAM");
       if (param) {
+        const { name, pattern } = param;
         tokens.push({
           type: "param",
-          name: param,
+          name,
+          pattern,
         });
         continue;
       }
@@ -579,7 +619,14 @@ function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
       }
 
       if (token.type === "param") {
-        result += `(${negate(delimiter, isSafeSegmentParam ? "" : backtrack)}+)`;
+        if (token.pattern) {
+          result += `(${token.pattern})`;
+        } else {
+          result += `(${negate(
+            delimiter,
+            isSafeSegmentParam ? "" : backtrack,
+          )}+)`;
+        }
       } else {
         result += `([\\s\\S]+)`;
       }

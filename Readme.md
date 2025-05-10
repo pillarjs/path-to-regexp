@@ -192,6 +192,10 @@ Parameter names must be provided after `:` or `*`, and they must be a valid Java
 
 Parameter names can be wrapped in double quote characters, and this error means you forgot to close the quote character.
 
+### Unterminated parameter pattern
+
+Parameter patterns must be wrapped in parentheses, and this error means you forgot to close the parentheses.
+
 ### Express <= 4.x
 
 Path-To-RegExp breaks compatibility with Express <= `4.x` in the following ways:
