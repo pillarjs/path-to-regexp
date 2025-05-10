@@ -113,6 +113,16 @@ function escape(str: string) {
 }
 
 /**
+ * Format error so it's easier to debug.
+ */
+function errorMessage(message: string, originalPath: string | undefined) {
+  if (originalPath) {
+    return `${message}: ${originalPath}; visit ${DEBUG_URL} for more info`;
+  }
+  return `${message}; visit ${DEBUG_URL} for more info`;
+}
+
+/**
  * Tokenize input string.
  */
 function* lexer(str: string): Generator<LexToken, LexToken> {
@@ -145,12 +155,16 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
       }
 
       if (pos) {
-        throw new TypeError(`Unterminated quote at ${pos}: ${DEBUG_URL}`);
+        throw new TypeError(
+          errorMessage(`Unterminated quote at index ${pos}`, str),
+        );
       }
     }
 
     if (!value) {
-      throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
+      throw new TypeError(
+        errorMessage(`Missing parameter name at index ${i}`, str),
+      );
     }
 
     return value;
@@ -180,12 +194,15 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
 
 class Iter {
   private _peek?: LexToken;
+  private _tokens: Generator<LexToken, LexToken>;
 
-  constructor(private tokens: Generator<LexToken, LexToken>) {}
+  constructor(private originalPath: string) {
+    this._tokens = lexer(originalPath);
+  }
 
   peek(): LexToken {
     if (!this._peek) {
-      const next = this.tokens.next();
+      const next = this._tokens.next();
       this._peek = next.value;
     }
     return this._peek;
@@ -203,7 +220,10 @@ class Iter {
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
-      `Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
+      errorMessage(
+        `Unexpected ${nextType} at index ${index}, expected ${type}`,
+        this.originalPath,
+      ),
     );
   }
 
@@ -268,7 +288,10 @@ export type Token = Text | Parameter | Wildcard | Group;
  * Tokenized path instance.
  */
 export class TokenData {
-  constructor(public readonly tokens: Token[]) {}
+  constructor(
+    public readonly tokens: Token[],
+    public readonly originalPath?: string,
+  ) {}
 }
 
 /**
@@ -276,7 +299,7 @@ export class TokenData {
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
-  const it = new Iter(lexer(str));
+  const it = new Iter(str);
 
   function consume(endType: TokenType): Token[] {
     const tokens: Token[] = [];
@@ -318,7 +341,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   }
 
   const tokens = consume("END");
-  return new TokenData(tokens);
+  return new TokenData(tokens, str);
 }
 
 /**
@@ -496,12 +519,8 @@ export function pathToRegexp(
     trailing = true,
   } = options;
   const keys: Keys = [];
-  const sources: string[] = [];
   const flags = sensitive ? "" : "i";
-
-  for (const seq of flat(path, options)) {
-    sources.push(toRegExp(seq, delimiter, keys));
-  }
+  const sources = Array.from(toRegExps(path, delimiter, keys, options));
 
   let pattern = `^(?:${sources.join("|")})`;
   if (trailing) pattern += `(?:${escape(delimiter)}$)?`;
@@ -512,25 +531,29 @@ export function pathToRegexp(
 }
 
 /**
- * Flattened token set.
- */
-type Flattened = Text | Parameter | Wildcard;
-
-/**
  * Path or array of paths to normalize.
  */
-function* flat(
+function* toRegExps(
   path: Path | Path[],
+  delimiter: string,
+  keys: Keys,
   options: ParseOptions,
-): Generator<Flattened[]> {
+): Generator<string> {
   if (Array.isArray(path)) {
-    for (const p of path) yield* flat(p, options);
+    for (const p of path) yield* toRegExps(p, delimiter, keys, options);
     return;
   }
 
   const data = path instanceof TokenData ? path : parse(path, options);
-  yield* flatten(data.tokens, 0, []);
+  for (const tokens of flatten(data.tokens, 0, [])) {
+    yield toRegExp(tokens, delimiter, keys, data.originalPath);
+  }
 }
+
+/**
+ * Flattened token set.
+ */
+type FlatToken = Text | Parameter | Wildcard;
 
 /**
  * Generate a flat list of sequence tokens from the given tokens.
@@ -538,8 +561,8 @@ function* flat(
 function* flatten(
   tokens: Token[],
   index: number,
-  init: Flattened[],
-): Generator<Flattened[]> {
+  init: FlatToken[],
+): Generator<FlatToken[]> {
   if (index === tokens.length) {
     return yield init;
   }
@@ -560,7 +583,12 @@ function* flatten(
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
-function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
+function toRegExp(
+  tokens: FlatToken[],
+  delimiter: string,
+  keys: Keys,
+  originalPath: string | undefined,
+) {
   let result = "";
   let backtrack = "";
   let isSafeSegmentParam = true;
@@ -575,7 +603,9 @@ function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
 
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
-        throw new TypeError(`Missing text after "${token.name}": ${DEBUG_URL}`);
+        throw new TypeError(
+          errorMessage(`Missing text after "${token.name}"`, originalPath),
+        );
       }
 
       if (token.type === "param") {

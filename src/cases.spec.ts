@@ -41,64 +41,88 @@ export interface MatchTestSet {
 export const PARSER_TESTS: ParserTestSet[] = [
   {
     path: "/",
-    expected: new TokenData([{ type: "text", value: "/" }]),
+    expected: new TokenData([{ type: "text", value: "/" }], "/"),
   },
   {
     path: "/:test",
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+      "/:test",
+    ),
   },
   {
     path: '/:"0"',
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "0" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "0" },
+      ],
+      '/:"0"',
+    ),
   },
   {
     path: "/:_",
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "_" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "_" },
+      ],
+      "/:_",
+    ),
   },
   {
     path: "/:café",
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "café" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "café" },
+      ],
+      "/:café",
+    ),
   },
   {
     path: '/:"123"',
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "123" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "123" },
+      ],
+      '/:"123"',
+    ),
   },
   {
     path: '/:"1\\"\\2\\"3"',
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: '1"2"3' },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: '1"2"3' },
+      ],
+      '/:"1\\"\\2\\"3"',
+    ),
   },
   {
     path: "/*path",
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "wildcard", name: "path" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "wildcard", name: "path" },
+      ],
+      "/*path",
+    ),
   },
   {
     path: '/:"test"stuff',
-    expected: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-      { type: "text", value: "stuff" },
-    ]),
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+        { type: "text", value: "stuff" },
+      ],
+      '/:"test"stuff',
+    ),
   },
 ];
 
