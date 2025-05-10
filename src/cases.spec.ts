@@ -54,6 +54,17 @@ export const PARSER_TESTS: ParserTestSet[] = [
     ),
   },
   {
+    path: "/:a:b",
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "a" },
+        { type: "param", name: "b" },
+      ],
+      "/:a:b",
+    ),
+  },
+  {
     path: '/:"0"',
     expected: new TokenData(
       [

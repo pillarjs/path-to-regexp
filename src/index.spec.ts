@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parse, compile, match, stringify } from "./index.js";
+import {
+  parse,
+  compile,
+  match,
+  stringify,
+  pathToRegexp,
+  TokenData,
+} from "./index.js";
 import {
   PARSER_TESTS,
   COMPILE_TESTS,
@@ -19,6 +26,7 @@ describe("path-to-regexp", () => {
         ),
       );
     });
+
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
         new TypeError(
@@ -91,6 +99,49 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: [1, "a"] as any });
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
+    });
+  });
+
+  describe("pathToRegexp errors", () => {
+    it("should throw when missing text between params", () => {
+      expect(() => pathToRegexp("/:foo:bar")).toThrow(
+        new TypeError(
+          'Missing text before "bar": /:foo:bar; visit https://git.new/pathToRegexpError for more info',
+        ),
+      );
+    });
+
+    it("should throw when missing text between params using TokenData", () => {
+      expect(() =>
+        pathToRegexp(
+          new TokenData([
+            { type: "param", name: "a" },
+            { type: "param", name: "b" },
+          ]),
+        ),
+      ).toThrow(
+        new TypeError(
+          'Missing text before "b"; visit https://git.new/pathToRegexpError for more info',
+        ),
+      );
+    });
+
+    it("should throw with `originalPath` when missing text between params using TokenData", () => {
+      expect(() =>
+        pathToRegexp(
+          new TokenData(
+            [
+              { type: "param", name: "a" },
+              { type: "param", name: "b" },
+            ],
+            "/[a][b]",
+          ),
+        ),
+      ).toThrow(
+        new TypeError(
+          'Missing text before "b": /[a][b]; visit https://git.new/pathToRegexpError for more info',
+        ),
+      );
     });
   });
 

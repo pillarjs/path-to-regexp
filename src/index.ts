@@ -604,7 +604,7 @@ function toRegExp(
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
         throw new TypeError(
-          errorMessage(`Missing text after "${token.name}"`, originalPath),
+          errorMessage(`Missing text before "${token.name}"`, originalPath),
         );
       }
 
