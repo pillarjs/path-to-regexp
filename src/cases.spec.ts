@@ -100,6 +100,20 @@ export const PARSER_TESTS: ParserTestSet[] = [
       { type: "text", value: "stuff" },
     ]),
   },
+  {
+    path: "/:locale(de|en)",
+    expected: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "locale", pattern: "de|en" },
+    ]),
+  },
+  {
+    path: "/:foo(a|b|c)",
+    expected: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "foo", pattern: "a|b|c" },
+    ]),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
@@ -270,6 +284,16 @@ export const COMPILE_TESTS: CompileTestSet[] = [
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
     ],
   },
+  {
+    path: "/:locale(de|en)",
+    tests: [
+      { input: undefined, expected: null },
+      { input: {}, expected: null },
+      { input: { locale: "de" }, expected: "/de" },
+      { input: { locale: "en" }, expected: "/en" },
+      { input: { locale: "fr" }, expected: "/fr" },
+    ],
+  },
 ];
 
 /**
@@ -373,6 +397,28 @@ export const MATCH_TESTS: MatchTestSet[] = [
           params: { test: "param%23" },
         },
       },
+    ],
+  },
+
+  /**
+   * Parameter patterns.
+   */
+  {
+    path: "/:locale(de|en)",
+    tests: [
+      { input: "/de", expected: { path: "/de", params: { locale: "de" } } },
+      { input: "/en", expected: { path: "/en", params: { locale: "en" } } },
+      { input: "/fr", expected: false },
+      { input: "/", expected: false },
+    ],
+  },
+  {
+    path: "/:foo(\\d)",
+    tests: [
+      { input: "/1", expected: { path: "/1", params: { foo: "1" } } },
+      { input: "/123", expected: false },
+      { input: "/", expected: false },
+      { input: "/foo", expected: false },
     ],
   },
 
