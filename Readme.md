@@ -192,9 +192,17 @@ Parameter names must be provided after `:` or `*`, and they must be a valid Java
 
 Parameter names can be wrapped in double quote characters, and this error means you forgot to close the quote character.
 
-### Unterminated parameter pattern
+### Unbalanced pattern
 
 Parameter patterns must be wrapped in parentheses, and this error means you forgot to close the parentheses.
+
+### Only '|' is allowed as a special character in patterns
+
+When defining a custom pattern for a parameter (e.g., `:id(<pattern>)`), only the pipe character (`|`) is allowed as a special character inside the pattern.
+
+### Missing pattern
+
+When defining a custom pattern for a parameter (e.g., `:id(<pattern>)`), you must provide a pattern.
 
 ### Express <= 4.x
 

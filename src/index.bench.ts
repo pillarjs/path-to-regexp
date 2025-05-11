@@ -12,7 +12,6 @@ const PATHS: string[] = [
 
 const STATIC_PATH_MATCH = match("/user");
 const SIMPLE_PATH_MATCH = match("/user/:id");
-const SIMPLE_PATH_MATCH_WITH_PATTERN = match("/user/:id(\\d+)");
 const MULTI_SEGMENT_MATCH = match("/:x/:y");
 const MULTI_PATTERN_MATCH = match("/:x-:y");
 const TRICKY_PATTERN_MATCH = match("/:foo|:bar|");
@@ -24,10 +23,6 @@ bench("static path", () => {
 
 bench("simple path", () => {
   for (const path of PATHS) SIMPLE_PATH_MATCH(path);
-});
-
-bench("simple path with parameter pattern", () => {
-  for (const path of PATHS) SIMPLE_PATH_MATCH_WITH_PATTERN(path);
 });
 
 bench("multi segment", () => {

@@ -51,10 +51,26 @@ describe("path-to-regexp", () => {
       );
     });
 
-    it("should throw on unterminated parameter pattern", () => {
-      expect(() => parse("/:foo((bar")).toThrow(
+    it("should throw on unbalanced pattern", () => {
+      expect(() => parse("/:foo((bar|sdfsdf)/")).toThrow(
         new TypeError(
-          "Unterminated parameter pattern at 10: https://git.new/pathToRegexpError",
+          "Unbalanced pattern at 5: https://git.new/pathToRegexpError",
+        ),
+      );
+    });
+
+    it("should throw on not allowed characters in pattern", () => {
+      expect(() => parse("/:foo(\\d)")).toThrow(
+        new TypeError(
+          `Only "|" is allowed as a special character in patterns at 6: https://git.new/pathToRegexpError`,
+        ),
+      );
+    });
+
+    it("should throw on missing pattern", () => {
+      expect(() => parse("//:foo()")).toThrow(
+        new TypeError(
+          "Missing pattern at 6: https://git.new/pathToRegexpError",
         ),
       );
     });

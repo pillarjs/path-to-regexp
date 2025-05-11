@@ -412,15 +412,6 @@ export const MATCH_TESTS: MatchTestSet[] = [
       { input: "/", expected: false },
     ],
   },
-  {
-    path: "/:foo(\\d)",
-    tests: [
-      { input: "/1", expected: { path: "/1", params: { foo: "1" } } },
-      { input: "/123", expected: false },
-      { input: "/", expected: false },
-      { input: "/foo", expected: false },
-    ],
-  },
 
   /**
    * Case-sensitive paths.

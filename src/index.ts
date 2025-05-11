@@ -3,6 +3,7 @@ const NOOP_VALUE = (value: string) => value;
 const ID_START = /^[$_\p{ID_Start}]$/u;
 const ID_CONTINUE = /^[$\u200c\u200d\p{ID_Continue}]$/u;
 const DEBUG_URL = "https://git.new/pathToRegexpError";
+const INVALID_PATTERN_CHARS = "^$.+*?[]{}\\^";
 
 /**
  * Encode a string into another string.
@@ -63,6 +64,7 @@ type TokenType =
   | "}"
   | "WILDCARD"
   | "PARAM"
+  | "PATTERN"
   | "CHAR"
   | "ESCAPED"
   | "END"
@@ -81,7 +83,7 @@ type TokenType =
 interface LexToken {
   type: TokenType;
   index: number;
-  value: string | { name: string; pattern?: string };
+  value: string;
 }
 
 const SIMPLE_TOKENS: Record<string, TokenType> = {
@@ -89,7 +91,7 @@ const SIMPLE_TOKENS: Record<string, TokenType> = {
   "{": "{",
   "}": "}",
   // Reserved.
-  "(": "(",
+  // "(": "(",
   ")": ")",
   "[": "[",
   "]": "]",
@@ -119,10 +121,7 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
   const chars = [...str];
   let i = 0;
 
-  function name(options?: { pattern?: boolean }): {
-    name: string;
-    pattern?: string;
-  } {
+  function name() {
     let value = "";
 
     if (ID_START.test(chars[++i])) {
@@ -156,29 +155,46 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
       throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
     }
 
-    if (chars[i] === "(" && options?.pattern) {
-      let depth = 1;
-      let pattern = "";
-      i++;
-      while (i < chars.length && depth > 0) {
-        if (chars[i] === "(") {
-          depth++;
-        } else if (chars[i] === ")") {
-          depth--;
-        }
-        if (depth > 0) {
-          pattern += chars[i++];
-        }
-      }
-      if (depth !== 0) {
+    return value;
+  }
+
+  function pattern() {
+    const pos = i++;
+    let depth = 1;
+    let pattern = "";
+
+    while (i < chars.length && depth > 0) {
+      const char = chars[i];
+
+      if (INVALID_PATTERN_CHARS.includes(char)) {
         throw new TypeError(
-          `Unterminated parameter pattern at ${i}: ${DEBUG_URL}`,
+          `Only "|" is allowed as a special character in patterns at ${i}: ${DEBUG_URL}`,
         );
       }
+
+      if (char === ")") {
+        depth--;
+        if (depth === 0) {
+          i++;
+          break;
+        }
+      } else if (char === "(") {
+        depth++;
+      }
+
+      pattern += char;
       i++;
-      return { name: value, pattern };
     }
-    return { name: value };
+
+    if (depth) {
+      throw new TypeError(`Unbalanced pattern at ${pos}: ${DEBUG_URL}`);
+    }
+
+    if (!pattern) {
+      throw new TypeError(`Missing pattern at ${pos}: ${DEBUG_URL}`);
+    }
+
+    return pattern;
   }
 
   while (i < chars.length) {
@@ -190,14 +206,13 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
     } else if (value === "\\") {
       yield { type: "ESCAPED", index: i++, value: chars[i++] };
     } else if (value === ":") {
-      const value = name({ pattern: true });
-      yield {
-        type: "PARAM",
-        index: i,
-        value,
-      };
+      const value = name();
+      yield { type: "PARAM", index: i, value };
+    } else if (value === "(") {
+      const value = pattern();
+      yield { type: "PATTERN", index: i, value };
     } else if (value === "*") {
-      const { name: value } = name();
+      const value = name();
       yield { type: "WILDCARD", index: i, value };
     } else {
       yield { type: "CHAR", index: i, value: chars[i++] };
@@ -220,23 +235,15 @@ class Iter {
     return this._peek;
   }
 
-  tryConsume(type: Extract<TokenType, "PARAM">): {
-    name: string;
-    pattern?: string;
-  };
-  tryConsume(type: Exclude<TokenType, "PARAM">): string;
-  tryConsume(
-    type: TokenType,
-  ): string | { name: string; pattern?: string } | undefined {
+  tryConsume(type: TokenType): string | undefined {
     const token = this.peek();
     if (token.type !== type) return;
     this._peek = undefined; // Reset after consumed.
     return token.value;
   }
 
-  consume(type: TokenType): string | { name: string; pattern?: string } {
-    const value =
-      type === "PARAM" ? this.tryConsume(type) : this.tryConsume(type);
+  consume(type: TokenType): string {
+    const value = this.tryConsume(type);
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
@@ -325,10 +332,10 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
       const param = it.tryConsume("PARAM");
       if (param) {
-        const { name, pattern } = param;
+        const pattern = it.tryConsume("PATTERN");
         tokens.push({
           type: "param",
-          name,
+          name: param,
           pattern,
         });
         continue;
