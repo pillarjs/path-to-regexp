@@ -401,7 +401,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
-   * Parameter patterns.
+   * Patterns
    */
   {
     path: "/:locale(de|en)",
@@ -410,6 +410,32 @@ export const MATCH_TESTS: MatchTestSet[] = [
       { input: "/en", expected: { path: "/en", params: { locale: "en" } } },
       { input: "/fr", expected: false },
       { input: "/", expected: false },
+    ],
+  },
+  {
+    path: "/:foo(\\\\d)",
+    tests: [
+      {
+        input: "/\\d",
+        expected: { path: "/\\d", params: { foo: "\\d" } },
+      },
+    ],
+  },
+  {
+    path: "/file.*ext(png|jpg)",
+    tests: [
+      {
+        input: "/file.png",
+        expected: { path: "/file.png", params: { ext: ["png"] } },
+      },
+      {
+        input: "/file.webp",
+        expected: false,
+      },
+      {
+        input: "/file.jpg",
+        expected: { path: "/file.jpg", params: { ext: ["jpg"] } },
+      },
     ],
   },
 

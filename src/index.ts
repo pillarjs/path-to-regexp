@@ -3,8 +3,23 @@ const NOOP_VALUE = (value: string) => value;
 const ID_START = /^[$_\p{ID_Start}]$/u;
 const ID_CONTINUE = /^[$\u200c\u200d\p{ID_Continue}]$/u;
 const DEBUG_URL = "https://git.new/pathToRegexpError";
-const INVALID_PATTERN_CHARS = "^$.+*?[]{}\\^";
-
+const PATTERN_META_CHARS = new Set([
+  "*",
+  "+",
+  "?",
+  ".",
+  "^",
+  "$",
+  "|",
+  "\\",
+  "(",
+  ")",
+  "[",
+  "]",
+  "{",
+  "}",
+]);
+const ALLOWED_PATTERN_META_CHARS = new Set(["|"]);
 /**
  * Encode a string into another string.
  */
@@ -166,12 +181,6 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
     while (i < chars.length && depth > 0) {
       const char = chars[i];
 
-      if (INVALID_PATTERN_CHARS.includes(char)) {
-        throw new TypeError(
-          `Only "|" is allowed as a special character in patterns at ${i}: ${DEBUG_URL}`,
-        );
-      }
-
       if (char === ")") {
         depth--;
         if (depth === 0) {
@@ -284,6 +293,7 @@ export interface Parameter {
 export interface Wildcard {
   type: "wildcard";
   name: string;
+  pattern?: string;
 }
 
 /**
@@ -343,9 +353,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
       const wildcard = it.tryConsume("WILDCARD");
       if (wildcard) {
+        const pattern = it.tryConsume("PATTERN");
         tokens.push({
           type: "wildcard",
           name: wildcard,
+          pattern,
         });
         continue;
       }
@@ -625,17 +637,14 @@ function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
         throw new TypeError(`Missing text after "${token.name}": ${DEBUG_URL}`);
       }
 
-      if (token.type === "param") {
-        if (token.pattern) {
-          result += `(${token.pattern})`;
-        } else {
-          result += `(${negate(
-            delimiter,
-            isSafeSegmentParam ? "" : backtrack,
-          )}+)`;
-        }
+      if (token.pattern && isPatternSafe(token.pattern)) {
+        result += `(${token.pattern})`;
       } else {
-        result += `([\\s\\S]+)`;
+        if (token.type === "param") {
+          result += `(${negate(delimiter, isSafeSegmentParam ? "" : backtrack)}+)`;
+        } else {
+          result += `([\\s\\S]+)`;
+        }
       }
 
       keys.push(token);
@@ -699,4 +708,28 @@ function isNameSafe(name: string) {
 function isNextNameSafe(token: Token | undefined) {
   if (!token || token.type !== "text") return true;
   return !ID_CONTINUE.test(token.value[0]);
+}
+
+/**
+ * Validate the pattern contains only allowed meta characters.
+ */
+function isPatternSafe(pattern: string) {
+  let i = 0;
+  while (i < pattern.length) {
+    const char = pattern[i];
+
+    if (char === "\\" && PATTERN_META_CHARS.has(pattern[i + 1])) {
+      i += 2;
+    } else if (PATTERN_META_CHARS.has(char)) {
+      if (!ALLOWED_PATTERN_META_CHARS.has(char)) {
+        throw new TypeError(
+          `Only "${[...ALLOWED_PATTERN_META_CHARS].join(", ")}" meta character is allowed in pattern: ${pattern}`,
+        );
+      }
+      i++;
+    } else {
+      i++;
+    }
+  }
+  return true;
 }

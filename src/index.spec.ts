@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parse, compile, match, stringify } from "./index.js";
+import { parse, compile, match, stringify, pathToRegexp } from "./index.js";
 import {
   PARSER_TESTS,
   COMPILE_TESTS,
@@ -59,14 +59,6 @@ describe("path-to-regexp", () => {
       );
     });
 
-    it("should throw on not allowed characters in pattern", () => {
-      expect(() => parse("/:foo(\\d)")).toThrow(
-        new TypeError(
-          `Only "|" is allowed as a special character in patterns at 6: https://git.new/pathToRegexpError`,
-        ),
-      );
-    });
-
     it("should throw on missing pattern", () => {
       expect(() => parse("//:foo()")).toThrow(
         new TypeError(
@@ -115,6 +107,14 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: [1, "a"] as any });
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
+    });
+  });
+
+  describe("pathToRegexp errors", () => {
+    it("should throw on not allowed characters in pattern", () => {
+      expect(() => pathToRegexp("/:foo(\\d)")).toThrow(
+        new TypeError(`Only "|" meta character is allowed in pattern: \\d`),
+      );
     });
   });
 
