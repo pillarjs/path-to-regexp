@@ -12,6 +12,10 @@
     "type": "git",
     "url": "https://github.com/pillarjs/path-to-regexp.git"
   },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/express"
+  },
   "license": "MIT",
   "exports": "./dist/index.js",
   "main": "dist/index.js",
