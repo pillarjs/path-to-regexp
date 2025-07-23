@@ -145,12 +145,16 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
       }
 
       if (pos) {
-        throw new TypeError(`Unterminated quote at ${pos}: ${DEBUG_URL}`);
+        throw new TypeError(
+          `'${str}': Unterminated quote at ${pos}: ${DEBUG_URL}`,
+        );
       }
     }
 
     if (!value) {
-      throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
+      throw new TypeError(
+        `'${str}': Missing parameter name at ${i}: ${DEBUG_URL}`,
+      );
     }
 
     return value;
@@ -198,12 +202,12 @@ class Iter {
     return token.value;
   }
 
-  consume(type: TokenType): string {
+  consume(type: TokenType, pathString: string): string {
     const value = this.tryConsume(type);
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
-      `Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
+      `'${pathString}': Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
     );
   }
 
@@ -312,7 +316,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      it.consume(endType);
+      it.consume(endType, str);
       return tokens;
     }
   }
@@ -331,14 +335,16 @@ export function compile<P extends ParamData = ParamData>(
   const { encode = encodeURIComponent, delimiter = DEFAULT_DELIMITER } =
     options;
   const data = path instanceof TokenData ? path : parse(path, options);
-  const fn = tokensToFunction(data.tokens, delimiter, encode);
+  const fn = tokensToFunction(data.tokens, delimiter, encode, path);
 
-  return function path(params: P = {} as P) {
-    const [path, ...missing] = fn(params);
+  return function pathFn(params: P = {} as P) {
+    const [returnPath, ...missing] = fn(params);
     if (missing.length) {
-      throw new TypeError(`Missing parameters: ${missing.join(", ")}`);
+      throw new TypeError(
+        `'${stringify(path)}': Missing parameters: ${missing.join(", ")}`,
+      );
     }
-    return path;
+    return returnPath;
   };
 }
 
@@ -349,9 +355,10 @@ function tokensToFunction(
   tokens: Token[],
   delimiter: string,
   encode: Encode | false,
+  path: Path,
 ) {
   const encoders = tokens.map((token) =>
-    tokenToFunction(token, delimiter, encode),
+    tokenToFunction(token, delimiter, encode, path),
   );
 
   return (data: ParamData) => {
@@ -374,11 +381,12 @@ function tokenToFunction(
   token: Token,
   delimiter: string,
   encode: Encode | false,
+  path: Path,
 ): (data: ParamData) => string[] {
   if (token.type === "text") return () => [token.value];
 
   if (token.type === "group") {
-    const fn = tokensToFunction(token.tokens, delimiter, encode);
+    const fn = tokensToFunction(token.tokens, delimiter, encode, path);
 
     return (data) => {
       const [value, ...missing] = fn(data);
@@ -395,7 +403,9 @@ function tokenToFunction(
       if (value == null) return ["", token.name];
 
       if (!Array.isArray(value) || value.length === 0) {
-        throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
+        throw new TypeError(
+          `'${stringify(path)}': Expected "${token.name}" to be a non-empty array`,
+        );
       }
 
       return [
@@ -403,7 +413,7 @@ function tokenToFunction(
           .map((value, index) => {
             if (typeof value !== "string") {
               throw new TypeError(
-                `Expected "${token.name}/${index}" to be a string`,
+                `'${stringify(path)}': Expected "${token.name}/${index}" to be a string`,
               );
             }
 
@@ -419,7 +429,9 @@ function tokenToFunction(
     if (value == null) return ["", token.name];
 
     if (typeof value !== "string") {
-      throw new TypeError(`Expected "${token.name}" to be a string`);
+      throw new TypeError(
+        `'${stringify(path)}': Expected "${token.name}" to be a string`,
+      );
     }
 
     return [encodeValue(value)];
@@ -611,7 +623,10 @@ function negate(delimiter: string, backtrack: string) {
 /**
  * Stringify token data into a path string.
  */
-export function stringify(data: TokenData) {
+export function stringify(data: Path) {
+  if (typeof data === "string") {
+    return data;
+  }
   return data.tokens
     .map(function stringifyToken(token, index, tokens): string {
       if (token.type === "text") return escapeText(token.value);
