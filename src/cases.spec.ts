@@ -100,6 +100,20 @@ export const PARSER_TESTS: ParserTestSet[] = [
       { type: "text", value: "stuff" },
     ]),
   },
+  {
+    path: "/:locale(de|en)",
+    expected: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "locale", pattern: "de|en" },
+    ]),
+  },
+  {
+    path: "/:foo(a|b|c)",
+    expected: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "foo", pattern: "a|b|c" },
+    ]),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
@@ -270,6 +284,16 @@ export const COMPILE_TESTS: CompileTestSet[] = [
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
     ],
   },
+  {
+    path: "/:locale(de|en)",
+    tests: [
+      { input: undefined, expected: null },
+      { input: {}, expected: null },
+      { input: { locale: "de" }, expected: "/de" },
+      { input: { locale: "en" }, expected: "/en" },
+      { input: { locale: "fr" }, expected: "/fr" },
+    ],
+  },
 ];
 
 /**
@@ -372,6 +396,45 @@ export const MATCH_TESTS: MatchTestSet[] = [
           path: "/param%2523",
           params: { test: "param%23" },
         },
+      },
+    ],
+  },
+
+  /**
+   * Patterns
+   */
+  {
+    path: "/:locale(de|en)",
+    tests: [
+      { input: "/de", expected: { path: "/de", params: { locale: "de" } } },
+      { input: "/en", expected: { path: "/en", params: { locale: "en" } } },
+      { input: "/fr", expected: false },
+      { input: "/", expected: false },
+    ],
+  },
+  {
+    path: "/:foo(\\\\d)",
+    tests: [
+      {
+        input: "/\\d",
+        expected: { path: "/\\d", params: { foo: "\\d" } },
+      },
+    ],
+  },
+  {
+    path: "/file.*ext(png|jpg)",
+    tests: [
+      {
+        input: "/file.png",
+        expected: { path: "/file.png", params: { ext: ["png"] } },
+      },
+      {
+        input: "/file.webp",
+        expected: false,
+      },
+      {
+        input: "/file.jpg",
+        expected: { path: "/file.jpg", params: { ext: ["jpg"] } },
       },
     ],
   },
