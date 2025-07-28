@@ -145,12 +145,12 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
       }
 
       if (pos) {
-        throw new TypeError(`Unterminated quote at ${pos}: ${DEBUG_URL}`);
+        throw new TypeError(`Unterminated quote at ${pos}: ${str}; Visit ${DEBUG_URL} for more information.`);
       }
     }
 
     if (!value) {
-      throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
+      throw new TypeError(`Missing parameter name at ${i}: ${str}; Visit ${DEBUG_URL} for more information.`);
     }
 
     return value;
@@ -203,7 +203,7 @@ class Iter {
     if (value !== undefined) return value;
     const { type: nextType, index } = this.peek();
     throw new TypeError(
-      `Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
+      `Unexpected ${nextType} at ${index}, expected ${type}: ${str}; Visit ${DEBUG_URL} for more information.`,
     );
   }
 
@@ -575,7 +575,7 @@ function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
 
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
-        throw new TypeError(`Missing text after "${token.name}": ${DEBUG_URL}`);
+        throw new TypeError(`Missing text after "${token.name}": ${str}; Visit ${DEBUG_URL} for more information.`);
       }
 
       if (token.type === "param") {
