@@ -115,11 +115,11 @@ function escape(str: string) {
 /**
  * Format error so it's easier to debug.
  */
-function errorMessage(message: string, originalPath: string | undefined) {
-  if (originalPath) {
-    return `${message}: ${originalPath}; visit ${DEBUG_URL} for more info`;
-  }
-  return `${message}; visit ${DEBUG_URL} for more info`;
+function errorMessage(text: string, originalPath: string | undefined) {
+  let message = text;
+  if (originalPath !== undefined) message += `: ${originalPath}`;
+  message += `; visit ${DEBUG_URL} for info`;
+  return message;
 }
 
 /**

@@ -22,7 +22,7 @@ describe("path-to-regexp", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
         new TypeError(
-          "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for more info",
+          "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -30,7 +30,7 @@ describe("path-to-regexp", () => {
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
         new TypeError(
-          "Unexpected END at index 12, expected }: /{:foo/{x,y}; visit https://git.new/pathToRegexpError for more info",
+          "Unexpected END at index 12, expected }: /{:foo/{x,y}; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -38,7 +38,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
         new TypeError(
-          "Missing parameter name at index 2: /:/; visit https://git.new/pathToRegexpError for more info",
+          "Missing parameter name at index 2: /:/; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -46,7 +46,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
         new TypeError(
-          "Missing parameter name at index 2: /*/; visit https://git.new/pathToRegexpError for more info",
+          "Missing parameter name at index 2: /*/; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -54,7 +54,7 @@ describe("path-to-regexp", () => {
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
         new TypeError(
-          'Unterminated quote at index 2: /:"foo; visit https://git.new/pathToRegexpError for more info',
+          'Unterminated quote at index 2: /:"foo; visit https://git.new/pathToRegexpError for info',
         ),
       );
     });
@@ -106,7 +106,7 @@ describe("path-to-regexp", () => {
     it("should throw when missing text between params", () => {
       expect(() => pathToRegexp("/:foo:bar")).toThrow(
         new TypeError(
-          'Missing text before "bar": /:foo:bar; visit https://git.new/pathToRegexpError for more info',
+          'Missing text before "bar": /:foo:bar; visit https://git.new/pathToRegexpError for info',
         ),
       );
     });
@@ -121,7 +121,7 @@ describe("path-to-regexp", () => {
         ),
       ).toThrow(
         new TypeError(
-          'Missing text before "b"; visit https://git.new/pathToRegexpError for more info',
+          'Missing text before "b"; visit https://git.new/pathToRegexpError for info',
         ),
       );
     });
@@ -139,7 +139,7 @@ describe("path-to-regexp", () => {
         ),
       ).toThrow(
         new TypeError(
-          'Missing text before "b": /[a][b]; visit https://git.new/pathToRegexpError for more info',
+          'Missing text before "b": /[a][b]; visit https://git.new/pathToRegexpError for info',
         ),
       );
     });
