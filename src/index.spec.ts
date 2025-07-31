@@ -143,6 +143,20 @@ describe("path-to-regexp", () => {
         ),
       );
     });
+
+    it("should contain the error line", () => {
+      expect.hasAssertions();
+
+      try {
+        pathToRegexp("/:");
+      } catch (error) {
+        const stack = (error as Error).stack
+          ?.split("\n")
+          .slice(0, 6)
+          .join("\n");
+        expect(stack).toContain("index.spec.ts");
+      }
+    });
   });
 
   describe.each(PARSER_TESTS)(

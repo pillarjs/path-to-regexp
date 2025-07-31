@@ -125,8 +125,9 @@ function errorMessage(text: string, originalPath: string | undefined) {
 /**
  * Tokenize input string.
  */
-function* lexer(str: string): Generator<LexToken, LexToken> {
+function lexer(str: string): Iter {
   const chars = [...str];
+  const tokens: Array<LexToken> = [];
   let i = 0;
 
   function name() {
@@ -175,43 +176,44 @@ function* lexer(str: string): Generator<LexToken, LexToken> {
     const type = SIMPLE_TOKENS[value];
 
     if (type) {
-      yield { type, index: i++, value };
+      tokens.push({ type, index: i++, value });
     } else if (value === "\\") {
-      yield { type: "ESCAPED", index: i++, value: chars[i++] };
+      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
     } else if (value === ":") {
       const value = name();
-      yield { type: "PARAM", index: i, value };
+      tokens.push({ type: "PARAM", index: i, value });
     } else if (value === "*") {
       const value = name();
-      yield { type: "WILDCARD", index: i, value };
+      tokens.push({ type: "WILDCARD", index: i, value });
     } else {
-      yield { type: "CHAR", index: i, value: chars[i++] };
+      tokens.push({ type: "CHAR", index: i, value: chars[i++] });
     }
   }
 
-  return { type: "END", index: i, value: "" };
+  tokens.push({ type: "END", index: i, value: "" });
+  return new Iter(tokens, str);
 }
 
 class Iter {
-  private _peek?: LexToken;
-  private _tokens: Generator<LexToken, LexToken>;
+  private _tokens: Array<LexToken>;
+  private _index = 0;
 
-  constructor(private originalPath: string) {
-    this._tokens = lexer(originalPath);
+  constructor(
+    tokens: Array<LexToken>,
+    private originalPath: string,
+  ) {
+    this._index = 0;
+    this._tokens = tokens;
   }
 
   peek(): LexToken {
-    if (!this._peek) {
-      const next = this._tokens.next();
-      this._peek = next.value;
-    }
-    return this._peek;
+    return this._tokens[this._index];
   }
 
   tryConsume(type: TokenType): string | undefined {
     const token = this.peek();
     if (token.type !== type) return;
-    this._peek = undefined; // Reset after consumed.
+    this._index++;
     return token.value;
   }
 
@@ -299,7 +301,7 @@ export class TokenData {
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
-  const it = new Iter(str);
+  const it = lexer(str);
 
   function consume(endType: TokenType): Token[] {
     const tokens: Token[] = [];
@@ -520,7 +522,14 @@ export function pathToRegexp(
   } = options;
   const keys: Keys = [];
   const flags = sensitive ? "" : "i";
-  const sources = Array.from(toRegExps(path, delimiter, keys, options));
+  const sources: string[] = [];
+
+  for (const input of pathsToArray(path, [])) {
+    const data = input instanceof TokenData ? input : parse(input, options);
+    for (const tokens of flatten(data.tokens, 0, [])) {
+      sources.push(toRegExp(tokens, delimiter, keys, data.originalPath));
+    }
+  }
 
   let pattern = `^(?:${sources.join("|")})`;
   if (trailing) pattern += `(?:${escape(delimiter)}$)?`;
@@ -531,23 +540,15 @@ export function pathToRegexp(
 }
 
 /**
- * Path or array of paths to normalize.
+ * Convert a path or array of paths into a flat array.
  */
-function* toRegExps(
-  path: Path | Path[],
-  delimiter: string,
-  keys: Keys,
-  options: ParseOptions,
-): Generator<string> {
-  if (Array.isArray(path)) {
-    for (const p of path) yield* toRegExps(p, delimiter, keys, options);
-    return;
+function pathsToArray(paths: Path | Path[], init: Path[]): Path[] {
+  if (Array.isArray(paths)) {
+    for (const p of paths) pathsToArray(p, init);
+  } else {
+    init.push(paths);
   }
-
-  const data = path instanceof TokenData ? path : parse(path, options);
-  for (const tokens of flatten(data.tokens, 0, [])) {
-    yield toRegExp(tokens, delimiter, keys, data.originalPath);
-  }
+  return init;
 }
 
 /**
