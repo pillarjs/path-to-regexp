@@ -122,78 +122,6 @@ function errorMessage(text: string, originalPath: string | undefined) {
   return message;
 }
 
-/**
- * Tokenize input string.
- */
-function lexer(str: string): Iter {
-  const chars = [...str];
-  const tokens: Array<LexToken> = [];
-  let i = 0;
-
-  function name() {
-    let value = "";
-
-    if (ID_START.test(chars[++i])) {
-      value += chars[i];
-      while (ID_CONTINUE.test(chars[++i])) {
-        value += chars[i];
-      }
-    } else if (chars[i] === '"') {
-      let pos = i;
-
-      while (i < chars.length) {
-        if (chars[++i] === '"') {
-          i++;
-          pos = 0;
-          break;
-        }
-
-        if (chars[i] === "\\") {
-          value += chars[++i];
-        } else {
-          value += chars[i];
-        }
-      }
-
-      if (pos) {
-        throw new TypeError(
-          errorMessage(`Unterminated quote at index ${pos}`, str),
-        );
-      }
-    }
-
-    if (!value) {
-      throw new TypeError(
-        errorMessage(`Missing parameter name at index ${i}`, str),
-      );
-    }
-
-    return value;
-  }
-
-  while (i < chars.length) {
-    const value = chars[i];
-    const type = SIMPLE_TOKENS[value];
-
-    if (type) {
-      tokens.push({ type, index: i++, value });
-    } else if (value === "\\") {
-      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
-    } else if (value === ":") {
-      const value = name();
-      tokens.push({ type: "PARAM", index: i, value });
-    } else if (value === "*") {
-      const value = name();
-      tokens.push({ type: "WILDCARD", index: i, value });
-    } else {
-      tokens.push({ type: "CHAR", index: i, value: chars[i++] });
-    }
-  }
-
-  tokens.push({ type: "END", index: i, value: "" });
-  return new Iter(tokens, str);
-}
-
 class Iter {
   private _tokens: Array<LexToken>;
   private _index = 0;
@@ -301,9 +229,73 @@ export class TokenData {
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
-  const it = lexer(str);
+  const chars = [...str];
+  const tokens: Array<LexToken> = [];
+  let i = 0;
 
-  function consume(endType: TokenType): Token[] {
+  function name() {
+    let value = "";
+
+    if (ID_START.test(chars[++i])) {
+      value += chars[i];
+      while (ID_CONTINUE.test(chars[++i])) {
+        value += chars[i];
+      }
+    } else if (chars[i] === '"') {
+      let pos = i;
+
+      while (i < chars.length) {
+        if (chars[++i] === '"') {
+          i++;
+          pos = 0;
+          break;
+        }
+
+        if (chars[i] === "\\") {
+          value += chars[++i];
+        } else {
+          value += chars[i];
+        }
+      }
+
+      if (pos) {
+        throw new TypeError(
+          errorMessage(`Unterminated quote at index ${pos}`, str),
+        );
+      }
+    }
+
+    if (!value) {
+      throw new TypeError(
+        errorMessage(`Missing parameter name at index ${i}`, str),
+      );
+    }
+
+    return value;
+  }
+
+  while (i < chars.length) {
+    const value = chars[i];
+    const type = SIMPLE_TOKENS[value];
+
+    if (type) {
+      tokens.push({ type, index: i++, value });
+    } else if (value === "\\") {
+      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
+    } else if (value === ":") {
+      const value = name();
+      tokens.push({ type: "PARAM", index: i, value });
+    } else if (value === "*") {
+      const value = name();
+      tokens.push({ type: "WILDCARD", index: i, value });
+    } else {
+      tokens.push({ type: "CHAR", index: i, value: chars[i++] });
+    }
+  }
+
+  tokens.push({ type: "END", index: i, value: "" });
+
+  function consume(it: Iter, endType: TokenType): Token[] {
     const tokens: Token[] = [];
 
     while (true) {
@@ -332,7 +324,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       if (open) {
         tokens.push({
           type: "group",
-          tokens: consume("}"),
+          tokens: consume(it, "}"),
         });
         continue;
       }
@@ -342,8 +334,8 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     }
   }
 
-  const tokens = consume("END");
-  return new TokenData(tokens, str);
+  const it = new Iter(tokens, str);
+  return new TokenData(consume(it, "END"), str);
 }
 
 /**
