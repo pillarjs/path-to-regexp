@@ -136,6 +136,16 @@ export const PARSER_TESTS: ParserTestSet[] = [
       '/:"test"stuff',
     ),
   },
+  {
+    path: "\\\\:test",
+    expected: new TokenData(
+      [
+        { type: "text", value: "\\" },
+        { type: "param", name: "test" },
+      ],
+      "\\\\:test",
+    ),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
@@ -203,6 +213,13 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
       { type: "text", value: "stuff" },
     ]),
     expected: '/:"test"stuff',
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "\\" },
+      { type: "param", name: "test" },
+    ]),
+    expected: "\\\\:test",
   },
 ];
 
