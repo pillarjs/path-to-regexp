@@ -113,108 +113,13 @@ function escape(str: string) {
 }
 
 /**
- * Tokenize input string.
+ * Format error so it's easier to debug.
  */
-function* lexer(str: string): Generator<LexToken, LexToken> {
-  const chars = [...str];
-  let i = 0;
-
-  function name() {
-    let value = "";
-
-    if (ID_START.test(chars[++i])) {
-      value += chars[i];
-      while (ID_CONTINUE.test(chars[++i])) {
-        value += chars[i];
-      }
-    } else if (chars[i] === '"') {
-      let pos = i;
-
-      while (i < chars.length) {
-        if (chars[++i] === '"') {
-          i++;
-          pos = 0;
-          break;
-        }
-
-        if (chars[i] === "\\") {
-          value += chars[++i];
-        } else {
-          value += chars[i];
-        }
-      }
-
-      if (pos) {
-        throw new TypeError(`Unterminated quote at ${pos}: ${DEBUG_URL}`);
-      }
-    }
-
-    if (!value) {
-      throw new TypeError(`Missing parameter name at ${i}: ${DEBUG_URL}`);
-    }
-
-    return value;
-  }
-
-  while (i < chars.length) {
-    const value = chars[i];
-    const type = SIMPLE_TOKENS[value];
-
-    if (type) {
-      yield { type, index: i++, value };
-    } else if (value === "\\") {
-      yield { type: "ESCAPED", index: i++, value: chars[i++] };
-    } else if (value === ":") {
-      const value = name();
-      yield { type: "PARAM", index: i, value };
-    } else if (value === "*") {
-      const value = name();
-      yield { type: "WILDCARD", index: i, value };
-    } else {
-      yield { type: "CHAR", index: i, value: chars[i++] };
-    }
-  }
-
-  return { type: "END", index: i, value: "" };
-}
-
-class Iter {
-  private _peek?: LexToken;
-
-  constructor(private tokens: Generator<LexToken, LexToken>) {}
-
-  peek(): LexToken {
-    if (!this._peek) {
-      const next = this.tokens.next();
-      this._peek = next.value;
-    }
-    return this._peek;
-  }
-
-  tryConsume(type: TokenType): string | undefined {
-    const token = this.peek();
-    if (token.type !== type) return;
-    this._peek = undefined; // Reset after consumed.
-    return token.value;
-  }
-
-  consume(type: TokenType): string {
-    const value = this.tryConsume(type);
-    if (value !== undefined) return value;
-    const { type: nextType, index } = this.peek();
-    throw new TypeError(
-      `Unexpected ${nextType} at ${index}, expected ${type}: ${DEBUG_URL}`,
-    );
-  }
-
-  text(): string {
-    let result = "";
-    let value: string | undefined;
-    while ((value = this.tryConsume("CHAR") || this.tryConsume("ESCAPED"))) {
-      result += value;
-    }
-    return result;
-  }
+function errorMessage(text: string, originalPath: string | undefined) {
+  let message = text;
+  if (originalPath !== undefined) message += `: ${originalPath}`;
+  message += `; visit ${DEBUG_URL} for info`;
+  return message;
 }
 
 /**
@@ -268,7 +173,10 @@ export type Token = Text | Parameter | Wildcard | Group;
  * Tokenized path instance.
  */
 export class TokenData {
-  constructor(public readonly tokens: Token[]) {}
+  constructor(
+    public readonly tokens: Token[],
+    public readonly originalPath?: string,
+  ) {}
 }
 
 /**
@@ -276,16 +184,113 @@ export class TokenData {
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
-  const it = new Iter(lexer(str));
+  const chars = [...str];
+  const tokens: Array<LexToken> = [];
+  let i = 0;
+  let index = 0;
 
-  function consume(endType: TokenType): Token[] {
+  function name() {
+    let value = "";
+
+    if (ID_START.test(chars[++i])) {
+      value += chars[i];
+      while (ID_CONTINUE.test(chars[++i])) {
+        value += chars[i];
+      }
+    } else if (chars[i] === '"') {
+      let pos = i;
+
+      while (i < chars.length) {
+        if (chars[++i] === '"') {
+          i++;
+          pos = 0;
+          break;
+        }
+
+        if (chars[i] === "\\") {
+          value += chars[++i];
+        } else {
+          value += chars[i];
+        }
+      }
+
+      if (pos) {
+        throw new TypeError(
+          errorMessage(`Unterminated quote at index ${pos}`, str),
+        );
+      }
+    }
+
+    if (!value) {
+      throw new TypeError(
+        errorMessage(`Missing parameter name at index ${i}`, str),
+      );
+    }
+
+    return value;
+  }
+
+  while (i < chars.length) {
+    const value = chars[i];
+    const type = SIMPLE_TOKENS[value];
+
+    if (type) {
+      tokens.push({ type, index: i++, value });
+    } else if (value === "\\") {
+      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
+    } else if (value === ":") {
+      const value = name();
+      tokens.push({ type: "PARAM", index: i, value });
+    } else if (value === "*") {
+      const value = name();
+      tokens.push({ type: "WILDCARD", index: i, value });
+    } else {
+      tokens.push({ type: "CHAR", index: i, value: chars[i++] });
+    }
+  }
+
+  tokens.push({ type: "END", index: i, value: "" });
+
+  function peek(): LexToken {
+    return tokens[index];
+  }
+
+  function tryConsume(type: TokenType): string | undefined {
+    const token = peek();
+    if (token.type !== type) return;
+    index++;
+    return token.value;
+  }
+
+  function consume(type: TokenType): string {
+    const value = tryConsume(type);
+    if (value !== undefined) return value;
+    const { type: nextType, index } = peek();
+    throw new TypeError(
+      errorMessage(
+        `Unexpected ${nextType} at index ${index}, expected ${type}`,
+        str,
+      ),
+    );
+  }
+
+  function text(): string {
+    let result = "";
+    let value: string | undefined;
+    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED"))) {
+      result += value;
+    }
+    return result;
+  }
+
+  function consumeUntil(endType: TokenType): Token[] {
     const tokens: Token[] = [];
 
     while (true) {
-      const path = it.text();
+      const path = text();
       if (path) tokens.push({ type: "text", value: encodePath(path) });
 
-      const param = it.tryConsume("PARAM");
+      const param = tryConsume("PARAM");
       if (param) {
         tokens.push({
           type: "param",
@@ -294,7 +299,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      const wildcard = it.tryConsume("WILDCARD");
+      const wildcard = tryConsume("WILDCARD");
       if (wildcard) {
         tokens.push({
           type: "wildcard",
@@ -303,22 +308,21 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      const open = it.tryConsume("{");
+      const open = tryConsume("{");
       if (open) {
         tokens.push({
           type: "group",
-          tokens: consume("}"),
+          tokens: consumeUntil("}"),
         });
         continue;
       }
 
-      it.consume(endType);
+      consume(endType);
       return tokens;
     }
   }
 
-  const tokens = consume("END");
-  return new TokenData(tokens);
+  return new TokenData(consumeUntil("END"), str);
 }
 
 /**
@@ -496,11 +500,14 @@ export function pathToRegexp(
     trailing = true,
   } = options;
   const keys: Keys = [];
-  const sources: string[] = [];
   const flags = sensitive ? "" : "i";
+  const sources: string[] = [];
 
-  for (const seq of flat(path, options)) {
-    sources.push(toRegExp(seq, delimiter, keys));
+  for (const input of pathsToArray(path, [])) {
+    const data = input instanceof TokenData ? input : parse(input, options);
+    for (const tokens of flatten(data.tokens, 0, [])) {
+      sources.push(toRegExp(tokens, delimiter, keys, data.originalPath));
+    }
   }
 
   let pattern = `^(?:${sources.join("|")})`;
@@ -512,25 +519,21 @@ export function pathToRegexp(
 }
 
 /**
- * Flattened token set.
+ * Convert a path or array of paths into a flat array.
  */
-type Flattened = Text | Parameter | Wildcard;
+function pathsToArray(paths: Path | Path[], init: Path[]): Path[] {
+  if (Array.isArray(paths)) {
+    for (const p of paths) pathsToArray(p, init);
+  } else {
+    init.push(paths);
+  }
+  return init;
+}
 
 /**
- * Path or array of paths to normalize.
+ * Flattened token set.
  */
-function* flat(
-  path: Path | Path[],
-  options: ParseOptions,
-): Generator<Flattened[]> {
-  if (Array.isArray(path)) {
-    for (const p of path) yield* flat(p, options);
-    return;
-  }
-
-  const data = path instanceof TokenData ? path : parse(path, options);
-  yield* flatten(data.tokens, 0, []);
-}
+type FlatToken = Text | Parameter | Wildcard;
 
 /**
  * Generate a flat list of sequence tokens from the given tokens.
@@ -538,8 +541,8 @@ function* flat(
 function* flatten(
   tokens: Token[],
   index: number,
-  init: Flattened[],
-): Generator<Flattened[]> {
+  init: FlatToken[],
+): Generator<FlatToken[]> {
   if (index === tokens.length) {
     return yield init;
   }
@@ -560,7 +563,12 @@ function* flatten(
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
-function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
+function toRegExp(
+  tokens: FlatToken[],
+  delimiter: string,
+  keys: Keys,
+  originalPath: string | undefined,
+) {
   let result = "";
   let backtrack = "";
   let isSafeSegmentParam = true;
@@ -575,7 +583,9 @@ function toRegExp(tokens: Flattened[], delimiter: string, keys: Keys) {
 
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
-        throw new TypeError(`Missing text after "${token.name}": ${DEBUG_URL}`);
+        throw new TypeError(
+          errorMessage(`Missing text before "${token.name}"`, originalPath),
+        );
       }
 
       if (token.type === "param") {
