@@ -122,51 +122,6 @@ function errorMessage(text: string, originalPath: string | undefined) {
   return message;
 }
 
-class Iter {
-  private _tokens: Array<LexToken>;
-  private _index = 0;
-
-  constructor(
-    tokens: Array<LexToken>,
-    private originalPath: string,
-  ) {
-    this._index = 0;
-    this._tokens = tokens;
-  }
-
-  peek(): LexToken {
-    return this._tokens[this._index];
-  }
-
-  tryConsume(type: TokenType): string | undefined {
-    const token = this.peek();
-    if (token.type !== type) return;
-    this._index++;
-    return token.value;
-  }
-
-  consume(type: TokenType): string {
-    const value = this.tryConsume(type);
-    if (value !== undefined) return value;
-    const { type: nextType, index } = this.peek();
-    throw new TypeError(
-      errorMessage(
-        `Unexpected ${nextType} at index ${index}, expected ${type}`,
-        this.originalPath,
-      ),
-    );
-  }
-
-  text(): string {
-    let result = "";
-    let value: string | undefined;
-    while ((value = this.tryConsume("CHAR") || this.tryConsume("ESCAPED"))) {
-      result += value;
-    }
-    return result;
-  }
-}
-
 /**
  * Plain text.
  */
@@ -232,6 +187,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   const chars = [...str];
   const tokens: Array<LexToken> = [];
   let i = 0;
+  let index = 0;
 
   function name() {
     let value = "";
@@ -295,14 +251,46 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
   tokens.push({ type: "END", index: i, value: "" });
 
-  function consume(it: Iter, endType: TokenType): Token[] {
+  function peek(): LexToken {
+    return tokens[index];
+  }
+
+  function tryConsume(type: TokenType): string | undefined {
+    const token = peek();
+    if (token.type !== type) return;
+    index++;
+    return token.value;
+  }
+
+  function consume(type: TokenType): string {
+    const value = tryConsume(type);
+    if (value !== undefined) return value;
+    const { type: nextType, index } = peek();
+    throw new TypeError(
+      errorMessage(
+        `Unexpected ${nextType} at index ${index}, expected ${type}`,
+        str,
+      ),
+    );
+  }
+
+  function text(): string {
+    let result = "";
+    let value: string | undefined;
+    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED"))) {
+      result += value;
+    }
+    return result;
+  }
+
+  function consumeUntil(endType: TokenType): Token[] {
     const tokens: Token[] = [];
 
     while (true) {
-      const path = it.text();
+      const path = text();
       if (path) tokens.push({ type: "text", value: encodePath(path) });
 
-      const param = it.tryConsume("PARAM");
+      const param = tryConsume("PARAM");
       if (param) {
         tokens.push({
           type: "param",
@@ -311,7 +299,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      const wildcard = it.tryConsume("WILDCARD");
+      const wildcard = tryConsume("WILDCARD");
       if (wildcard) {
         tokens.push({
           type: "wildcard",
@@ -320,22 +308,21 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      const open = it.tryConsume("{");
+      const open = tryConsume("{");
       if (open) {
         tokens.push({
           type: "group",
-          tokens: consume(it, "}"),
+          tokens: consumeUntil("}"),
         });
         continue;
       }
 
-      it.consume(endType);
+      consume(endType);
       return tokens;
     }
   }
 
-  const it = new Iter(tokens, str);
-  return new TokenData(consume(it, "END"), str);
+  return new TokenData(consumeUntil("END"), str);
 }
 
 /**
