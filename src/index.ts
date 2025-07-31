@@ -102,7 +102,7 @@ const SIMPLE_TOKENS: Record<string, TokenType> = {
  * Escape text for stringify to path.
  */
 function escapeText(str: string) {
-  return str.replace(/[{}()\[\]+?!:*]/g, "\\$&");
+  return str.replace(/[{}()\[\]+?!:*\\]/g, "\\$&");
 }
 
 /**
