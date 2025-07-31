@@ -204,6 +204,16 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
     ]),
     expected: '/:"test"stuff',
   },
+  {
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+      originalPath: "/:test",
+    },
+    expected: "/:test",
+  },
 ];
 
 export const COMPILE_TESTS: CompileTestSet[] = [

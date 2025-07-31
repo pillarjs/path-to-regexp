@@ -66,7 +66,7 @@ fn("/users/123/delete");
 
 The `match` function returns a function for matching strings against a path:
 
-- **path** String or array of strings.
+- **path** String, `TokenData` object, or array of strings and `TokenData` objects.
 - **options** _(optional)_ (Extends [pathToRegexp](#pathToRegexp) options)
   - **decode** Function for decoding strings to params, or `false` to disable all processing. (default: `decodeURIComponent`)
 
@@ -80,7 +80,7 @@ const fn = match("/foo/:bar");
 
 The `pathToRegexp` function returns the `regexp` for matching strings against paths, and an array of `keys` for understanding the `RegExp#exec` matches.
 
-- **path** String or array of strings.
+- **path** String, `TokenData` object, or array of strings and `TokenData` objects.
 - **options** _(optional)_ (See [parse](#parse) for more options)
   - **sensitive** Regexp will be case sensitive. (default: `false`)
   - **end** Validate the match reaches the end of the string. (default: `true`)
@@ -97,7 +97,7 @@ regexp.exec("/foo/123"); //=> ["/foo/123", "123"]
 
 The `compile` function will return a function for transforming parameters into a valid path:
 
-- **path** A string.
+- **path** A string or `TokenData` object.
 - **options** (See [parse](#parse) for more options)
   - **delimiter** The default delimiter for segments, e.g. `[^/]` for `:named` parameters. (default: `'/'`)
   - **encode** Function for encoding input strings for output into the path, or `false` to disable entirely. (default: `encodeURIComponent`)
@@ -121,15 +121,17 @@ toPathRaw({ id: "%3A%2F" }); //=> "/user/%3A%2F"
 
 ## Stringify
 
-Transform `TokenData` (a sequence of tokens) back into a Path-to-RegExp string.
+Transform a `TokenData` object to a Path-to-RegExp string.
 
-- **data** A `TokenData` instance
+- **data** A `TokenData` object.
 
 ```js
-const data = new TokenData([
-  { type: "text", value: "/" },
-  { type: "param", name: "foo" },
-]);
+const data = {
+  tokens: [
+    { type: "text", value: "/" },
+    { type: "param", name: "foo" },
+  ],
+};
 
 const path = stringify(data); //=> "/:foo"
 ```
@@ -149,20 +151,24 @@ The `parse` function accepts a string and returns `TokenData`, which can be used
 
 ### Tokens
 
-`TokenData` is a sequence of tokens, currently of types `text`, `parameter`, `wildcard`, or `group`.
+`TokenData` has two properties:
+
+- **tokens** A sequence of tokens, currently of types `text`, `parameter`, `wildcard`, or `group`
+- **originalPath** The original path used with `parse`
 
 ### Custom path
 
-In some applications, you may not be able to use the `path-to-regexp` syntax, but still want to use this library for `match` and `compile`. For example:
+In some applications you may not be able to use the `path-to-regexp` syntax, but you still want to use this library for `match` and `compile`. For example:
 
 ```js
-import { TokenData, match } from "path-to-regexp";
+import { match } from "path-to-regexp";
 
 const tokens = [
   { type: "text", value: "/" },
   { type: "parameter", name: "foo" },
 ];
-const path = new TokenData(tokens);
+const originalPath = "/[foo]"; // To help debug error messages.
+const path = { tokens, originalPath };
 const fn = match(path);
 
 fn("/test"); //=> { path: '/test', index: 0, params: { foo: 'test' } }
