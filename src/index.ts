@@ -334,7 +334,7 @@ export function compile<P extends ParamData = ParamData>(
 ) {
   const { encode = encodeURIComponent, delimiter = DEFAULT_DELIMITER } =
     options;
-  const data = path instanceof TokenData ? path : parse(path, options);
+  const data = typeof path === "object" ? path : parse(path, options);
   const fn = tokensToFunction(data.tokens, delimiter, encode);
 
   return function path(params: P = {} as P) {
@@ -504,7 +504,7 @@ export function pathToRegexp(
   const sources: string[] = [];
 
   for (const input of pathsToArray(path, [])) {
-    const data = input instanceof TokenData ? input : parse(input, options);
+    const data = typeof input === "object" ? input : parse(input, options);
     for (const tokens of flatten(data.tokens, 0, [])) {
       sources.push(toRegExp(tokens, delimiter, keys, data.originalPath));
     }
