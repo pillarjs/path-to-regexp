@@ -153,8 +153,8 @@ The `parse` function accepts a string and returns `TokenData`, which can be used
 
 `TokenData` has two properties:
 
-- **tokens** A sequence of tokens, currently of types `text`, `parameter`, `wildcard`, or `group`
-- **originalPath** The original path used with `parse`
+- **tokens** A sequence of tokens, currently of types `text`, `parameter`, `wildcard`, or `group`.
+- **originalPath** The original path used with `parse`, shown in error messages to assist debugging.
 
 ### Custom path
 
