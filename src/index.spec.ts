@@ -159,6 +159,14 @@ describe("path-to-regexp", () => {
     });
   });
 
+  describe("stringify errors", () => {
+    it("should error on unknown token", () => {
+      expect(() =>
+        stringify({ tokens: [{ type: "unknown", value: "test" } as any] }),
+      ).toThrow(new TypeError("Unknown token type: unknown"));
+    });
+  });
+
   describe.each(PARSER_TESTS)(
     "parse $path with $options",
     ({ path, options, expected }) => {

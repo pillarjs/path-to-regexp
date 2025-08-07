@@ -600,25 +600,51 @@ function negate(delimiter: string, backtrack: string) {
 }
 
 /**
+ * Stringify an array of tokens into a path string.
+ */
+function stringifyTokens(tokens: Token[]): string {
+  let value = "";
+  let i = 0;
+
+  function name(value: string) {
+    const isSafe = isNameSafe(value) && isNextNameSafe(tokens[i]);
+    return isSafe ? value : JSON.stringify(value);
+  }
+
+  while (i < tokens.length) {
+    const token = tokens[i++];
+
+    if (token.type === "text") {
+      value += escapeText(token.value);
+      continue;
+    }
+
+    if (token.type === "group") {
+      value += `{${stringifyTokens(token.tokens)}}`;
+      continue;
+    }
+
+    if (token.type === "param") {
+      value += `:${name(token.name)}`;
+      continue;
+    }
+
+    if (token.type === "wildcard") {
+      value += `*${name(token.name)}`;
+      continue;
+    }
+
+    throw new TypeError(`Unknown token type: ${(token as any).type}`);
+  }
+
+  return value;
+}
+
+/**
  * Stringify token data into a path string.
  */
 export function stringify(data: TokenData) {
-  return data.tokens
-    .map(function stringifyToken(token, index, tokens): string {
-      if (token.type === "text") return escapeText(token.value);
-      if (token.type === "group") {
-        return `{${token.tokens.map(stringifyToken).join("")}}`;
-      }
-
-      const isSafe =
-        isNameSafe(token.name) && isNextNameSafe(tokens[index + 1]);
-      const key = isSafe ? token.name : JSON.stringify(token.name);
-
-      if (token.type === "param") return `:${key}`;
-      if (token.type === "wildcard") return `*${key}`;
-      throw new TypeError(`Unexpected token: ${token}`);
-    })
-    .join("");
+  return stringifyTokens(data.tokens);
 }
 
 /**
@@ -626,14 +652,13 @@ export function stringify(data: TokenData) {
  */
 function isNameSafe(name: string) {
   const [first, ...rest] = name;
-  if (!ID_START.test(first)) return false;
-  return rest.every((char) => ID_CONTINUE.test(char));
+  return ID_START.test(first) && rest.every((char) => ID_CONTINUE.test(char));
 }
 
 /**
  * Validate the next token does not interfere with the current param name.
  */
 function isNextNameSafe(token: Token | undefined) {
-  if (!token || token.type !== "text") return true;
-  return !ID_CONTINUE.test(token.value[0]);
+  if (token && token.type === "text") return !ID_CONTINUE.test(token.value[0]);
+  return true;
 }
