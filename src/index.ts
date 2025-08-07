@@ -186,31 +186,31 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
   const chars = [...str];
   const tokens: Array<LexToken> = [];
-  let i = 0;
   let index = 0;
+  let pos = 0;
 
   function name() {
     let value = "";
 
-    if (ID_START.test(chars[++i])) {
-      value += chars[i];
-      while (ID_CONTINUE.test(chars[++i])) {
-        value += chars[i];
+    if (ID_START.test(chars[index])) {
+      value += chars[index];
+      while (ID_CONTINUE.test(chars[++index])) {
+        value += chars[index];
       }
-    } else if (chars[i] === '"') {
-      let pos = i;
+    } else if (chars[index] === '"') {
+      let pos = index;
 
-      while (i < chars.length) {
-        if (chars[++i] === '"') {
-          i++;
+      while (index < chars.length) {
+        if (chars[++index] === '"') {
+          index++;
           pos = 0;
           break;
         }
 
-        if (chars[i] === "\\") {
-          value += chars[++i];
+        if (chars[index] === "\\") {
+          value += chars[++index];
         } else {
-          value += chars[i];
+          value += chars[index];
         }
       }
 
@@ -223,103 +223,84 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
     if (!value) {
       throw new TypeError(
-        errorMessage(`Missing parameter name at index ${i}`, str),
+        errorMessage(`Missing parameter name at index ${index}`, str),
       );
     }
 
     return value;
   }
 
-  while (i < chars.length) {
-    const value = chars[i];
+  while (index < chars.length) {
+    const value = chars[index];
     const type = SIMPLE_TOKENS[value];
 
     if (type) {
-      tokens.push({ type, index: i++, value });
+      tokens.push({ type, index: index++, value });
     } else if (value === "\\") {
-      tokens.push({ type: "ESCAPED", index: i++, value: chars[i++] });
+      tokens.push({ type: "ESCAPED", index: index++, value: chars[index++] });
     } else if (value === ":") {
-      const value = name();
-      tokens.push({ type: "PARAM", index: i, value });
+      tokens.push({ type: "PARAM", index: index++, value: name() });
     } else if (value === "*") {
-      const value = name();
-      tokens.push({ type: "WILDCARD", index: i, value });
+      tokens.push({ type: "WILDCARD", index: index++, value: name() });
     } else {
-      tokens.push({ type: "CHAR", index: i, value: chars[i++] });
+      tokens.push({ type: "CHAR", index: index++, value });
     }
   }
 
-  tokens.push({ type: "END", index: i, value: "" });
-
-  function peek(): LexToken {
-    return tokens[index];
-  }
-
-  function tryConsume(type: TokenType): string | undefined {
-    const token = peek();
-    if (token.type !== type) return;
-    index++;
-    return token.value;
-  }
-
-  function consume(type: TokenType): string {
-    const value = tryConsume(type);
-    if (value !== undefined) return value;
-    const { type: nextType, index } = peek();
-    throw new TypeError(
-      errorMessage(
-        `Unexpected ${nextType} at index ${index}, expected ${type}`,
-        str,
-      ),
-    );
-  }
-
-  function text(): string {
-    let result = "";
-    let value: string | undefined;
-    while ((value = tryConsume("CHAR") || tryConsume("ESCAPED"))) {
-      result += value;
-    }
-    return result;
-  }
+  tokens.push({ type: "END", index, value: "" });
 
   function consumeUntil(endType: TokenType): Token[] {
-    const tokens: Token[] = [];
+    const output: Token[] = [];
 
     while (true) {
-      const path = text();
-      if (path) tokens.push({ type: "text", value: encodePath(path) });
+      const { type, value, index } = tokens[pos++];
+      if (type === endType) break;
 
-      const param = tryConsume("PARAM");
-      if (param) {
-        tokens.push({
+      if (type === "CHAR" || type === "ESCAPED") {
+        let path = value;
+        while (true) {
+          const next = tokens[pos];
+          if (next.type !== "CHAR" && next.type !== "ESCAPED") break;
+          pos++;
+          path += next.value;
+        }
+        output.push({ type: "text", value: encodePath(path) });
+        continue;
+      }
+
+      if (type === "PARAM") {
+        output.push({
           type: "param",
-          name: param,
+          name: value,
         });
         continue;
       }
 
-      const wildcard = tryConsume("WILDCARD");
-      if (wildcard) {
-        tokens.push({
+      if (type === "WILDCARD") {
+        output.push({
           type: "wildcard",
-          name: wildcard,
+          name: value,
         });
         continue;
       }
 
-      const open = tryConsume("{");
-      if (open) {
-        tokens.push({
+      if (type === "{") {
+        output.push({
           type: "group",
           tokens: consumeUntil("}"),
         });
         continue;
       }
 
-      consume(endType);
-      return tokens;
+      throw new TypeError(
+        errorMessage(
+          `Unexpected ${type} at index ${index}, expected ${endType}`,
+          str,
+        ),
+      );
     }
+
+    return output;
   }
 
   return new TokenData(consumeUntil("END"), str);
