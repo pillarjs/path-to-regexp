@@ -17,15 +17,21 @@
     "url": "https://opencollective.com/express"
   },
   "license": "MIT",
-  "exports": "./dist/index.js",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./cjs/index.js"
+    }
+  },
+  "main": "index.js",
   "files": [
     "dist/"
   ],
   "scripts": {
     "bench": "vitest bench",
-    "build": "ts-scripts build",
+    "build": "node scripts/build.js",
     "format": "ts-scripts format",
     "lint": "ts-scripts lint",
     "prepare": "ts-scripts install && npm run build",
@@ -52,6 +58,10 @@
   },
   "size-limit": [
     {
+      "path": "dist/cjs/index.js",
+      "limit": "2.2 kB"
+    },
+    {
       "path": "dist/index.js",
       "limit": "2.2 kB"
     }
@@ -61,7 +71,8 @@
       "dist"
     ],
     "project": [
-      "tsconfig.build.json"
+      "tsconfig.cjs.json",
+      "tsconfig.esm.json"
     ]
   }
 }
