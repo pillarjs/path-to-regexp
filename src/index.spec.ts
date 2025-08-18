@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parse, compile, match, stringify } from "./index.js";
+import {
+  parse,
+  compile,
+  match,
+  stringify,
+  pathToRegexp,
+  TokenData,
+} from "./index.js";
 import {
   PARSER_TESTS,
   COMPILE_TESTS,
@@ -15,14 +22,15 @@ describe("path-to-regexp", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
         new TypeError(
-          "Unexpected END at 7, expected }: https://git.new/pathToRegexpError",
+          "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
+
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
         new TypeError(
-          "Unexpected END at 12, expected }: https://git.new/pathToRegexpError",
+          "Unexpected END at index 12, expected }: /{:foo/{x,y}; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -30,7 +38,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "Missing parameter name at index 2: /:/; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -38,7 +46,7 @@ describe("path-to-regexp", () => {
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
         new TypeError(
-          "Missing parameter name at 2: https://git.new/pathToRegexpError",
+          "Missing parameter name at index 2: /*/; visit https://git.new/pathToRegexpError for info",
         ),
       );
     });
@@ -46,7 +54,7 @@ describe("path-to-regexp", () => {
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
         new TypeError(
-          "Unterminated quote at 2: https://git.new/pathToRegexpError",
+          'Unterminated quote at index 2: /:"foo; visit https://git.new/pathToRegexpError for info',
         ),
       );
     });
@@ -91,6 +99,63 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: [1, "a"] as any });
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
+    });
+  });
+
+  describe("pathToRegexp errors", () => {
+    it("should throw when missing text between params", () => {
+      expect(() => pathToRegexp("/:foo:bar")).toThrow(
+        new TypeError(
+          'Missing text before "bar": /:foo:bar; visit https://git.new/pathToRegexpError for info',
+        ),
+      );
+    });
+
+    it("should throw when missing text between params using TokenData", () => {
+      expect(() =>
+        pathToRegexp(
+          new TokenData([
+            { type: "param", name: "a" },
+            { type: "param", name: "b" },
+          ]),
+        ),
+      ).toThrow(
+        new TypeError(
+          'Missing text before "b"; visit https://git.new/pathToRegexpError for info',
+        ),
+      );
+    });
+
+    it("should throw with `originalPath` when missing text between params using TokenData", () => {
+      expect(() =>
+        pathToRegexp(
+          new TokenData(
+            [
+              { type: "param", name: "a" },
+              { type: "param", name: "b" },
+            ],
+            "/[a][b]",
+          ),
+        ),
+      ).toThrow(
+        new TypeError(
+          'Missing text before "b": /[a][b]; visit https://git.new/pathToRegexpError for info',
+        ),
+      );
+    });
+
+    it("should contain the error line", () => {
+      expect.hasAssertions();
+
+      try {
+        pathToRegexp("/:");
+      } catch (error) {
+        const stack = (error as Error).stack
+          ?.split("\n")
+          .slice(0, 5)
+          .join("\n");
+        expect(stack).toContain("index.spec.ts");
+      }
     });
   });
 
