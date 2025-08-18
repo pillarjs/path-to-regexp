@@ -221,6 +221,16 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
     ]),
     expected: "\\\\:test",
   },
+  {
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+      originalPath: "/:test",
+    },
+    expected: "/:test",
+  },
 ];
 
 export const COMPILE_TESTS: CompileTestSet[] = [
@@ -322,6 +332,15 @@ export const COMPILE_TESTS: CompileTestSet[] = [
       { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123/xyz" },
     ],
+  },
+  {
+    path: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+    },
+    tests: [{ input: { test: "123" }, expected: "/123" }],
   },
 ];
 
@@ -1676,6 +1695,21 @@ export const MATCH_TESTS: MatchTestSet[] = [
           params: { foo: "hello", bar: "world" },
         },
       },
+    ],
+  },
+
+  /**
+   * Token data.
+   */
+  {
+    path: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+    },
+    tests: [
+      { input: "/123", expected: { path: "/123", params: { test: "123" } } },
     ],
   },
 ];
