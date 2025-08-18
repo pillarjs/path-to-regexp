@@ -487,7 +487,7 @@ export function pathToRegexp(
   for (const input of pathsToArray(path, [])) {
     const data = typeof input === "object" ? input : parse(input, options);
     for (const tokens of flatten(data.tokens, 0, [])) {
-      sources.push(toRegExp(tokens, delimiter, keys, data.originalPath));
+      sources.push(toRegExpSource(tokens, delimiter, keys, data.originalPath));
     }
   }
 
@@ -544,12 +544,12 @@ function* flatten(
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
-function toRegExp(
+function toRegExpSource(
   tokens: FlatToken[],
   delimiter: string,
   keys: Keys,
   originalPath: string | undefined,
-) {
+): string {
   let result = "";
   let backtrack = "";
   let isSafeSegmentParam = true;
@@ -588,7 +588,7 @@ function toRegExp(
 /**
  * Block backtracking on previous text and ignore delimiter string.
  */
-function negate(delimiter: string, backtrack: string) {
+function negate(delimiter: string, backtrack: string): string {
   if (backtrack.length < 2) {
     if (delimiter.length < 2) return `[^${escape(delimiter + backtrack)}]`;
     return `(?:(?!${escape(delimiter)})[^${escape(backtrack)}])`;
@@ -643,14 +643,14 @@ function stringifyTokens(tokens: Token[]): string {
 /**
  * Stringify token data into a path string.
  */
-export function stringify(data: TokenData) {
+export function stringify(data: TokenData): string {
   return stringifyTokens(data.tokens);
 }
 
 /**
  * Validate the parameter name contains valid ID characters.
  */
-function isNameSafe(name: string) {
+function isNameSafe(name: string): boolean {
   const [first, ...rest] = name;
   return ID_START.test(first) && rest.every((char) => ID_CONTINUE.test(char));
 }
@@ -658,7 +658,7 @@ function isNameSafe(name: string) {
 /**
  * Validate the next token does not interfere with the current param name.
  */
-function isNextNameSafe(token: Token | undefined) {
+function isNextNameSafe(token: Token | undefined): boolean {
   if (token && token.type === "text") return !ID_CONTINUE.test(token.value[0]);
   return true;
 }
