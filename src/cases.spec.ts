@@ -1681,6 +1681,35 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "%25:foo..:bar",
+    options: {
+      delimiter: "%25",
+    },
+    tests: [
+      {
+        input: "%25hello..world",
+        expected: {
+          path: "%25hello..world",
+          params: { foo: "hello", bar: "world" },
+        },
+      },
+      {
+        input: "%25555..222",
+        expected: {
+          path: "%25555..222",
+          params: { foo: "555", bar: "222" },
+        },
+      },
+      {
+        input: "%25555....222%25",
+        expected: {
+          path: "%25555....222%25",
+          params: { foo: "555..", bar: "222" },
+        },
+      },
+    ],
+  },
 
   /**
    * Array input is normalized.
