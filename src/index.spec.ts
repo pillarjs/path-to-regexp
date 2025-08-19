@@ -6,6 +6,7 @@ import {
   stringify,
   pathToRegexp,
   TokenData,
+  PathError,
 } from "./index.js";
 import {
   PARSER_TESTS,
@@ -18,44 +19,62 @@ import {
  * Dynamically generate the entire test suite.
  */
 describe("path-to-regexp", () => {
+  describe("ParseError", () => {
+    it("should contain original path and debug url", () => {
+      const error = new PathError(
+        "Unexpected END at index 7, expected }",
+        "/{:foo,",
+      );
+
+      expect(error).toBeInstanceOf(TypeError);
+      expect(error.message).toBe(
+        "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
+      );
+      expect(error.originalPath).toBe("/{:foo,");
+    });
+
+    it("should omit original url when undefined", () => {
+      const error = new PathError(
+        "Unexpected END at index 7, expected }",
+        undefined,
+      );
+
+      expect(error).toBeInstanceOf(TypeError);
+      expect(error.message).toBe(
+        "Unexpected END at index 7, expected }; visit https://git.new/pathToRegexpError for info",
+      );
+      expect(error.originalPath).toBeUndefined();
+    });
+  });
+
   describe("parse errors", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
-        new TypeError(
-          "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
-        ),
+        new PathError("Unexpected END at index 7, expected }", "/{:foo,"),
       );
     });
 
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
-        new TypeError(
-          "Unexpected END at index 12, expected }: /{:foo/{x,y}; visit https://git.new/pathToRegexpError for info",
-        ),
+        new PathError("Unexpected END at index 12, expected }", "/{:foo/{x,y}"),
       );
     });
 
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
-        new TypeError(
-          "Missing parameter name at index 2: /:/; visit https://git.new/pathToRegexpError for info",
-        ),
+        new PathError("Missing parameter name at index 2", "/:/"),
       );
     });
 
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
-        new TypeError(
-          "Missing parameter name at index 2: /*/; visit https://git.new/pathToRegexpError for info",
-        ),
+        new PathError("Missing parameter name at index 2", "/*/"),
       );
     });
 
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
-        new TypeError(
-          'Unterminated quote at index 2: /:"foo; visit https://git.new/pathToRegexpError for info',
-        ),
+        new PathError("Unterminated quote at index 2", '/:"foo'),
       );
     });
   });
@@ -105,9 +124,7 @@ describe("path-to-regexp", () => {
   describe("pathToRegexp errors", () => {
     it("should throw when missing text between params", () => {
       expect(() => pathToRegexp("/:foo:bar")).toThrow(
-        new TypeError(
-          'Missing text before "bar": /:foo:bar; visit https://git.new/pathToRegexpError for info',
-        ),
+        new PathError('Missing text before "bar" param', "/:foo:bar"),
       );
     });
 
@@ -119,11 +136,7 @@ describe("path-to-regexp", () => {
             { type: "param", name: "b" },
           ]),
         ),
-      ).toThrow(
-        new TypeError(
-          'Missing text before "b"; visit https://git.new/pathToRegexpError for info',
-        ),
-      );
+      ).toThrow(new PathError('Missing text before "b" param', undefined));
     });
 
     it("should throw with `originalPath` when missing text between params using TokenData", () => {
@@ -137,11 +150,7 @@ describe("path-to-regexp", () => {
             "/[a][b]",
           ),
         ),
-      ).toThrow(
-        new TypeError(
-          'Missing text before "b": /[a][b]; visit https://git.new/pathToRegexpError for info',
-        ),
-      );
+      ).toThrow(new PathError('Missing text before "b" param', "/[a][b]"));
     });
 
     it("should contain the error line", () => {
