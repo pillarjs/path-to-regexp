@@ -2,7 +2,6 @@ const DEFAULT_DELIMITER = "/";
 const NOOP_VALUE = (value: string) => value;
 const ID_START = /^[$_\p{ID_Start}]$/u;
 const ID_CONTINUE = /^[$\u200c\u200d\p{ID_Continue}]$/u;
-const DEBUG_URL = "https://git.new/pathToRegexpError";
 
 /**
  * Encode a string into another string.
@@ -113,16 +112,6 @@ function escape(str: string) {
 }
 
 /**
- * Format error so it's easier to debug.
- */
-function errorMessage(text: string, originalPath: string | undefined) {
-  let message = text;
-  if (originalPath !== undefined) message += `: ${originalPath}`;
-  message += `; visit ${DEBUG_URL} for info`;
-  return message;
-}
-
-/**
  * Plain text.
  */
 export interface Text {
@@ -180,6 +169,21 @@ export class TokenData {
 }
 
 /**
+ * ParseError is thrown when there is an error processing the path.
+ */
+export class ParseError extends TypeError {
+  constructor(
+    message: string,
+    public readonly originalPath: string | undefined,
+  ) {
+    let text = message;
+    if (originalPath) text += `: ${originalPath}`;
+    text += `; visit https://git.new/pathToRegexpError for info`;
+    super(text);
+  }
+}
+
+/**
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
@@ -215,16 +219,12 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       }
 
       if (pos) {
-        throw new TypeError(
-          errorMessage(`Unterminated quote at index ${pos}`, str),
-        );
+        throw new ParseError(`Unterminated quote at index ${pos}`, str);
       }
     }
 
     if (!value) {
-      throw new TypeError(
-        errorMessage(`Missing parameter name at index ${index}`, str),
-      );
+      throw new ParseError(`Missing parameter name at index ${index}`, str);
     }
 
     return value;
@@ -292,11 +292,9 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      throw new TypeError(
-        errorMessage(
-          `Unexpected ${type} at index ${index}, expected ${endType}`,
-          str,
-        ),
+      throw new ParseError(
+        `Unexpected ${type} at index ${index}, expected ${endType}`,
+        str,
       );
     }
 
@@ -564,8 +562,9 @@ function toRegExpSource(
 
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
-        throw new TypeError(
-          errorMessage(`Missing text before "${token.name}"`, originalPath),
+        throw new ParseError(
+          `Missing text before "${token.name}" ${token.type}`,
+          originalPath,
         );
       }
 
