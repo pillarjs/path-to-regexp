@@ -6,7 +6,7 @@ import {
   stringify,
   pathToRegexp,
   TokenData,
-  ParseError,
+  PathError,
 } from "./index.js";
 import {
   PARSER_TESTS,
@@ -21,7 +21,7 @@ import {
 describe("path-to-regexp", () => {
   describe("ParseError", () => {
     it("should contain original path and debug url", () => {
-      const error = new ParseError(
+      const error = new PathError(
         "Unexpected END at index 7, expected }",
         "/{:foo,",
       );
@@ -34,7 +34,7 @@ describe("path-to-regexp", () => {
     });
 
     it("should omit original url when undefined", () => {
-      const error = new ParseError(
+      const error = new PathError(
         "Unexpected END at index 7, expected }",
         undefined,
       );
@@ -50,34 +50,31 @@ describe("path-to-regexp", () => {
   describe("parse errors", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
-        new ParseError("Unexpected END at index 7, expected }", "/{:foo,"),
+        new PathError("Unexpected END at index 7, expected }", "/{:foo,"),
       );
     });
 
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
-        new ParseError(
-          "Unexpected END at index 12, expected }",
-          "/{:foo/{x,y}",
-        ),
+        new PathError("Unexpected END at index 12, expected }", "/{:foo/{x,y}"),
       );
     });
 
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
-        new ParseError("Missing parameter name at index 2", "/:/"),
+        new PathError("Missing parameter name at index 2", "/:/"),
       );
     });
 
     it("should throw on missing wildcard name", () => {
       expect(() => parse("/*/")).toThrow(
-        new ParseError("Missing parameter name at index 2", "/*/"),
+        new PathError("Missing parameter name at index 2", "/*/"),
       );
     });
 
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
-        new ParseError("Unterminated quote at index 2", '/:"foo'),
+        new PathError("Unterminated quote at index 2", '/:"foo'),
       );
     });
   });
@@ -127,7 +124,7 @@ describe("path-to-regexp", () => {
   describe("pathToRegexp errors", () => {
     it("should throw when missing text between params", () => {
       expect(() => pathToRegexp("/:foo:bar")).toThrow(
-        new ParseError('Missing text before "bar" param', "/:foo:bar"),
+        new PathError('Missing text before "bar" param', "/:foo:bar"),
       );
     });
 
@@ -139,7 +136,7 @@ describe("path-to-regexp", () => {
             { type: "param", name: "b" },
           ]),
         ),
-      ).toThrow(new ParseError('Missing text before "b" param', undefined));
+      ).toThrow(new PathError('Missing text before "b" param', undefined));
     });
 
     it("should throw with `originalPath` when missing text between params using TokenData", () => {
@@ -153,7 +150,7 @@ describe("path-to-regexp", () => {
             "/[a][b]",
           ),
         ),
-      ).toThrow(new ParseError('Missing text before "b" param', "/[a][b]"));
+      ).toThrow(new PathError('Missing text before "b" param', "/[a][b]"));
     });
 
     it("should contain the error line", () => {

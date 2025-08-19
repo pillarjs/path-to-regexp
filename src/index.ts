@@ -171,7 +171,7 @@ export class TokenData {
 /**
  * ParseError is thrown when there is an error processing the path.
  */
-export class ParseError extends TypeError {
+export class PathError extends TypeError {
   constructor(
     message: string,
     public readonly originalPath: string | undefined,
@@ -219,12 +219,12 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       }
 
       if (pos) {
-        throw new ParseError(`Unterminated quote at index ${pos}`, str);
+        throw new PathError(`Unterminated quote at index ${pos}`, str);
       }
     }
 
     if (!value) {
-      throw new ParseError(`Missing parameter name at index ${index}`, str);
+      throw new PathError(`Missing parameter name at index ${index}`, str);
     }
 
     return value;
@@ -292,7 +292,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      throw new ParseError(
+      throw new PathError(
         `Unexpected ${type} at index ${index}, expected ${endType}`,
         str,
       );
@@ -562,7 +562,7 @@ function toRegExpSource(
 
     if (token.type === "param" || token.type === "wildcard") {
       if (!isSafeSegmentParam && !backtrack) {
-        throw new ParseError(
+        throw new PathError(
           `Missing text before "${token.name}" ${token.type}`,
           originalPath,
         );
