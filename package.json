@@ -17,6 +17,8 @@
     "url": "https://opencollective.com/express"
   },
   "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
   "exports": "./dist/index.js",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -45,7 +47,7 @@
     "vitest": "^3.0.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"
@@ -53,7 +55,7 @@
   "size-limit": [
     {
       "path": "dist/index.js",
-      "limit": "2 kB"
+      "limit": "1.85 kB"
     }
   ],
   "ts-scripts": {
