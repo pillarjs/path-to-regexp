@@ -22,26 +22,26 @@ describe("path-to-regexp", () => {
   describe("ParseError", () => {
     it("should contain original path and debug url", () => {
       const error = new PathError(
-        "Unexpected END at index 7, expected }",
+        "Unexpected end at index 7, expected }",
         "/{:foo,",
       );
 
       expect(error).toBeInstanceOf(TypeError);
       expect(error.message).toBe(
-        "Unexpected END at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
+        "Unexpected end at index 7, expected }: /{:foo,; visit https://git.new/pathToRegexpError for info",
       );
       expect(error.originalPath).toBe("/{:foo,");
     });
 
     it("should omit original url when undefined", () => {
       const error = new PathError(
-        "Unexpected END at index 7, expected }",
+        "Unexpected end at index 7, expected }",
         undefined,
       );
 
       expect(error).toBeInstanceOf(TypeError);
       expect(error.message).toBe(
-        "Unexpected END at index 7, expected }; visit https://git.new/pathToRegexpError for info",
+        "Unexpected end at index 7, expected }; visit https://git.new/pathToRegexpError for info",
       );
       expect(error.originalPath).toBeUndefined();
     });
@@ -50,13 +50,13 @@ describe("path-to-regexp", () => {
   describe("parse errors", () => {
     it("should throw on unbalanced group", () => {
       expect(() => parse("/{:foo,")).toThrow(
-        new PathError("Unexpected END at index 7, expected }", "/{:foo,"),
+        new PathError("Unexpected end at index 7, expected }", "/{:foo,"),
       );
     });
 
     it("should throw on nested unbalanced group", () => {
       expect(() => parse("/{:foo/{x,y}")).toThrow(
-        new PathError("Unexpected END at index 12, expected }", "/{:foo/{x,y}"),
+        new PathError("Unexpected end at index 12, expected }", "/{:foo/{x,y}"),
       );
     });
 

@@ -60,11 +60,11 @@ export interface CompileOptions {
 type TokenType =
   | "{"
   | "}"
-  | "WILDCARD"
-  | "PARAM"
-  | "CHAR"
-  | "ESCAPED"
-  | "END"
+  | "wildcard"
+  | "param"
+  | "char"
+  | "escape"
+  | "end"
   // Reserved for use or ambiguous due to past use.
   | "("
   | ")"
@@ -197,29 +197,27 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     let value = "";
 
     if (ID_START.test(chars[index])) {
-      value += chars[index];
-      while (ID_CONTINUE.test(chars[++index])) {
-        value += chars[index];
-      }
+      do {
+        value += chars[index++];
+      } while (ID_CONTINUE.test(chars[index]));
     } else if (chars[index] === '"') {
-      let pos = index;
+      let quoteStart = index;
 
-      while (index < chars.length) {
-        if (chars[++index] === '"') {
+      while (index++ < chars.length) {
+        if (chars[index] === '"') {
           index++;
-          pos = 0;
+          quoteStart = 0;
           break;
         }
 
-        if (chars[index] === "\\") {
-          value += chars[++index];
-        } else {
-          value += chars[index];
-        }
+        // Increment over escape characters.
+        if (chars[index] === "\\") index++;
+
+        value += chars[index];
       }
 
-      if (pos) {
-        throw new PathError(`Unterminated quote at index ${pos}`, str);
+      if (quoteStart) {
+        throw new PathError(`Unterminated quote at index ${quoteStart}`, str);
       }
     }
 
@@ -237,54 +235,50 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     if (type) {
       tokens.push({ type, index: index++, value });
     } else if (value === "\\") {
-      tokens.push({ type: "ESCAPED", index: index++, value: chars[index++] });
+      tokens.push({ type: "escape", index: index++, value: chars[index++] });
     } else if (value === ":") {
-      tokens.push({ type: "PARAM", index: index++, value: name() });
+      tokens.push({ type: "param", index: index++, value: name() });
     } else if (value === "*") {
-      tokens.push({ type: "WILDCARD", index: index++, value: name() });
+      tokens.push({ type: "wildcard", index: index++, value: name() });
     } else {
-      tokens.push({ type: "CHAR", index: index++, value });
+      tokens.push({ type: "char", index: index++, value });
     }
   }
 
-  tokens.push({ type: "END", index, value: "" });
+  tokens.push({ type: "end", index, value: "" });
 
   function consumeUntil(endType: TokenType): Token[] {
     const output: Token[] = [];
 
     while (true) {
-      const { type, value, index } = tokens[pos++];
-      if (type === endType) break;
+      const token = tokens[pos++];
+      if (token.type === endType) break;
 
-      if (type === "CHAR" || type === "ESCAPED") {
-        let path = value;
-        while (true) {
-          const next = tokens[pos];
-          if (next.type !== "CHAR" && next.type !== "ESCAPED") break;
-          pos++;
-          path += next.value;
+      if (token.type === "char" || token.type === "escape") {
+        let path = token.value;
+        let cur = tokens[pos];
+
+        while (cur.type === "char" || cur.type === "escape") {
+          path += cur.value;
+          cur = tokens[++pos];
         }
-        output.push({ type: "text", value: encodePath(path) });
-        continue;
-      }
 
-      if (type === "PARAM") {
         output.push({
-          type: "param",
-          name: value,
+          type: "text",
+          value: encodePath(path),
         });
         continue;
       }
 
-      if (type === "WILDCARD") {
+      if (token.type === "param" || token.type === "wildcard") {
         output.push({
-          type: "wildcard",
-          name: value,
+          type: token.type,
+          name: token.value,
         });
         continue;
       }
 
-      if (type === "{") {
+      if (token.type === "{") {
         output.push({
           type: "group",
           tokens: consumeUntil("}"),
@@ -293,7 +287,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       }
 
       throw new PathError(
-        `Unexpected ${type} at index ${index}, expected ${endType}`,
+        `Unexpected ${token.type} at index ${token.index}, expected ${endType}`,
         str,
       );
     }
@@ -301,7 +295,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     return output;
   }
 
-  return new TokenData(consumeUntil("END"), str);
+  return new TokenData(consumeUntil("end"), str);
 }
 
 /**
