@@ -184,22 +184,56 @@ export class PathError extends TypeError {
 }
 
 /**
+ * Check if a character is a valid start of an identifier.
+ */
+function isIdStart(ch: number): boolean {
+  // A-Z a-z _ $
+  return (
+    (ch >= 65 && ch <= 90) ||
+    (ch >= 97 && ch <= 122) ||
+    ch === 95 ||
+    ch === 36 ||
+    ID_START.test(String.fromCharCode(ch))
+  );
+}
+
+/**
+ * Check if a character is a valid continuation of an identifier.
+ */
+function isIdContinue(ch: number): boolean {
+  // A-Z a-z 0-9 _ $
+  return (
+    (ch >= 65 && ch <= 90) ||
+    (ch >= 97 && ch <= 122) ||
+    (ch >= 48 && ch <= 57) ||
+    ch === 95 ||
+    ch === 36 ||
+    ID_CONTINUE.test(String.fromCharCode(ch))
+  );
+}
+
+/**
  * Parse a string for the raw tokens.
  */
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
-  const chars = [...str];
+  const chars = str;
   const tokens: Array<LexToken> = [];
   let index = 0;
   let pos = 0;
+  const len = str.length;
 
   function name() {
     let value = "";
+    let start = index;
+    let ch = str.charCodeAt(index);
 
-    if (ID_START.test(chars[index])) {
-      do {
-        value += chars[index++];
-      } while (ID_CONTINUE.test(chars[index]));
+    if (isIdStart(ch)) {
+      index++;
+      while (index < len && isIdContinue(str.charCodeAt(index))) {
+        index++;
+      }
+      return str.slice(start, index);
     } else if (chars[index] === '"') {
       let quoteStart = index;
 
@@ -644,14 +678,19 @@ export function stringify(data: TokenData): string {
  * Validate the parameter name contains valid ID characters.
  */
 function isNameSafe(name: string): boolean {
-  const [first, ...rest] = name;
-  return ID_START.test(first) && rest.every((char) => ID_CONTINUE.test(char));
+  if (!isIdStart(name.charCodeAt(0))) return false;
+  for (let i = 1; i < name.length; i++) {
+    const ch = name.charCodeAt(i);
+    if (!isIdContinue(ch)) return false;
+  }
+  return true;
 }
 
 /**
  * Validate the next token does not interfere with the current param name.
  */
 function isNextNameSafe(token: Token | undefined): boolean {
-  if (token && token.type === "text") return !ID_CONTINUE.test(token.value[0]);
+  if (token && token.type === "text")
+    return !isIdContinue(token.value.charCodeAt(0));
   return true;
 }
