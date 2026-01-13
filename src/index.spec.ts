@@ -188,6 +188,12 @@ describe("path-to-regexp", () => {
           ),
         );
       });
+
+      it("should throw on empty pattern", () => {
+        expect(() => pathToRegexp("/:foo()")).toThrow(
+          new PathError('Unsupported pattern "" for "foo" param', "/:foo()"),
+        );
+      });
     });
   });
 

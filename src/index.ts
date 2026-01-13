@@ -256,10 +256,6 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       throw new PathError(`Unbalanced pattern at index ${index}`, str);
     }
 
-    if (!value) {
-      throw new PathError(`Missing pattern at index ${index}`, str);
-    }
-
     return value;
   }
 
@@ -629,7 +625,7 @@ function safePattern(
   backtrack: string,
   originalPath: string | undefined,
 ): string {
-  if (token.pattern) {
+  if (token.pattern !== undefined) {
     if (!/^[a-zA-Z0-9\|]+$/.test(token.pattern)) {
       throw new PathError(
         `Unsupported pattern "${token.pattern}" for "${token.name}" ${token.type}`,

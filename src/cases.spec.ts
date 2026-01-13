@@ -156,6 +156,16 @@ export const PARSER_TESTS: ParserTestSet[] = [
       "/:username([a-zA-Z]+)",
     ),
   },
+  {
+    path: "/:id(\\.(json|xml))",
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "id", pattern: "\\.(json|xml)" },
+      ],
+      "/:id(\\.(json|xml))",
+    ),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
