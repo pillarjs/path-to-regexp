@@ -146,6 +146,16 @@ export const PARSER_TESTS: ParserTestSet[] = [
       "\\\\:test",
     ),
   },
+  {
+    path: "/:username([a-zA-Z]+)",
+    expected: new TokenData(
+      [
+        { type: "text", value: "/" },
+        { type: "param", name: "username", pattern: "[a-zA-Z]+" },
+      ],
+      "/:username([a-zA-Z]+)",
+    ),
+  },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
@@ -230,6 +240,15 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
       originalPath: "/:test",
     },
     expected: "/:test",
+  },
+  {
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "username", pattern: "[a-zA-Z]+" },
+      ],
+    },
+    expected: "/:username([a-zA-Z]+)",
   },
 ];
 
@@ -1739,6 +1758,27 @@ export const MATCH_TESTS: MatchTestSet[] = [
     },
     tests: [
       { input: "/123", expected: { path: "/123", params: { test: "123" } } },
+    ],
+  },
+
+  /**
+   * Pattern.
+   */
+  {
+    path: "/:test(abc|123)",
+    tests: [
+      {
+        input: "/abc",
+        expected: { path: "/abc", params: { test: "abc" } },
+      },
+      {
+        input: "/123",
+        expected: { path: "/123", params: { test: "123" } },
+      },
+      {
+        input: "/xyz",
+        expected: false,
+      },
     ],
   },
 ];

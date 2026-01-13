@@ -62,6 +62,7 @@ type TokenType =
   | "}"
   | "wildcard"
   | "param"
+  | "pattern"
   | "char"
   | "escape"
   | "end"
@@ -88,7 +89,6 @@ const SIMPLE_TOKENS: Record<string, TokenType> = {
   "{": "{",
   "}": "}",
   // Reserved.
-  "(": "(",
   ")": ")",
   "[": "[",
   "]": "]",
@@ -125,6 +125,7 @@ export interface Text {
 export interface Parameter {
   type: "param";
   name: string;
+  pattern?: string;
 }
 
 /**
@@ -133,6 +134,7 @@ export interface Parameter {
 export interface Wildcard {
   type: "wildcard";
   name: string;
+  pattern?: string;
 }
 
 /**
@@ -228,6 +230,39 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     return value;
   }
 
+  function pattern() {
+    let count = 1;
+    let value = "";
+
+    while (index < chars.length) {
+      const char = chars[index++];
+
+      if (char === "\\") {
+        value += char + chars[index++];
+        continue;
+      }
+
+      if (char === "(") {
+        count++;
+      } else if (char === ")") {
+        count--;
+        if (count === 0) break;
+      }
+
+      value += char;
+    }
+
+    if (count) {
+      throw new PathError(`Unbalanced pattern at index ${index}`, str);
+    }
+
+    if (!value) {
+      throw new PathError(`Missing pattern at index ${index}`, str);
+    }
+
+    return value;
+  }
+
   while (index < chars.length) {
     const value = chars[index];
     const type = SIMPLE_TOKENS[value];
@@ -240,6 +275,8 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       tokens.push({ type: "param", index: index++, value: name() });
     } else if (value === "*") {
       tokens.push({ type: "wildcard", index: index++, value: name() });
+    } else if (value === "(") {
+      tokens.push({ type: "pattern", index: index++, value: pattern() });
     } else {
       tokens.push({ type: "char", index: index++, value });
     }
@@ -271,9 +308,13 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       }
 
       if (token.type === "param" || token.type === "wildcard") {
+        const pattern =
+          tokens[pos].type === "pattern" ? tokens[pos++].value : undefined;
+
         output.push({
           type: token.type,
           name: token.value,
+          pattern,
         });
         continue;
       }
@@ -562,11 +603,12 @@ function toRegExpSource(
         );
       }
 
-      if (token.type === "param") {
-        result += `(${negate(delimiter, isSafeSegmentParam ? "" : backtrack)}+)`;
-      } else {
-        result += `([\\s\\S]+)`;
-      }
+      result += safePattern(
+        token,
+        delimiter,
+        isSafeSegmentParam ? "" : backtrack,
+        originalPath,
+      );
 
       keys.push(token);
       backtrack = "";
@@ -576,6 +618,33 @@ function toRegExpSource(
   }
 
   return result;
+}
+
+/**
+ * Validate supported pattern characters.
+ */
+function safePattern(
+  token: Parameter | Wildcard,
+  delimiter: string,
+  backtrack: string,
+  originalPath: string | undefined,
+): string {
+  if (token.pattern) {
+    if (!/^[a-zA-Z0-9\|]+$/.test(token.pattern)) {
+      throw new PathError(
+        `Unsupported pattern "${token.pattern}" for "${token.name}" ${token.type}`,
+        originalPath,
+      );
+    }
+
+    return `(${token.pattern})`;
+  }
+
+  if (token.type === "param") {
+    return `(${negate(delimiter, backtrack)}+)`;
+  }
+
+  return `([\\s\\S]+)`; // Wildcard (.+)
 }
 
 /**
@@ -618,12 +687,14 @@ function stringifyTokens(tokens: Token[]): string {
     }
 
     if (token.type === "param") {
-      value += `:${name(token.name)}`;
+      value +=
+        `:${name(token.name)}` + (token.pattern ? `(${token.pattern})` : "");
       continue;
     }
 
     if (token.type === "wildcard") {
-      value += `*${name(token.name)}`;
+      value +=
+        `*${name(token.name)}` + (token.pattern ? `(${token.pattern})` : "");
       continue;
     }
 

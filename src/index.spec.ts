@@ -77,6 +77,18 @@ describe("path-to-regexp", () => {
         new PathError("Unterminated quote at index 2", '/:"foo'),
       );
     });
+
+    it("should throw on incomplete pattern", () => {
+      expect(() => parse("/(")).toThrow(
+        new PathError("Unbalanced pattern at index 2", "/("),
+      );
+    });
+
+    it("should throw on missing opening pattern", () => {
+      expect(() => parse("/)")).toThrow(
+        new PathError("Unexpected ) at index 1, expected end", "/)"),
+      );
+    });
   });
 
   describe("compile errors", () => {
@@ -165,6 +177,17 @@ describe("path-to-regexp", () => {
           .join("\n");
         expect(stack).toContain("index.spec.ts");
       }
+    });
+
+    describe("patterns", () => {
+      it("should throw on unsupported pattern", () => {
+        expect(() => pathToRegexp("/:foo(??)")).toThrow(
+          new PathError(
+            'Unsupported pattern "??" for "foo" param',
+            "/:foo(??)",
+          ),
+        );
+      });
     });
   });
 
