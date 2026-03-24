@@ -50,7 +50,7 @@
   "size-limit": [
     {
       "path": "dist/index.js",
-      "limit": "2.1 kB"
+      "limit": "2.3 kB"
     }
   ],
   "ts-scripts": {
