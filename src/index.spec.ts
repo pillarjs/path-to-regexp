@@ -166,6 +166,14 @@ describe("path-to-regexp", () => {
         expect(stack).toContain("index.spec.ts");
       }
     });
+
+    it("should throw when too many alternative routes are generated", () => {
+      const segments = new Array(10).fill("{/x}").join("");
+
+      expect(() => pathToRegexp(segments)).toThrow(
+        new PathError("Too many path combinations", segments),
+      );
+    });
   });
 
   describe("stringify errors", () => {
