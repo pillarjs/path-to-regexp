@@ -1,3 +1,8 @@
+0.1.13 / 2026-03-26
+==================
+
+  * Fix [CVE-2026-4867](https://www.cve.org/CVERecord?id=CVE-2026-4867) ([GHSA-37ch-88jc-xwx2](https://github.com/pillarjs/path-to-regexp/security/advisories/GHSA-37ch-88jc-xwx2))
+
 0.1.7 / 2015-07-28
 ==================
 
