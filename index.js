@@ -94,6 +94,7 @@ function pathToRegexp(path, keys, options) {
       pos = offset + match.length;
 
       if (match === '*') {
+        backtrack = '';
         extraOffset += 3;
         return '(.*)';
       }
@@ -123,6 +124,7 @@ function pathToRegexp(path, keys, options) {
         + ')'
         + optional;
 
+      backtrack = '';
       extraOffset += result.length - match.length;
 
       return result;

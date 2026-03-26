@@ -12,6 +12,15 @@ describe('path-to-regexp', function () {
     assert.deepEqual(pathToRegExp('/:a-:b'), /^(?:\/([^/]+?))-(?:((?:(?!\/|-).)+?))\/?$/i);
   });
 
+  // See: https://github.com/pillarjs/path-to-regexp/security/advisories/GHSA-37ch-88jc-xwx2
+  it('should generate a regex without backtracking for 3+ params', function () {
+    var re = pathToRegExp('/:a-:b-:c-:d');
+    var input = '/' + Array(4001).join('a-') + '/z';
+    var start = Date.now();
+    re.exec(input);
+    assert.ok(Date.now() - start < 1000, 'ReDoS: regex took too long');
+  });
+
   describe('strings', function () {
     it('should match simple paths', function () {
       var params = [];
