@@ -1876,7 +1876,15 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
   {
     path: "/*a@:b-*c",
-    tests: [],
+    tests: [
+      {
+        input: "/foo@bar-baz",
+        expected: {
+          path: "/foo@bar-baz",
+          params: { a: ["foo"], b: "bar", c: ["baz"] },
+        },
+      },
+    ],
   },
   {
     path: "/:a-*b.:c@*d",
@@ -2113,7 +2121,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "%25555....222%25",
         expected: {
           path: "%25555....222%25",
-          params: { foo: "555..", bar: "222" },
+          params: { foo: "555.", bar: ".222" },
         },
       },
     ],
@@ -2130,6 +2138,44 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/hello/world",
           params: { foo: "hello", bar: "world" },
+        },
+      },
+    ],
+  },
+  {
+    path: ["/x/*a/y/*b/z", "/x/*a/y/*b/w"],
+    tests: [
+      {
+        input: "/x/foo/y/bar/z",
+        expected: {
+          path: "/x/foo/y/bar/z",
+          params: { a: ["foo"], b: ["bar"] },
+        },
+      },
+      {
+        input: "/x/foo/y/bar/w",
+        expected: {
+          path: "/x/foo/y/bar/w",
+          params: { a: ["foo"], b: ["bar"] },
+        },
+      },
+    ],
+  },
+  {
+    path: ["/x/*a/y-/*b/z", "/x/*a/y-/*b/w"],
+    tests: [
+      {
+        input: "/x/foo/y-/bar/z",
+        expected: {
+          path: "/x/foo/y-/bar/z",
+          params: { a: ["foo"], b: ["bar"] },
+        },
+      },
+      {
+        input: "/x/foo/y-/bar/w",
+        expected: {
+          path: "/x/foo/y-/bar/w",
+          params: { a: ["foo"], b: ["bar"] },
         },
       },
     ],
