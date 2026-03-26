@@ -1651,6 +1651,414 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "/*foo-:bar",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b",
+        expected: { path: "/a-b", params: { foo: ["a"], bar: "b" } },
+      },
+      {
+        input: "/a-b-c-d",
+        expected: { path: "/a-b-c-d", params: { foo: ["a-b-c"], bar: "d" } },
+      },
+    ],
+  },
+  {
+    path: "/*foo-*bar-:baz",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b-c",
+        expected: {
+          path: "/a-b-c",
+          params: { foo: ["a"], bar: ["b"], baz: "c" },
+        },
+      },
+      {
+        input: "/a-b-c-d",
+        expected: {
+          path: "/a-b-c-d",
+          params: { foo: ["a-b"], bar: ["c"], baz: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*foo-:bar-*baz",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b-c",
+        expected: {
+          path: "/a-b-c",
+          params: { foo: ["a"], bar: "b", baz: ["c"] },
+        },
+      },
+      {
+        input: "/a-b-c-d",
+        expected: {
+          path: "/a-b-c-d",
+          params: { foo: ["a-b"], bar: "c", baz: ["d"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*foo-:bar-*baz-:qux",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b-c-d",
+        expected: {
+          path: "/a-b-c-d",
+          params: { foo: ["a"], bar: "b", baz: ["c"], qux: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*foo-*bar",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b",
+        expected: { path: "/a-b", params: { foo: ["a"], bar: ["b"] } },
+      },
+      {
+        input: "/a-b-",
+        expected: false,
+      },
+      {
+        input: "/a-b-c-d",
+        expected: { path: "/a-b-c-d", params: { foo: ["a-b-c"], bar: ["d"] } },
+      },
+    ],
+  },
+  {
+    path: "/:foo-:bar-*baz",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b-c",
+        expected: {
+          path: "/a-b-c",
+          params: { foo: "a", bar: "b", baz: ["c"] },
+        },
+      },
+      {
+        input: "/a-b-c-d",
+        expected: {
+          path: "/a-b-c-d",
+          params: { foo: "a", bar: "b", baz: ["c-d"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:foo-:bar-*baz-:qux",
+    tests: [
+      {
+        input: "/a",
+        expected: false,
+      },
+      {
+        input: "/a-b-c",
+        expected: false,
+      },
+      {
+        input: "/a-b-c-d",
+        expected: {
+          path: "/a-b-c-d",
+          params: { foo: "a", bar: "b", baz: ["c"], qux: "d" },
+        },
+      },
+      {
+        input: "/a-b-c-d-e",
+        expected: {
+          path: "/a-b-c-d-e",
+          params: { foo: "a", bar: "b", baz: ["c-d"], qux: "e" },
+        },
+      },
+      {
+        input: "/a-b-c/d-e-f",
+        expected: {
+          path: "/a-b-c/d-e-f",
+          params: { foo: "a", bar: "b", baz: ["c", "d-e"], qux: "f" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*foo/:bar/*baz/:qux",
+    tests: [
+      {
+        input: "/a/b/c/d/e",
+        expected: {
+          path: "/a/b/c/d/e",
+          params: { foo: ["a", "b"], bar: "c", baz: ["d"], qux: "e" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*foo/abc-:bar/xyz-*baz/:qux",
+    tests: [
+      {
+        input: "/a/b/c/d/e",
+        expected: false,
+      },
+      {
+        input: "/a/abc-x/xyz-y/z",
+        expected: {
+          path: "/a/abc-x/xyz-y/z",
+          params: { foo: ["a"], bar: "x", baz: ["y"], qux: "z" },
+        },
+      },
+      {
+        input: "/a/abc-abc/xyz-/xyz-/z",
+        expected: {
+          path: "/a/abc-abc/xyz-/xyz-/z",
+          params: { foo: ["a"], bar: "abc", baz: ["", "xyz-"], qux: "z" },
+        },
+      },
+      {
+        input: "/a/abc-abc/xyz-/xyz-a/z",
+        expected: {
+          path: "/a/abc-abc/xyz-/xyz-a/z",
+          params: { foo: ["a"], bar: "abc", baz: ["", "xyz-a"], qux: "z" },
+        },
+      },
+      {
+        input: "/a/abc/abc-abc/xyz-/xyz-a/z",
+        expected: {
+          path: "/a/abc/abc-abc/xyz-/xyz-a/z",
+          params: {
+            foo: ["a", "abc"],
+            bar: "abc",
+            baz: ["", "xyz-a"],
+            qux: "z",
+          },
+        },
+      },
+      {
+        input: "/abc-/abc-abc/xyz-/xyz-a/z",
+        expected: {
+          path: "/abc-/abc-abc/xyz-/xyz-a/z",
+          params: {
+            foo: ["abc-"],
+            bar: "abc",
+            baz: ["", "xyz-a"],
+            qux: "z",
+          },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a@:b-*c",
+    tests: [],
+  },
+  {
+    path: "/:a-*b.:c@*d",
+    tests: [
+      {
+        input: "/a-b.c@d",
+        expected: {
+          path: "/a-b.c@d",
+          params: { a: "a", b: ["b"], c: "c", d: ["d"] },
+        },
+      },
+      {
+        input: "/a-b.c",
+        expected: false,
+      },
+      {
+        input: "/a-b-c.d.e@f@g",
+        expected: {
+          path: "/a-b-c.d.e@f@g",
+          params: { a: "a", b: ["b-c.d"], c: "e@f", d: ["g"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a--*b@@:c",
+    tests: [
+      {
+        input: "/a--b@@c",
+        expected: { path: "/a--b@@c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+      {
+        input: "/a--b@@c/d",
+        expected: false,
+      },
+      {
+        input: "/a--b/c@@d--e@@f",
+        expected: {
+          path: "/a--b/c@@d--e@@f",
+          params: { a: ["a--b", "c@@d"], b: ["e"], c: "f" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a~~:b~~*c/:d",
+    tests: [
+      {
+        input: "/a~~b~~c/d",
+        expected: {
+          path: "/a~~b~~c/d",
+          params: { a: ["a"], b: "b", c: ["c"], d: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a--*b-.-:c",
+    tests: [
+      {
+        input: "/a--b-.-c",
+        expected: { path: "/a--b-.-c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/*a~~*b._.:c",
+    tests: [
+      {
+        input: "/a~~b._.c",
+        expected: { path: "/a~~b._.c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/*a@@*b~.~:c",
+    tests: [
+      {
+        input: "/a@@b~.~c",
+        expected: { path: "/a@@b~.~c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/*a-.-*b@@:c",
+    tests: [
+      {
+        input: "/a-.-b@@c",
+        expected: { path: "/a-.-b@@c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/*a@.@*b--:c",
+    tests: [
+      {
+        input: "/a@.@b--c",
+        expected: { path: "/a@.@b--c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/*a-@-*b..:c",
+    tests: [
+      {
+        input: "/a-@-b..c",
+        expected: { path: "/a-@-b..c", params: { a: ["a"], b: ["b"], c: "c" } },
+      },
+    ],
+  },
+  {
+    path: "/x/*a/*b/y",
+    tests: [
+      {
+        input: "/x/foo/bar/y",
+        expected: { path: "/x/foo/bar/y", params: { a: ["foo"], b: ["bar"] } },
+      },
+    ],
+  },
+  {
+    path: "/x/*a-:b/*c/y",
+    tests: [
+      {
+        input: "/x/foo-bar/baz/y",
+        expected: {
+          path: "/x/foo-bar/baz/y",
+          params: { a: ["foo"], b: "bar", c: ["baz"] },
+        },
+      },
+      {
+        input: "/x/foo-bar/baz-qux/y",
+        expected: {
+          path: "/x/foo-bar/baz-qux/y",
+          params: { a: ["foo"], b: "bar", c: ["baz-qux"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/x/*a-:b-:c/*d/y",
+    tests: [
+      {
+        input: "/x/foo-bar-baz/qux/y",
+        expected: {
+          path: "/x/foo-bar-baz/qux/y",
+          params: { a: ["foo"], b: "bar", c: "baz", d: ["qux"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/x/*a-:b-:c-*d/*e/y",
+    tests: [
+      {
+        input: "/x/foo-bar-baz-qux/quux/y",
+        expected: {
+          path: "/x/foo-bar-baz-qux/quux/y",
+          params: { a: ["foo"], b: "bar", c: "baz", d: ["qux"], e: ["quux"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/x/*a@/*c/y",
+    tests: [
+      {
+        input: "/x/foo@/y",
+        expected: false,
+      },
+      {
+        input: "/x/foo@/y/y",
+        expected: { path: "/x/foo@/y/y", params: { a: ["foo"], c: ["y"] } },
+      },
+      {
+        input: "/x/foo@/y/z/y",
+        expected: {
+          path: "/x/foo@/y/z/y",
+          params: { a: ["foo"], c: ["y", "z"] },
+        },
+      },
+    ],
+  },
 
   /**
    * Multi character delimiters.
