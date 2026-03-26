@@ -2,6 +2,7 @@ const DEFAULT_DELIMITER = "/";
 const NOOP_VALUE = (value: string) => value;
 const ID_START = /^[$_\p{ID_Start}]$/u;
 const ID_CONTINUE = /^[$\u200c\u200d\p{ID_Continue}]$/u;
+const ID = /^[$_\p{ID_Start}][$\u200c\u200d\p{ID_Continue}]*$/u;
 
 /**
  * Encode a string into another string.
@@ -83,19 +84,7 @@ interface LexToken {
   value: string;
 }
 
-const SIMPLE_TOKENS: Record<string, TokenType> = {
-  // Groups.
-  "{": "{",
-  "}": "}",
-  // Reserved.
-  "(": "(",
-  ")": ")",
-  "[": "[",
-  "]": "]",
-  "+": "+",
-  "?": "?",
-  "!": "!",
-};
+const SIMPLE_TOKENS = "{}()[]+?!";
 
 /**
  * Escape text for stringify to path.
@@ -203,8 +192,8 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     } else if (chars[index] === '"') {
       let quoteStart = index;
 
-      while (index++ < chars.length) {
-        if (chars[index] === '"') {
+      while (index < chars.length) {
+        if (chars[++index] === '"') {
           index++;
           quoteStart = 0;
           break;
@@ -229,19 +218,18 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   }
 
   while (index < chars.length) {
-    const value = chars[index];
-    const type = SIMPLE_TOKENS[value];
+    const value = chars[index++];
 
-    if (type) {
-      tokens.push({ type, index: index++, value });
+    if (SIMPLE_TOKENS.includes(value)) {
+      tokens.push({ type: value as TokenType, index, value });
     } else if (value === "\\") {
-      tokens.push({ type: "escape", index: index++, value: chars[index++] });
+      tokens.push({ type: "escape", index, value: chars[index++] });
     } else if (value === ":") {
-      tokens.push({ type: "param", index: index++, value: name() });
+      tokens.push({ type: "param", index, value: name() });
     } else if (value === "*") {
-      tokens.push({ type: "wildcard", index: index++, value: name() });
+      tokens.push({ type: "wildcard", index, value: name() });
     } else {
-      tokens.push({ type: "char", index: index++, value });
+      tokens.push({ type: "char", index, value });
     }
   }
 
@@ -462,11 +450,9 @@ export function match<P extends ParamData>(
   };
 }
 
-interface RegExpPart {
-  source: string;
-  key?: Key;
-}
-
+/**
+ * Transform a path into a regular expression and capture keys.
+ */
 export function pathToRegexp(
   path: Path | Path[],
   options: PathToRegexpOptions & ParseOptions = {},
@@ -479,117 +465,98 @@ export function pathToRegexp(
   } = options;
   const flags = sensitive ? "" : "i";
   const keys: Keys = [];
-  const sources: RegExpPart[][] = [];
+  const root = new SourceNode("^");
+  const paths: Array<Path | Path[]> = [path];
 
-  for (const input of pathsToArray(path, [])) {
-    const data = typeof input === "object" ? input : parse(input, options);
-    for (const tokens of flatten(data.tokens, 0, [])) {
-      sources.push(toRegExpSource(tokens, delimiter, data.originalPath));
+  while (paths.length) {
+    const path = paths.shift()!;
+
+    if (Array.isArray(path)) {
+      paths.push(...path);
+      continue;
     }
+
+    const data = typeof path === "object" ? path : parse(path, options);
+
+    flatten(data.tokens, 0, [], (tokens) => {
+      let node = root;
+
+      for (const part of toRegExpSource(tokens, delimiter, data.originalPath)) {
+        node = node.add(part.source, part.key);
+      }
+
+      node.add(""); // Mark the end of the source.
+    });
   }
 
-  const source = sourcesToRegexp(sources, keys);
-  let pattern = `^${source}`;
-  if (trailing) pattern += `(?:${escape(delimiter)}$)?`;
-  pattern += end ? "$" : `(?=${escape(delimiter)}|$)`;
+  let pattern = toRegExp(root, keys);
+  if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
+  pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
-  const regexp = new RegExp(pattern, flags);
-  return { regexp, keys };
+  return { regexp: new RegExp(pattern, flags), keys };
 }
 
-function sourcesToRegexp(sources: RegExpPart[][], keys: Keys): string {
-  const root = new SourceNode("");
+function toRegExp(node: SourceNode, keys: Keys): string {
+  if (node.key) keys.push(node.key);
 
-  for (const source of sources) {
-    let node = root;
-    for (const part of source) {
-      node = node.add(new SourceNode(part.source, part.key));
-    }
-    node.add(new SourceNode("")); // Mark the end of the source.
-  }
+  const children = Object.keys(node.children);
+  const text = children
+    .map((id) => toRegExp(node.children[id], keys))
+    .join("|");
 
-  function build(node: SourceNode): string {
-    if (node.key) keys.push(node.key);
-
-    const children = Array.from(node.children.values(), build).join("|");
-
-    if (node.children.size < 2) {
-      return node.source + children;
-    }
-
-    return node.source + `(?:${children})`;
-  }
-
-  return build(root);
+  return node.source + (children.length <= 1 ? text : `(?:${text})`);
 }
 
 class SourceNode {
-  id: string;
-  children = new Map<string, SourceNode>();
+  children: Record<string, SourceNode> = Object.create(null);
 
   constructor(
     public source: string,
     public key?: Key,
-  ) {
-    this.id = `${this.source}:${this.key?.name ?? ""}`;
-  }
+  ) {}
 
-  add(node: SourceNode) {
-    const id = node.id;
-    const child = this.children.get(id);
-    if (child) return child;
-    this.children.set(id, node);
-    return node;
+  add(source: string, key?: Key) {
+    const id = source + ":" + (key ? key.name : "");
+    return (this.children[id] ||= new SourceNode(source, key));
   }
 }
-
-/**
- * Convert a path or array of paths into a flat array.
- */
-function pathsToArray(paths: Path | Path[], init: Path[]): Path[] {
-  if (Array.isArray(paths)) {
-    for (const p of paths) pathsToArray(p, init);
-  } else {
-    init.push(paths);
-  }
-  return init;
-}
-
-/**
- * Flattened token set.
- */
-type FlatToken = Text | Parameter | Wildcard;
 
 /**
  * Generate a flat list of sequence tokens from the given tokens.
  */
-function* flatten(
+function flatten(
   tokens: Token[],
   index: number,
-  init: FlatToken[],
-): Generator<FlatToken[]> {
-  if (index === tokens.length) {
-    return yield init;
-  }
-
-  const token = tokens[index];
-
-  if (token.type === "group") {
-    for (const seq of flatten(token.tokens, 0, init.slice())) {
-      yield* flatten(tokens, index + 1, seq);
+  result: Exclude<Token, Group>[],
+  callback: (result: Exclude<Token, Group>[]) => void,
+): void {
+  while (index < tokens.length) {
+    const token = tokens[index++];
+    if (token.type === "group") {
+      flatten(token.tokens, 0, result.slice(), (seq) => {
+        flatten(tokens, index, seq, callback);
+      });
+    } else {
+      result.push(token);
     }
-  } else {
-    init.push(token);
   }
 
-  yield* flatten(tokens, index + 1, init);
+  callback(result);
+}
+
+/**
+ * Simplest token for the trie deduplication.
+ */
+interface RegExpPart {
+  source: string;
+  key?: Key;
 }
 
 /**
  * Transform a flat sequence of tokens into a regular expression.
  */
 function toRegExpSource(
-  tokens: FlatToken[],
+  tokens: Exclude<Token, Group>[],
   delimiter: string,
   originalPath: string | undefined,
 ): RegExpPart[] {
@@ -598,10 +565,11 @@ function toRegExpSource(
   let wildcardBacktrack = "";
   let prevCaptureType: 0 | 1 | 2 = 0;
   let hasSegmentCapture = 0;
+  let index = 0;
 
-  function hasInSegment(i: number, type: TokenType) {
-    while (++i < tokens.length) {
-      const token = tokens[i];
+  function hasInSegment(index: number, type: TokenType) {
+    while (index < tokens.length) {
+      const token = tokens[index++];
       if (token.type === type) return true;
       if (token.type === "text") {
         if (token.value.includes(delimiter)) break;
@@ -610,30 +578,29 @@ function toRegExpSource(
     return false;
   }
 
-  function peekText(i: number) {
+  function peekText(index: number) {
     let result = "";
-    while (++i < tokens.length) {
-      const token = tokens[i];
+    while (index < tokens.length) {
+      const token = tokens[index++];
       if (token.type !== "text") break;
       result += token.value;
     }
     return result;
   }
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
+  while (index < tokens.length) {
+    const token = tokens[index++];
 
     if (token.type === "text") {
       result.push({ source: escape(token.value) });
       backtrack += token.value;
       if (prevCaptureType === 2) wildcardBacktrack += token.value;
       if (token.value.includes(delimiter)) hasSegmentCapture = 0;
-
       continue;
     }
 
     if (token.type === "param" || token.type === "wildcard") {
-      if (i > 0 && !backtrack) {
+      if (prevCaptureType && !backtrack) {
         throw new PathError(
           `Missing text before "${token.name}" ${token.type}`,
           originalPath,
@@ -644,8 +611,8 @@ function toRegExpSource(
         result.push({
           source: hasSegmentCapture // Seen param/wildcard in segment.
             ? `(${negate(delimiter, backtrack)}+?)`
-            : hasInSegment(i, "wildcard") // See wildcard later in segment.
-              ? `(${negate(delimiter, peekText(i))}+?)`
+            : hasInSegment(index, "wildcard") // See wildcard later in segment.
+              ? `(${negate(delimiter, peekText(index))}+?)`
               : `(${negate(delimiter, "")}+?)`,
           key: token,
         });
@@ -693,17 +660,11 @@ function negate(a: string, b: string): string {
 /**
  * Stringify an array of tokens into a path string.
  */
-function stringifyTokens(tokens: Token[]): string {
+function stringifyTokens(tokens: Token[], index: number): string {
   let value = "";
-  let i = 0;
 
-  function name(value: string) {
-    const isSafe = isNameSafe(value) && isNextNameSafe(tokens[i]);
-    return isSafe ? value : JSON.stringify(value);
-  }
-
-  while (i < tokens.length) {
-    const token = tokens[i++];
+  while (index < tokens.length) {
+    const token = tokens[index++];
 
     if (token.type === "text") {
       value += escapeText(token.value);
@@ -711,17 +672,17 @@ function stringifyTokens(tokens: Token[]): string {
     }
 
     if (token.type === "group") {
-      value += `{${stringifyTokens(token.tokens)}}`;
+      value += "{" + stringifyTokens(token.tokens, 0) + "}";
       continue;
     }
 
     if (token.type === "param") {
-      value += `:${name(token.name)}`;
+      value += ":" + stringifyName(token.name, tokens[index]);
       continue;
     }
 
     if (token.type === "wildcard") {
-      value += `*${name(token.name)}`;
+      value += "*" + stringifyName(token.name, tokens[index]);
       continue;
     }
 
@@ -735,21 +696,18 @@ function stringifyTokens(tokens: Token[]): string {
  * Stringify token data into a path string.
  */
 export function stringify(data: TokenData): string {
-  return stringifyTokens(data.tokens);
+  return stringifyTokens(data.tokens, 0);
 }
 
 /**
- * Validate the parameter name contains valid ID characters.
+ * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
-function isNameSafe(name: string): boolean {
-  const [first, ...rest] = name;
-  return ID_START.test(first) && rest.every((char) => ID_CONTINUE.test(char));
-}
+function stringifyName(name: string, next: Token | undefined): string {
+  if (!ID.test(name)) return JSON.stringify(name);
 
-/**
- * Validate the next token does not interfere with the current param name.
- */
-function isNextNameSafe(token: Token | undefined): boolean {
-  if (token && token.type === "text") return !ID_CONTINUE.test(token.value[0]);
-  return true;
+  if (next?.type === "text" && ID_CONTINUE.test(next.value[0])) {
+    return JSON.stringify(name);
+  }
+
+  return name;
 }
