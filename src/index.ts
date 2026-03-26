@@ -465,7 +465,7 @@ export function pathToRegexp(
   } = options;
   const flags = sensitive ? "" : "i";
   const keys: Keys = [];
-  const root = new SourceNode("");
+  const root = new SourceNode("^");
   const paths: Array<Path | Path[]> = [path];
 
   while (paths.length) {
@@ -489,8 +489,7 @@ export function pathToRegexp(
     });
   }
 
-  const source = toRegExp(root, keys);
-  let pattern = "^" + source;
+  let pattern = toRegExp(root, keys);
   if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
