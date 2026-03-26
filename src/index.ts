@@ -463,10 +463,9 @@ export function pathToRegexp(
     sensitive = false,
     trailing = true,
   } = options;
-  const flags = sensitive ? "" : "i";
-  const keys: Keys = [];
   const root = new SourceNode("^");
   const paths: Array<Path | Path[]> = [path];
+  let combinations = 0;
 
   while (paths.length) {
     const path = paths.shift()!;
@@ -477,8 +476,11 @@ export function pathToRegexp(
     }
 
     const data = typeof path === "object" ? path : parse(path, options);
-
     flatten(data.tokens, 0, [], (tokens) => {
+      if (combinations++ >= 256) {
+        throw new PathError("Too many path combinations", data.originalPath);
+      }
+
       let node = root;
 
       for (const part of toRegExpSource(tokens, delimiter, data.originalPath)) {
@@ -489,11 +491,12 @@ export function pathToRegexp(
     });
   }
 
+  const keys: Keys = [];
   let pattern = toRegExp(root, keys);
   if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
-  return { regexp: new RegExp(pattern, flags), keys };
+  return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
 }
 
 function toRegExp(node: SourceNode, keys: Keys): string {
@@ -504,7 +507,7 @@ function toRegExp(node: SourceNode, keys: Keys): string {
     .map((id) => toRegExp(node.children[id], keys))
     .join("|");
 
-  return node.source + (children.length <= 1 ? text : `(?:${text})`);
+  return node.source + (children.length < 2 ? text : `(?:${text})`);
 }
 
 class SourceNode {
@@ -532,13 +535,15 @@ function flatten(
 ): void {
   while (index < tokens.length) {
     const token = tokens[index++];
+
     if (token.type === "group") {
-      flatten(token.tokens, 0, result.slice(), (seq) => {
-        flatten(tokens, index, seq, callback);
-      });
-    } else {
-      result.push(token);
+      flatten(token.tokens, 0, result.slice(), (seq) =>
+        flatten(tokens, index, seq, callback),
+      );
+      continue;
     }
+
+    result.push(token);
   }
 
   callback(result);
