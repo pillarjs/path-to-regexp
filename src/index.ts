@@ -572,25 +572,14 @@ function toRegExpSource(
   let hasSegmentCapture = 0;
   let index = 0;
 
-  function hasInSegment(index: number, type: TokenType) {
-    while (index < tokens.length) {
-      const token = tokens[index++];
-      if (token.type === type) return true;
-      if (token.type === "text") {
-        if (token.value.includes(delimiter)) break;
-      }
-    }
-    return false;
-  }
-
-  function peekText(index: number) {
+  function peek(index: number): [string, Parameter | Wildcard | undefined] {
     let result = "";
     while (index < tokens.length) {
       const token = tokens[index++];
-      if (token.type !== "text") break;
+      if (token.type !== "text") return [result, token];
       result += token.value;
     }
-    return result;
+    return [result, undefined];
   }
 
   while (index < tokens.length) {
@@ -613,26 +602,32 @@ function toRegExpSource(
       }
 
       if (token.type === "param") {
-        result.push({
-          source: hasSegmentCapture // Seen param/wildcard in segment.
-            ? `(${negate(delimiter, backtrack)}+?)`
-            : hasInSegment(index, "wildcard") // See wildcard later in segment.
-              ? `(${negate(delimiter, peekText(index))}+?)`
-              : `(${negate(delimiter, "")}+?)`,
-          key: token,
-        });
+        if (hasSegmentCapture & 2) {
+          result.push({
+            source: `(${negate(delimiter, backtrack)}+)`,
+            key: token,
+          });
+        } else {
+          const [nextText, nextToken] = peek(index);
+
+          result.push({
+            source:
+              !nextToken || nextText.includes(delimiter)
+                ? `(${negate(delimiter, "")}+)`
+                : `(${negate(delimiter, nextText)}+|${escape(nextText)})`,
+            key: token,
+          });
+        }
 
         hasSegmentCapture |= prevCaptureType = 1;
       } else {
         result.push({
           source:
             hasSegmentCapture & 2 // Seen wildcard in segment.
-              ? `(${negate(backtrack, "")}+?)`
-              : hasSegmentCapture & 1 // Seen param in segment.
-                ? `(${negate(wildcardBacktrack, "")}+?)`
-                : wildcardBacktrack // No capture in segment, seen wildcard in path.
-                  ? `(${negate(wildcardBacktrack, "")}+?|${negate(delimiter, "")}+?)`
-                  : `([^]+?)`,
+              ? `(${negate("", backtrack)}+)`
+              : wildcardBacktrack // No capture in segment, seen wildcard in path.
+                ? `(${negate("", wildcardBacktrack)}+|${negate(delimiter, "")}+)`
+                : `([^]+?)`,
           key: token,
         });
 

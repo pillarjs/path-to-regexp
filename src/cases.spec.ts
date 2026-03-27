@@ -845,7 +845,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.html.json",
         expected: {
           path: "/route.html.json",
-          params: { test: "route.html", format: "json" },
+          params: { test: "route", format: "html.json" },
         },
       },
     ],
@@ -868,7 +868,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.json.html",
         expected: {
           path: "/route.json.html",
-          params: { test: "route.json", format: "html" },
+          params: { test: "route", format: "json.html" },
         },
       },
     ],
@@ -1561,7 +1561,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/123abcabc",
         expected: {
           path: "/123abcabc",
-          params: { foo: "123abcabc" },
+          params: { foo: "123", bar: "abc" },
         },
       },
     ],
@@ -1586,7 +1586,10 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/123abcabc",
-        expected: false,
+        expected: {
+          path: "/123abcabc",
+          params: { foo: "123", bar: "abc" },
+        },
       },
     ],
   },
@@ -2067,6 +2070,18 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "/:a-:b^*c@*d%:e",
+    tests: [
+      {
+        input: "/a-b^c@d%e",
+        expected: {
+          path: "/a-b^c@d%e",
+          params: { a: "a", b: "b", c: ["c"], d: ["d"], e: "e" },
+        },
+      },
+    ],
+  },
 
   /**
    * Multi character delimiters.
@@ -2121,7 +2136,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "%25555....222%25",
         expected: {
           path: "%25555....222%25",
-          params: { foo: "555.", bar: ".222" },
+          params: { foo: "555", bar: "..222" },
         },
       },
     ],
