@@ -614,11 +614,14 @@ function toRegExpSource(
 
       if (token.type === "param") {
         result.push({
-          source: hasSegmentCapture // Seen param/wildcard in segment.
-            ? `(${negate(delimiter, backtrack)}+?)`
-            : hasInSegment(index, "wildcard") // See wildcard later in segment.
-              ? `(${negate(delimiter, peekText(index))}+?)`
-              : `(${negate(delimiter, "")}+?)`,
+          source:
+            hasSegmentCapture & 2 // Seen wildcard in segment.
+              ? `(${negate(delimiter, backtrack)}+)`
+              : hasSegmentCapture & 1 // Seen parameter in segment.
+                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
+                : hasInSegment(index, "wildcard") // See wildcard later in segment.
+                  ? `(${negate(delimiter, peekText(index))}+)`
+                  : `(${negate(delimiter, "")}+?)`,
           key: token,
         });
 
@@ -627,12 +630,10 @@ function toRegExpSource(
         result.push({
           source:
             hasSegmentCapture & 2 // Seen wildcard in segment.
-              ? `(${negate(backtrack, "")}+?)`
-              : hasSegmentCapture & 1 // Seen param in segment.
-                ? `(${negate(wildcardBacktrack, "")}+?)`
-                : wildcardBacktrack // No capture in segment, seen wildcard in path.
-                  ? `(${negate(wildcardBacktrack, "")}+?|${negate(delimiter, "")}+?)`
-                  : `([^]+?)`,
+              ? `(${negate(backtrack, "")}+)`
+              : wildcardBacktrack // No capture in segment, seen wildcard in path.
+                ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+                : `([^]+?)`,
           key: token,
         });
 
