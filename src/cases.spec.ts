@@ -479,6 +479,109 @@ export const MATCH_TESTS: MatchTestSet[] = [
   },
 
   /**
+   * Strict trailing delimiter.
+   */
+  {
+    path: "/test",
+    options: {
+      trailing: false,
+    },
+    tests: [
+      {
+        input: "/test",
+        expected: { path: "/test", params: {} },
+      },
+      { input: "/test/", expected: false },
+    ],
+  },
+  {
+    path: "/test/",
+    options: {
+      trailing: false,
+    },
+    tests: [
+      {
+        input: "/test/",
+        expected: { path: "/test/", params: {} },
+      },
+      { input: "/test", expected: false },
+    ],
+  },
+  {
+    path: "/:test",
+    options: {
+      trailing: false,
+    },
+    tests: [
+      {
+        input: "/route",
+        expected: { path: "/route", params: { test: "route" } },
+      },
+      { input: "/route/", expected: false },
+    ],
+  },
+  {
+    path: "/*path",
+    options: {
+      trailing: false,
+    },
+    tests: [
+      {
+        input: "/route",
+        expected: { path: "/route", params: { path: ["route"] } },
+      },
+      {
+        input: "/route/nested",
+        expected: {
+          path: "/route/nested",
+          params: { path: ["route", "nested"] },
+        },
+      },
+      {
+        input: "/route/nested/",
+        expected: {
+          path: "/route/nested/",
+          params: { path: ["route", "nested", ""] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/test",
+    options: {
+      trailing: false,
+      end: false,
+    },
+    tests: [
+      {
+        input: "/test",
+        expected: { path: "/test", params: {} },
+      },
+      {
+        input: "/test/route",
+        expected: { path: "/test", params: {} },
+      },
+    ],
+  },
+  {
+    path: "{/:test}/bar",
+    options: {
+      trailing: false,
+    },
+    tests: [
+      {
+        input: "/bar",
+        expected: { path: "/bar", params: {} },
+      },
+      {
+        input: "/foo/bar",
+        expected: { path: "/foo/bar", params: { test: "foo" } },
+      },
+      { input: "/foo/bar/", expected: false },
+    ],
+  },
+
+  /**
    * Non-ending mode.
    */
   {
