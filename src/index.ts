@@ -519,14 +519,6 @@ function flatten(
 }
 
 /**
- * Simplest token for building regex.
- */
-interface RegExpPart {
-  source: string;
-  key?: Key;
-}
-
-/**
  * Transform a flat sequence of tokens into a regular expression.
  */
 function toRegExpSource(
