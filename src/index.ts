@@ -617,10 +617,10 @@ function toRegExpSource(
           source:
             hasSegmentCapture & 2 // Seen wildcard in segment.
               ? `(${negate(delimiter, backtrack)}+)`
-              : hasSegmentCapture & 1 // Seen parameter in segment.
-                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
-                : hasInSegment(index, "wildcard") // See wildcard later in segment.
-                  ? `(${negate(delimiter, peekText(index))}+)`
+              : hasInSegment(index, "wildcard") // See wildcard later in segment.
+                ? `(${negate(delimiter, peekText(index))}+)`
+                : hasSegmentCapture & 1 // Seen parameter in segment.
+                  ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
                   : `(${negate(delimiter, "")}+?)`,
           key: token,
         });

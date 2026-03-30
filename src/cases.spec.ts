@@ -2070,6 +2070,18 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "/:a-:b^*c@*d%:e",
+    tests: [
+      {
+        input: "/a-b^c@d%e",
+        expected: {
+          path: "/a-b^c@d%e",
+          params: { a: "a", b: "b", c: ["c"], d: ["d"], e: "e" },
+        },
+      },
+    ],
+  },
 
   /**
    * Multi character delimiters.
