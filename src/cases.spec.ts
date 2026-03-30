@@ -1664,7 +1664,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/123abcabc",
         expected: {
           path: "/123abcabc",
-          params: { foo: "123abcabc" },
+          params: { foo: "123", bar: "abc" },
         },
       },
     ],
@@ -1689,7 +1689,10 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/123abcabc",
-        expected: false,
+        expected: {
+          path: "/123abcabc",
+          params: { foo: "123", bar: "abc" },
+        },
       },
     ],
   },
@@ -2166,6 +2169,18 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/x/foo@/y/z/y",
           params: { a: ["foo"], c: ["y", "z"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a-:b^*c@*d%:e",
+    tests: [
+      {
+        input: "/a-b^c@d%e",
+        expected: {
+          path: "/a-b^c@d%e",
+          params: { a: "a", b: "b", c: ["c"], d: ["d"], e: "e" },
         },
       },
     ],
