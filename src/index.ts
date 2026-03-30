@@ -463,7 +463,8 @@ export function pathToRegexp(
     sensitive = false,
     trailing = true,
   } = options;
-  const root = new SourceNode("^");
+  const keys: Keys = [];
+  const sources: string[] = [];
   const paths: Array<Path | Path[]> = [path];
   let combinations = 0;
 
@@ -481,47 +482,22 @@ export function pathToRegexp(
         throw new PathError("Too many path combinations", data.originalPath);
       }
 
-      let node = root;
+      let value = "";
 
       for (const part of toRegExpSource(tokens, delimiter, data.originalPath)) {
-        node = node.add(part.source, part.key);
+        value += part.source;
+        if (part.key) keys.push(part.key);
       }
 
-      node.add(""); // Mark the end of the source.
+      sources.push(value);
     });
   }
 
-  const keys: Keys = [];
-  let pattern = toRegExp(root, keys);
+  let pattern = `^(?:${sources.join("|")})`;
   if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
   return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
-}
-
-function toRegExp(node: SourceNode, keys: Keys): string {
-  if (node.key) keys.push(node.key);
-
-  const children = Object.keys(node.children);
-  const text = children
-    .map((id) => toRegExp(node.children[id], keys))
-    .join("|");
-
-  return node.source + (children.length < 2 ? text : `(?:${text})`);
-}
-
-class SourceNode {
-  children: Record<string, SourceNode> = Object.create(null);
-
-  constructor(
-    public source: string,
-    public key?: Key,
-  ) {}
-
-  add(source: string, key?: Key) {
-    const id = source + ":" + (key ? key.name : "");
-    return (this.children[id] ||= new SourceNode(source, key));
-  }
 }
 
 /**
@@ -550,7 +526,7 @@ function flatten(
 }
 
 /**
- * Simplest token for the trie deduplication.
+ * Simplest token for building regex.
  */
 interface RegExpPart {
   source: string;
@@ -621,7 +597,7 @@ function toRegExpSource(
                 ? `(${negate(delimiter, peekText(index))}+)`
                 : hasSegmentCapture & 1 // Seen parameter in segment.
                   ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
-                  : `(${negate(delimiter, "")}+?)`,
+                  : `(${negate(delimiter, "")}+)`,
           key: token,
         });
 
@@ -633,7 +609,7 @@ function toRegExpSource(
               ? `(${negate(backtrack, "")}+)`
               : wildcardBacktrack // No capture in segment, seen wildcard in path.
                 ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
-                : `([^]+?)`,
+                : `([^]+)`,
           key: token,
         });
 
