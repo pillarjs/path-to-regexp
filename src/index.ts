@@ -463,7 +463,8 @@ export function pathToRegexp(
     sensitive = false,
     trailing = true,
   } = options;
-  const root = new SourceNode("^");
+  const keys: Keys = [];
+  const sources: string[] = [];
   const paths: Array<Path | Path[]> = [path];
   let combinations = 0;
 
@@ -481,47 +482,15 @@ export function pathToRegexp(
         throw new PathError("Too many path combinations", data.originalPath);
       }
 
-      let node = root;
-
-      for (const part of toRegExpSource(tokens, delimiter, data.originalPath)) {
-        node = node.add(part.source, part.key);
-      }
-
-      node.add(""); // Mark the end of the source.
+      sources.push(toRegExpSource(tokens, delimiter, keys, data.originalPath));
     });
   }
 
-  const keys: Keys = [];
-  let pattern = toRegExp(root, keys);
+  let pattern = `^(?:${sources.join("|")})`;
   if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
   return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
-}
-
-function toRegExp(node: SourceNode, keys: Keys): string {
-  if (node.key) keys.push(node.key);
-
-  const children = Object.keys(node.children);
-  const text = children
-    .map((id) => toRegExp(node.children[id], keys))
-    .join("|");
-
-  return node.source + (children.length < 2 ? text : `(?:${text})`);
-}
-
-class SourceNode {
-  children: Record<string, SourceNode> = Object.create(null);
-
-  constructor(
-    public source: string,
-    public key?: Key,
-  ) {}
-
-  add(source: string, key?: Key) {
-    const id = source + ":" + (key ? key.name : "");
-    return (this.children[id] ||= new SourceNode(source, key));
-  }
 }
 
 /**
@@ -550,22 +519,15 @@ function flatten(
 }
 
 /**
- * Simplest token for the trie deduplication.
- */
-interface RegExpPart {
-  source: string;
-  key?: Key;
-}
-
-/**
  * Transform a flat sequence of tokens into a regular expression.
  */
 function toRegExpSource(
   tokens: Exclude<Token, Group>[],
   delimiter: string,
+  keys: Keys,
   originalPath: string | undefined,
-): RegExpPart[] {
-  let result: RegExpPart[] = [];
+): string {
+  let result = "";
   let backtrack = "";
   let wildcardBacktrack = "";
   let prevCaptureType: 0 | 1 | 2 = 0;
@@ -597,7 +559,7 @@ function toRegExpSource(
     const token = tokens[index++];
 
     if (token.type === "text") {
-      result.push({ source: escape(token.value) });
+      result += escape(token.value);
       backtrack += token.value;
       if (prevCaptureType === 2) wildcardBacktrack += token.value;
       if (token.value.includes(delimiter)) hasSegmentCapture = 0;
@@ -613,34 +575,29 @@ function toRegExpSource(
       }
 
       if (token.type === "param") {
-        result.push({
-          source:
-            hasSegmentCapture & 2 // Seen wildcard in segment.
-              ? `(${negate(delimiter, backtrack)}+)`
-              : hasInSegment(index, "wildcard") // See wildcard later in segment.
-                ? `(${negate(delimiter, peekText(index))}+)`
-                : hasSegmentCapture & 1 // Seen parameter in segment.
-                  ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
-                  : `(${negate(delimiter, "")}+?)`,
-          key: token,
-        });
+        result +=
+          hasSegmentCapture & 2 // Seen wildcard in segment.
+            ? `(${negate(delimiter, backtrack)}+)`
+            : hasInSegment(index, "wildcard") // See wildcard later in segment.
+              ? `(${negate(delimiter, peekText(index))}+)`
+              : hasSegmentCapture & 1 // Seen parameter in segment.
+                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
+                : `(${negate(delimiter, "")}+)`;
 
         hasSegmentCapture |= prevCaptureType = 1;
       } else {
-        result.push({
-          source:
-            hasSegmentCapture & 2 // Seen wildcard in segment.
-              ? `(${negate(backtrack, "")}+)`
-              : wildcardBacktrack // No capture in segment, seen wildcard in path.
-                ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
-                : `([^]+?)`,
-          key: token,
-        });
+        result +=
+          hasSegmentCapture & 2 // Seen wildcard in segment.
+            ? `(${negate(backtrack, "")}+)`
+            : wildcardBacktrack // No capture in segment, seen wildcard in path.
+              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+              : `([^]+)`;
 
         wildcardBacktrack = "";
         hasSegmentCapture |= prevCaptureType = 2;
       }
 
+      keys.push(token);
       backtrack = "";
       continue;
     }

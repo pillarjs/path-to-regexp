@@ -1505,6 +1505,13 @@ export const MATCH_TESTS: MatchTestSet[] = [
         },
       },
       {
+        input: "/test/nested.html",
+        expected: {
+          path: "/test/nested.html",
+          params: { path: ["test", "nested"], ext: "html" },
+        },
+      },
+      {
         input: "/test.html/nested",
         expected: {
           params: {
@@ -1546,6 +1553,128 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/1/2/3/4/5",
           params: { foo: ["1", "2", "3"], bar: "4", baz: ["5"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "{*path}",
+    tests: [
+      {
+        input: "",
+        expected: { path: "", params: {} },
+      },
+      {
+        input: "/",
+        expected: { path: "/", params: { path: ["", ""] } },
+      },
+      {
+        input: "/test",
+        expected: { path: "/test", params: { path: ["", "test"] } },
+      },
+      {
+        input: "/test/nested",
+        expected: {
+          path: "/test/nested",
+          params: { path: ["", "test", "nested"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "{*path}",
+    options: { end: false },
+    tests: [
+      {
+        input: "",
+        expected: { path: "", params: {} },
+      },
+      {
+        input: "/",
+        expected: { path: "/", params: { path: ["", ""] } },
+      },
+      {
+        input: "/test",
+        expected: { path: "/test", params: { path: ["", "test"] } },
+      },
+      {
+        input: "/test/nested",
+        expected: {
+          path: "/test/nested",
+          params: { path: ["", "test", "nested"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*path",
+    options: { end: false },
+    tests: [
+      {
+        input: "",
+        expected: false,
+      },
+      {
+        input: "/",
+        expected: false,
+      },
+      {
+        input: "/test",
+        expected: { path: "/test", params: { path: ["test"] } },
+      },
+      {
+        input: "/test/nested",
+        expected: {
+          path: "/test/nested",
+          params: { path: ["test", "nested"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*path/",
+    options: { end: false },
+    tests: [
+      {
+        input: "/foo/bar/",
+        expected: { path: "/foo/bar/", params: { path: ["foo", "bar"] } },
+      },
+      {
+        input: "/foo/bar/baz",
+        expected: false,
+      },
+      {
+        input: "/foo/bar/baz/",
+        expected: {
+          path: "/foo/bar/baz/",
+          params: { path: ["foo", "bar", "baz"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*path.:ext",
+    options: { end: false },
+    tests: [
+      {
+        input: "/foo/bar.html",
+        expected: {
+          path: "/foo/bar.html",
+          params: { path: ["foo", "bar"], ext: "html" },
+        },
+      },
+      {
+        input: "/foo/bar.html/baz",
+        expected: {
+          path: "/foo/bar.html",
+          params: { path: ["foo", "bar"], ext: "html" },
+        },
+      },
+      {
+        input: "/foo/bar.html/baz.html",
+        expected: {
+          path: "/foo/bar.html/baz.html",
+          params: { path: ["foo", "bar.html", "baz"], ext: "html" },
         },
       },
     ],
@@ -2239,7 +2368,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "%25555....222%25",
         expected: {
           path: "%25555....222%25",
-          params: { foo: "555.", bar: ".222" },
+          params: { foo: "555..", bar: "222" },
         },
       },
     ],
