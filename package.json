@@ -1,6 +1,6 @@
 {
   "name": "path-to-regexp",
-  "version": "8.4.1",
+  "version": "8.4.2",
   "description": "Express style path to RegExp utility",
   "keywords": [
     "express",
