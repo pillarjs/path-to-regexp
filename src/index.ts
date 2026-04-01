@@ -221,10 +221,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
 
     if (value === "\\") {
       if (index === chars.length) {
-        throw new PathError(
-          `Unexpected end after \\ at index ${index - 1}`,
-          str,
-        );
+        throw new PathError(`Unexpected end after \\ at index ${index}`, str);
       }
 
       tokens.push({ type: "char", index, value: chars[index++] });

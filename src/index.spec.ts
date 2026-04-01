@@ -80,25 +80,25 @@ describe("path-to-regexp", () => {
 
     it("should throw on eol backslash", () => {
       expect(() => parse("/foo\\")).toThrow(
-        new PathError("Unexpected end after \\ at index 4", "/foo\\"),
+        new PathError("Unexpected end after \\ at index 5", "/foo\\"),
       );
     });
 
     it("should throw on eol backslash in group", () => {
       expect(() => parse("/foo/{bar\\")).toThrow(
-        new PathError("Unexpected end after \\ at index 9", "/foo/{bar\\"),
+        new PathError("Unexpected end after \\ at index 10", "/foo/{bar\\"),
       );
     });
 
     it("should throw on eol backslash after param", () => {
       expect(() => parse("/foo/:bar\\")).toThrow(
-        new PathError("Unexpected end after \\ at index 9", "/foo/:bar\\"),
+        new PathError("Unexpected end after \\ at index 10", "/foo/:bar\\"),
       );
     });
 
     it("should throw on eol backslash after wildcard", () => {
       expect(() => parse("/foo/*bar\\")).toThrow(
-        new PathError("Unexpected end after \\ at index 9", "/foo/*bar\\"),
+        new PathError("Unexpected end after \\ at index 10", "/foo/*bar\\"),
       );
     });
 
