@@ -64,7 +64,6 @@ type TokenType =
   | "wildcard"
   | "param"
   | "char"
-  | "escape"
   | "end"
   // Reserved for use or ambiguous due to past use.
   | "("
@@ -220,10 +219,17 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   while (index < chars.length) {
     const value = chars[index++];
 
-    if (SIMPLE_TOKENS.includes(value)) {
+    if (value === "\\") {
+      if (index === chars.length) {
+        throw new PathError(
+          `Unexpected end after \\ at index ${index - 1}`,
+          str,
+        );
+      }
+
+      tokens.push({ type: "char", index, value: chars[index++] });
+    } else if (SIMPLE_TOKENS.includes(value)) {
       tokens.push({ type: value as TokenType, index, value });
-    } else if (value === "\\") {
-      tokens.push({ type: "escape", index, value: chars[index++] });
     } else if (value === ":") {
       tokens.push({ type: "param", index, value: name() });
     } else if (value === "*") {
@@ -242,11 +248,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
       const token = tokens[pos++];
       if (token.type === endType) break;
 
-      if (token.type === "char" || token.type === "escape") {
+      if (token.type === "char") {
         let path = token.value;
         let cur = tokens[pos];
 
-        while (cur.type === "char" || cur.type === "escape") {
+        while (cur.type === "char") {
           path += cur.value;
           cur = tokens[++pos];
         }
