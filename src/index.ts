@@ -58,33 +58,6 @@ export interface CompileOptions {
   delimiter?: string;
 }
 
-type TokenType =
-  | "{"
-  | "}"
-  | "wildcard"
-  | "param"
-  | "char"
-  | "end"
-  // Reserved for use or ambiguous due to past use.
-  | "("
-  | ")"
-  | "["
-  | "]"
-  | "+"
-  | "?"
-  | "!";
-
-/**
- * Tokenizer results.
- */
-interface LexToken {
-  type: TokenType;
-  index: number;
-  value: string;
-}
-
-const SIMPLE_TOKENS = "{}()[]+?!";
-
 /**
  * Escape text for stringify to path.
  */
@@ -177,99 +150,81 @@ export class PathError extends TypeError {
 export function parse(str: string, options: ParseOptions = {}): TokenData {
   const { encodePath = NOOP_VALUE } = options;
   const chars = [...str];
-  const tokens: Array<LexToken> = [];
   let index = 0;
-  let pos = 0;
 
-  function name() {
-    let value = "";
-
-    if (ID_START.test(chars[index])) {
-      do {
-        value += chars[index++];
-      } while (ID_CONTINUE.test(chars[index]));
-    } else if (chars[index] === '"') {
-      let quoteStart = index;
-
-      while (index < chars.length) {
-        if (chars[++index] === '"') {
-          index++;
-          quoteStart = 0;
-          break;
-        }
-
-        // Increment over escape characters.
-        if (chars[index] === "\\") index++;
-
-        value += chars[index];
-      }
-
-      if (quoteStart) {
-        throw new PathError(`Unterminated quote at index ${quoteStart}`, str);
-      }
-    }
-
-    if (!value) {
-      throw new PathError(`Missing parameter name at index ${index}`, str);
-    }
-
-    return value;
-  }
-
-  while (index < chars.length) {
-    const value = chars[index++];
-
-    if (value === "\\") {
-      if (index === chars.length) {
-        throw new PathError(`Unexpected end after \\ at index ${index}`, str);
-      }
-
-      tokens.push({ type: "char", index, value: chars[index++] });
-    } else if (SIMPLE_TOKENS.includes(value)) {
-      tokens.push({ type: value as TokenType, index, value });
-    } else if (value === ":") {
-      tokens.push({ type: "param", index, value: name() });
-    } else if (value === "*") {
-      tokens.push({ type: "wildcard", index, value: name() });
-    } else {
-      tokens.push({ type: "char", index, value });
-    }
-  }
-
-  tokens.push({ type: "end", index, value: "" });
-
-  function consumeUntil(endType: TokenType): Token[] {
+  function consumeUntil(end: string): Token[] {
     const output: Token[] = [];
+    let path = "";
 
-    while (true) {
-      const token = tokens[pos++];
-      if (token.type === endType) break;
+    function writePath() {
+      if (!path) return;
+      output.push({
+        type: "text",
+        value: encodePath(path),
+      });
+      path = "";
+    }
 
-      if (token.type === "char") {
-        let path = token.value;
-        let cur = tokens[pos];
+    while (index < chars.length) {
+      const value = chars[index++];
 
-        while (cur.type === "char") {
-          path += cur.value;
-          cur = tokens[++pos];
+      if (value === end) {
+        writePath();
+        return output;
+      }
+
+      if (value === "\\") {
+        if (index === chars.length) {
+          throw new PathError(`Unexpected end after \\ at index ${index}`, str);
         }
 
-        output.push({
-          type: "text",
-          value: encodePath(path),
-        });
+        path += chars[index++];
         continue;
       }
 
-      if (token.type === "param" || token.type === "wildcard") {
-        output.push({
-          type: token.type,
-          name: token.value,
-        });
+      if (value === ":" || value === "*") {
+        const type = value === ":" ? "param" : "wildcard";
+        let name = "";
+
+        if (ID_START.test(chars[index])) {
+          do {
+            name += chars[index++];
+          } while (ID_CONTINUE.test(chars[index]));
+        } else if (chars[index] === '"') {
+          let quoteStart = index;
+
+          while (index < chars.length) {
+            if (chars[++index] === '"') {
+              index++;
+              quoteStart = 0;
+              break;
+            }
+
+            // Increment over escape characters.
+            if (chars[index] === "\\") index++;
+
+            name += chars[index];
+          }
+
+          if (quoteStart) {
+            throw new PathError(
+              `Unterminated quote at index ${quoteStart}`,
+              str,
+            );
+          }
+        }
+
+        if (!name) {
+          throw new PathError(`Missing parameter name at index ${index}`, str);
+        }
+
+        writePath();
+        output.push({ type, name });
         continue;
       }
 
-      if (token.type === "{") {
+      if (value === "{") {
+        writePath();
         output.push({
           type: "group",
           tokens: consumeUntil("}"),
@@ -277,16 +232,34 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
+      if (
+        value === "}" ||
+        value === "(" ||
+        value === ")" ||
+        value === "[" ||
+        value === "]" ||
+        value === "+" ||
+        value === "?" ||
+        value === "!"
+      ) {
+        throw new PathError(`Unexpected ${value} at index ${index - 1}`, str);
+      }
+
+      path += value;
+    }
+
+    if (end) {
       throw new PathError(
-        `Unexpected ${token.type} at index ${token.index}, expected ${endType}`,
+        `Unexpected end at index ${index}, expected ${end}`,
         str,
       );
     }
 
+    writePath();
     return output;
   }
 
-  return new TokenData(consumeUntil("end"), str);
+  return new TokenData(consumeUntil(""), str);
 }
 
 /**
@@ -537,7 +510,7 @@ function toRegExpSource(
   let hasSegmentCapture = 0;
   let index = 0;
 
-  function hasInSegment(index: number, type: TokenType) {
+  function hasInSegment(index: number, type: Token["type"]) {
     while (index < tokens.length) {
       const token = tokens[index++];
       if (token.type === type) return true;

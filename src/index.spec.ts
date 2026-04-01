@@ -48,17 +48,17 @@ describe("path-to-regexp", () => {
   });
 
   describe("parse errors", () => {
-    it("should throw on unbalanced group", () => {
-      expect(() => parse("/{:foo,")).toThrow(
-        new PathError("Unexpected end at index 7, expected }", "/{:foo,"),
-      );
-    });
-
-    it("should throw on nested unbalanced group", () => {
-      expect(() => parse("/{:foo/{x,y}")).toThrow(
-        new PathError("Unexpected end at index 12, expected }", "/{:foo/{x,y}"),
-      );
-    });
+    it.each(["/{", "/{:foo,", "/{:foo/{x,y}"])(
+      "should throw on unbalanced group: %s",
+      (path) => {
+        expect(() => parse(path)).toThrow(
+          new PathError(
+            `Unexpected end at index ${path.length}, expected }`,
+            path,
+          ),
+        );
+      },
+    );
 
     it("should throw on missing param name", () => {
       expect(() => parse("/:/")).toThrow(
@@ -107,6 +107,15 @@ describe("path-to-regexp", () => {
         new PathError("Unterminated quote at index 6", '/foo/:"bar\\'),
       );
     });
+
+    it.each(["}", "(", ")", "[", "]", "+", "?", "!"])(
+      "should throw on unexpected character %s",
+      (char) => {
+        expect(() => parse(`/foo/${char}`)).toThrow(
+          new PathError(`Unexpected ${char} at index 5`, `/foo/${char}`),
+        );
+      },
+    );
   });
 
   describe("compile errors", () => {
