@@ -1,18 +1,26 @@
 import { describe, bench } from "vitest";
-import { compile, match, parse } from "./index.js";
+import { compile, match, parse, pathToRegexp } from "./index.js";
+
+const PATHS: string[] = [
+  "/api",
+  "/user/:id",
+  "/user/:id{/:extra}",
+  "/files/*path",
+  "/:param1-:param2",
+  '/quoted-:"param1"',
+  "/complex/:param1-:param2/*path",
+  "/name{/:attr1}{-:attr2}{-:attr3}",
+];
 
 describe("parse", () => {
-  const PATHS: string[] = [
-    "/api",
-    "/user/:id",
-    "/files/*filepath",
-    "/:foo-:bar",
-    '/quoted-:"param"',
-    "/complex/:param1-:param2/*rest",
-  ];
-
   bench("parsing paths", () => {
     for (const path of PATHS) parse(path);
+  });
+});
+
+describe("toRegexp", () => {
+  bench("building regexp", () => {
+    for (const path of PATHS) pathToRegexp(path);
   });
 });
 
@@ -59,15 +67,7 @@ describe("match", () => {
 });
 
 describe("compile", () => {
-  const PATH_FNS = [
-    "/api",
-    "/user/:id",
-    "/user/:id{/:extra}",
-    "/files/*path",
-    "/:param1-:param2",
-    '/quoted-:"param1"',
-    "/complex/:param1-:param2/*path",
-  ].map((path) => compile(path));
+  const PATH_FNS = PATHS.map((path) => compile(path));
 
   bench("compiling paths", () => {
     for (const fn of PATH_FNS) {

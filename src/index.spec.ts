@@ -200,7 +200,7 @@ describe("path-to-regexp", () => {
       } catch (error) {
         const stack = (error as Error).stack
           ?.split("\n")
-          .slice(0, 5)
+          .slice(0, 6)
           .join("\n");
         expect(stack).toContain("index.spec.ts");
       }
