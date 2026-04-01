@@ -351,17 +351,18 @@ function tokenToFunction(
         throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
       }
 
-      return value
-        .map((value, index) => {
-          if (typeof value !== "string") {
-            throw new TypeError(
-              `Expected "${token.name}/${index}" to be a string`,
-            );
-          }
+      let result = "";
 
-          return encodeValue(value);
-        })
-        .join(delimiter);
+      for (let i = 0; i < value.length; i++) {
+        if (typeof value[i] !== "string") {
+          throw new TypeError(`Expected "${token.name}/${i}" to be a string`);
+        }
+
+        if (i > 0) result += delimiter;
+        result += encodeValue(value[i]);
+      }
+
+      return result;
     };
   }
 
@@ -453,29 +454,30 @@ export function pathToRegexp(
     trailing = true,
   } = options;
   const keys: Keys = [];
-  const sources: string[] = [];
-  const paths: Array<Path | Path[]> = [path];
+  let source = "";
   let combinations = 0;
 
-  while (paths.length) {
-    const path = paths.shift()!;
-
+  function process(path: Path | Path[]) {
     if (Array.isArray(path)) {
-      paths.push(...path);
-      continue;
+      for (const p of path) process(p);
+      return;
     }
 
     const data = typeof path === "object" ? path : parse(path, options);
     flatten(data.tokens, 0, [], (tokens) => {
-      if (combinations++ >= 256) {
+      if (combinations >= 256) {
         throw new PathError("Too many path combinations", data.originalPath);
       }
 
-      sources.push(toRegExpSource(tokens, delimiter, keys, data.originalPath));
+      if (combinations > 0) source += "|";
+      source += toRegExpSource(tokens, delimiter, keys, data.originalPath);
+      combinations++;
     });
   }
 
-  let pattern = `^(?:${sources.join("|")})`;
+  process(path);
+
+  let pattern = `^(?:${source})`;
   if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
@@ -495,9 +497,11 @@ function flatten(
     const token = tokens[index++];
 
     if (token.type === "group") {
-      flatten(token.tokens, 0, result.slice(), (seq) =>
+      const len = result.length;
+      flatten(token.tokens, 0, result, (seq) =>
         flatten(tokens, index, seq, callback),
       );
+      result.length = len;
       continue;
     }
 
