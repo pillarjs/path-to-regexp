@@ -1,5 +1,5 @@
 import { describe, bench } from "vitest";
-import { match, parse } from "./index.js";
+import { compile, match, parse } from "./index.js";
 
 describe("parse", () => {
   const PATHS: string[] = [
@@ -55,5 +55,30 @@ describe("match", () => {
 
   bench("asterisk", () => {
     for (const path of PATHS) ASTERISK_MATCH(path);
+  });
+});
+
+describe("compile", () => {
+  const PATH_FNS = [
+    "/api",
+    "/user/:id",
+    "/files/*filepath",
+    "/:foo-:bar",
+    '/quoted-:"param1"',
+    "/complex/:param1-:param2/*rest",
+  ].map((path) => compile(path));
+
+  bench("compiling paths", () => {
+    for (const fn of PATH_FNS) {
+      fn({
+        id: "123",
+        filepath: ["path", "to", "file"],
+        foo: "foo",
+        bar: "bar",
+        param1: "param1",
+        param2: "param2",
+        rest: ["rest"],
+      });
+    }
   });
 });
