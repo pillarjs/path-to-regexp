@@ -275,10 +275,13 @@ export function compile<P extends ParamData = ParamData>(
   const fn = tokensToFunction(data.tokens, delimiter, encode);
 
   return function path(params: P = {} as P) {
-    const [path, ...missing] = fn(params);
+    const missing: string[] = [];
+    const path = fn(params, missing);
+
     if (missing.length) {
       throw new TypeError(`Missing parameters: ${missing.join(", ")}`);
     }
+
     return path;
   };
 }
@@ -286,22 +289,25 @@ export function compile<P extends ParamData = ParamData>(
 export type ParamData = Partial<Record<string, string | string[]>>;
 export type PathFunction<P extends ParamData> = (data?: P) => string;
 
+/**
+ * Internal path builder function.
+ */
+type TokenEncoder = (data: ParamData, missing: string[]) => string;
+
 function tokensToFunction(
   tokens: Token[],
   delimiter: string,
   encode: Encode | false,
-) {
+): TokenEncoder {
   const encoders = tokens.map((token) =>
     tokenToFunction(token, delimiter, encode),
   );
 
-  return (data: ParamData) => {
-    const result: string[] = [""];
+  return (data: ParamData, missing: string[]) => {
+    let result = "";
 
     for (const encoder of encoders) {
-      const [value, ...extras] = encoder(data);
-      result[0] += value;
-      result.push(...extras);
+      result += encoder(data, missing);
     }
 
     return result;
@@ -315,55 +321,62 @@ function tokenToFunction(
   token: Token,
   delimiter: string,
   encode: Encode | false,
-): (data: ParamData) => string[] {
-  if (token.type === "text") return () => [token.value];
+): TokenEncoder {
+  if (token.type === "text") return () => token.value;
 
   if (token.type === "group") {
     const fn = tokensToFunction(token.tokens, delimiter, encode);
 
-    return (data) => {
-      const [value, ...missing] = fn(data);
-      if (!missing.length) return [value];
-      return [""];
+    return (data, missing) => {
+      const len = missing.length;
+      const value = fn(data, missing);
+      if (missing.length === len) return value;
+
+      missing.length = len; // Reset optional group.
+      return "";
     };
   }
 
   const encodeValue = encode || NOOP_VALUE;
 
   if (token.type === "wildcard" && encode !== false) {
-    return (data) => {
+    return (data, missing) => {
       const value = data[token.name];
-      if (value == null) return ["", token.name];
+      if (value == null) {
+        missing.push(token.name);
+        return "";
+      }
 
       if (!Array.isArray(value) || value.length === 0) {
         throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
       }
 
-      return [
-        value
-          .map((value, index) => {
-            if (typeof value !== "string") {
-              throw new TypeError(
-                `Expected "${token.name}/${index}" to be a string`,
-              );
-            }
+      return value
+        .map((value, index) => {
+          if (typeof value !== "string") {
+            throw new TypeError(
+              `Expected "${token.name}/${index}" to be a string`,
+            );
+          }
 
-            return encodeValue(value);
-          })
-          .join(delimiter),
-      ];
+          return encodeValue(value);
+        })
+        .join(delimiter);
     };
   }
 
-  return (data) => {
+  return (data, missing) => {
     const value = data[token.name];
-    if (value == null) return ["", token.name];
+    if (value == null) {
+      missing.push(token.name);
+      return "";
+    }
 
     if (typeof value !== "string") {
       throw new TypeError(`Expected "${token.name}" to be a string`);
     }
 
-    return [encodeValue(value)];
+    return encodeValue(value);
   };
 }
 
