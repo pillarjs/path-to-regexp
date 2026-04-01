@@ -62,22 +62,20 @@ describe("compile", () => {
   const PATH_FNS = [
     "/api",
     "/user/:id",
-    "/files/*filepath",
-    "/:foo-:bar",
+    "/user/:id{/:extra}",
+    "/files/*path",
+    "/:param1-:param2",
     '/quoted-:"param1"',
-    "/complex/:param1-:param2/*rest",
+    "/complex/:param1-:param2/*path",
   ].map((path) => compile(path));
 
   bench("compiling paths", () => {
     for (const fn of PATH_FNS) {
       fn({
         id: "123",
-        filepath: ["path", "to", "file"],
-        foo: "foo",
-        bar: "bar",
         param1: "param1",
         param2: "param2",
-        rest: ["rest"],
+        path: ["path", "to", "file"],
       });
     }
   });
