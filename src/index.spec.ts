@@ -107,6 +107,15 @@ describe("path-to-regexp", () => {
         new PathError("Unterminated quote at index 6", '/foo/:"bar\\'),
       );
     });
+
+    it.each(["(", ")", "[", "]", "+", "?"])(
+      "should throw on unexpected character %s",
+      (char) => {
+        expect(() => parse(`/foo/${char}`)).toThrow(
+          new PathError(`Unexpected ${char} at index 5`, `/foo/${char}`),
+        );
+      },
+    );
   });
 
   describe("compile errors", () => {
