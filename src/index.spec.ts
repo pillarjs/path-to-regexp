@@ -19,7 +19,7 @@ import {
  * Dynamically generate the entire test suite.
  */
 describe("path-to-regexp", () => {
-  describe("ParseError", () => {
+  describe("PathError", () => {
     it("should contain original path and debug url", () => {
       const error = new PathError(
         "Unexpected end at index 7, expected }",
@@ -75,6 +75,36 @@ describe("path-to-regexp", () => {
     it("should throw on unterminated quote", () => {
       expect(() => parse('/:"foo')).toThrow(
         new PathError("Unterminated quote at index 2", '/:"foo'),
+      );
+    });
+
+    it("should throw on eol backslash", () => {
+      expect(() => parse("/foo\\")).toThrow(
+        new PathError("Unexpected end after \\ at index 5", "/foo\\"),
+      );
+    });
+
+    it("should throw on eol backslash in group", () => {
+      expect(() => parse("/foo/{bar\\")).toThrow(
+        new PathError("Unexpected end after \\ at index 10", "/foo/{bar\\"),
+      );
+    });
+
+    it("should throw on eol backslash after param", () => {
+      expect(() => parse("/foo/:bar\\")).toThrow(
+        new PathError("Unexpected end after \\ at index 10", "/foo/:bar\\"),
+      );
+    });
+
+    it("should throw on eol backslash after wildcard", () => {
+      expect(() => parse("/foo/*bar\\")).toThrow(
+        new PathError("Unexpected end after \\ at index 10", "/foo/*bar\\"),
+      );
+    });
+
+    it("should throw on eol backslash in quoted param", () => {
+      expect(() => parse('/foo/:"bar\\')).toThrow(
+        new PathError("Unterminated quote at index 6", '/foo/:"bar\\'),
       );
     });
   });
