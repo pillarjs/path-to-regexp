@@ -68,5 +68,10 @@
     "dist": [
       "dist"
     ]
+  },
+  "tsdown": {
+    "outputOptions": {
+      "esModule": true
+    }
   }
 }
