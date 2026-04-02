@@ -17,15 +17,25 @@
     "url": "https://opencollective.com/express"
   },
   "license": "MIT",
-  "exports": "./dist/index.js",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "require": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist/"
   ],
   "scripts": {
     "bench": "vitest bench",
-    "build": "ts-scripts build",
+    "build": "tsdown src/index.ts --format cjs,esm --platform neutral --sourcemap",
     "format": "ts-scripts format",
     "lint": "ts-scripts lint",
     "prepare": "ts-scripts install && npm run build",
@@ -41,6 +51,7 @@
     "@vitest/coverage-v8": "^3.0.5",
     "recheck": "^4.5.0",
     "size-limit": "^11.1.2",
+    "tsdown": "^0.21.7",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   },
@@ -56,9 +67,6 @@
   "ts-scripts": {
     "dist": [
       "dist"
-    ],
-    "project": [
-      "tsconfig.build.json"
     ]
   }
 }
