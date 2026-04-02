@@ -14,4 +14,16 @@ describe.concurrent("redos", () => {
     const result = await check(regexp.source, regexp.flags);
     expect(result.status).toBe("safe");
   });
+
+  it("stays safe for several sequential optional groups", async () => {
+    const regexp = pathToRegexp("/users{/:id}{/:tab}{/:mode}").regexp;
+    const result = await check(regexp.source, regexp.flags);
+    expect(result.status).toBe("safe");
+  });
+
+  it("stays safe for repeated sequential optionals in a long route", async () => {
+    const regexp = pathToRegexp("/search{/:a}{/:b}{/:c}{/:d}{/:e}").regexp;
+    const result = await check(regexp.source, regexp.flags);
+    expect(result.status).toBe("safe");
+  });
 });
