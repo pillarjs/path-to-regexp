@@ -667,3 +667,13 @@ function stringifyName(name: string, next: Token | undefined): string {
 
   return name;
 }
+
+export default {
+  PathError,
+  TokenData,
+  compile,
+  match,
+  parse,
+  pathToRegexp,
+  stringify,
+};
