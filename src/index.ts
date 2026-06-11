@@ -471,6 +471,9 @@ export function pathToRegexp(
 
       if (combinations > 0) source += "|";
       source += toRegExpSource(tokens, delimiter, keys, data.originalPath);
+      if (trailing && !tokensEndWithDelimiter(tokens, delimiter)) {
+        source += "(?:" + escape(delimiter) + "$)?";
+      }
       combinations++;
     });
   }
@@ -478,10 +481,17 @@ export function pathToRegexp(
   process(path);
 
   let pattern = `^(?:${source})`;
-  if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
   return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
+}
+
+function tokensEndWithDelimiter(
+  tokens: Exclude<Token, Group>[],
+  delimiter: string,
+): boolean {
+  const last = tokens[tokens.length - 1];
+  return last?.type === "text" && last.value.endsWith(delimiter);
 }
 
 /**
