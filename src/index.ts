@@ -377,6 +377,10 @@ function tokenToFunction(
       throw new TypeError(`Expected "${token.name}" to be a string`);
     }
 
+    if (value === "") {
+      throw new TypeError(`Expected "${token.name}" to be a non-empty string`);
+    }
+
     return encodeValue(value);
   };
 }

@@ -271,6 +271,7 @@ export const COMPILE_TESTS: CompileTestSet[] = [
     tests: [
       { input: undefined, expected: null },
       { input: {}, expected: null },
+      { input: { test: "" }, expected: null },
       { input: { test: "123" }, expected: "/123" },
       { input: { test: "123/xyz" }, expected: "/123%2Fxyz" },
     ],
