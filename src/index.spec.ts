@@ -140,7 +140,7 @@ describe("path-to-regexp", () => {
 
       expect(() => {
         toPath({ foo: [] });
-      }).toThrow(new TypeError('Expected "foo" to be a string'));
+      }).toThrow(new TypeError('Expected "foo" to be a non-empty string'));
     });
 
     it("should throw when a wildcard is not an array", () => {

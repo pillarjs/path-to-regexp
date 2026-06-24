@@ -373,11 +373,7 @@ function tokenToFunction(
       return "";
     }
 
-    if (typeof value !== "string") {
-      throw new TypeError(`Expected "${token.name}" to be a string`);
-    }
-
-    if (value === "") {
+    if (typeof value !== "string" || value.length === 0) {
       throw new TypeError(`Expected "${token.name}" to be a non-empty string`);
     }
 
