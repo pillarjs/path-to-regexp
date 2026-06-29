@@ -656,13 +656,24 @@ export function stringify(data: TokenData): string {
 }
 
 /**
+ * Wrap a parameter name in quotes, escaping only the characters the parser
+ * treats specially inside a quoted name (`"` and `\`). `JSON.stringify` can't
+ * be used here because it emits escapes like `\n` that the parser reads back as
+ * the literal character `n`, so names with control characters wouldn't survive
+ * a `parse` -> `stringify` -> `parse` round trip.
+ */
+function quoteName(name: string): string {
+  return `"${name.replace(/["\\]/g, "\\$&")}"`;
+}
+
+/**
  * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
 function stringifyName(name: string, next: Token | undefined): string {
-  if (!ID.test(name)) return JSON.stringify(name);
+  if (!ID.test(name)) return quoteName(name);
 
   if (next?.type === "text" && ID_CONTINUE.test(next.value[0])) {
-    return JSON.stringify(name);
+    return quoteName(name);
   }
 
   return name;
