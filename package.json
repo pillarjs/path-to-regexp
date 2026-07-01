@@ -60,5 +60,9 @@
     "project": [
       "tsconfig.build.json"
     ]
+  },
+  "homepage": "https://github.com/pillarjs/path-to-regexp",
+  "bugs": {
+    "url": "https://github.com/pillarjs/path-to-regexp/issues"
   }
 }
