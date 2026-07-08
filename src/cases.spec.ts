@@ -190,6 +190,20 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
   },
   {
     data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "a\tb" },
+    ]),
+    expected: '/:"a\tb"',
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: 'a"b\\c' },
+    ]),
+    expected: '/:"a\\"b\\\\c"',
+  },
+  {
+    data: new TokenData([
       { type: "text", value: "/users" },
       {
         type: "group",

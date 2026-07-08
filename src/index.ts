@@ -659,11 +659,21 @@ export function stringify(data: TokenData): string {
  * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
 function stringifyName(name: string, next: Token | undefined): string {
-  if (!ID.test(name)) return JSON.stringify(name);
+  if (!ID.test(name)) return quoteName(name);
 
   if (next?.type === "text" && ID_CONTINUE.test(next.value[0])) {
-    return JSON.stringify(name);
+    return quoteName(name);
   }
 
   return name;
+}
+
+/**
+ * Quote a parameter name using the escape rules understood by `parse`,
+ * which only recognizes a backslash as escaping the next character.
+ * `JSON.stringify` would emit escapes such as `\t` or `\uXXXX` that
+ * `parse` reads back as the literal characters `t` or `uXXXX`.
+ */
+function quoteName(name: string): string {
+  return `"${name.replace(/["\\]/g, "\\$&")}"`;
 }

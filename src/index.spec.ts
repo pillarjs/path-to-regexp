@@ -240,6 +240,11 @@ describe("path-to-regexp", () => {
         const path = stringify(data);
         expect(path).toEqual(expected);
       });
+
+      it("should parse back to the original tokens", () => {
+        const { tokens } = parse(stringify(data));
+        expect(tokens).toEqual(data.tokens);
+      });
     },
   );
 
