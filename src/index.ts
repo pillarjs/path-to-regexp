@@ -362,6 +362,10 @@ function tokenToFunction(
         result += encodeValue(value[i]);
       }
 
+      if (!result) {
+        throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
+      }
+
       return result;
     };
   }

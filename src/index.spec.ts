@@ -158,6 +158,14 @@ describe("path-to-regexp", () => {
         toPath({ foo: [1, "a"] as any });
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
     });
+
+    it("should throw when a wildcard array yields an empty path", () => {
+      const toPath = compile("/*foo");
+
+      expect(() => {
+        toPath({ foo: [""] });
+      }).toThrow(new TypeError('Expected "foo" to be a non-empty array'));
+    });
   });
 
   describe("pathToRegexp errors", () => {
