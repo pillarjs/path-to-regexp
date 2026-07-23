@@ -583,7 +583,13 @@ function toRegExpSource(
           hasSegmentCapture & 2 // Seen wildcard in segment.
             ? `(${negate(backtrack, "")}+)`
             : wildcardBacktrack // No capture in segment, seen wildcard in path.
-              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+              ? wildcardBacktrack === delimiter && index === tokens.length
+                ? // A terminal wildcard whose only separator from the previous
+                  // wildcard is the bare delimiter has no multi-character anchor
+                  // to bound it, so it must match all remaining segments. It is
+                  // `$`-anchored, so an unbounded class stays ReDoS-safe.
+                  `([^]+)`
+                : `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
               : `([^]+)`;
 
         wildcardBacktrack = "";

@@ -1559,6 +1559,25 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
+    path: "/*a/:b.:c/*d",
+    tests: [
+      {
+        input: "/x/name.ext/p/q/r",
+        expected: {
+          path: "/x/name.ext/p/q/r",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/name.ext/p",
+        expected: {
+          path: "/x/name.ext/p",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+    ],
+  },
+  {
     path: "{*path}",
     tests: [
       {
