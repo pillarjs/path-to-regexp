@@ -525,6 +525,7 @@ function toRegExpSource(
   let prevCaptureType: 0 | 1 | 2 = 0;
   let hasCapture = 0;
   let hasSegmentCapture = 0;
+  let wildcardBacktrack = "";
   let index = 0;
 
   function hasInSegment(index: number, type: Token["type"]) {
@@ -552,7 +553,9 @@ function toRegExpSource(
     const token = tokens[index++];
 
     if (token.type === "text") {
-      result += escape(token.value);
+      const value = escape(token.value);
+      result += value;
+      wildcardBacktrack += value;
       backtrack += token.value;
       if (token.value.includes(delimiter)) hasSegmentCapture = 0;
       continue;
@@ -566,6 +569,8 @@ function toRegExpSource(
         );
       }
 
+      keys.push(token);
+
       if (token.type === "param") {
         result +=
           hasSegmentCapture & 2 // Seen wildcard in segment.
@@ -576,19 +581,20 @@ function toRegExpSource(
                 ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
                 : `(${negate(delimiter, "")}+)`;
 
+        wildcardBacktrack += `\\${keys.length}`;
         hasSegmentCapture = hasCapture |= prevCaptureType = 1;
       } else {
         result +=
-          hasSegmentCapture & 2 || prevCaptureType === 2
+          hasSegmentCapture & 2 // Seen wildcard in segment.
             ? `(${negate(backtrack, "")}+)`
             : hasCapture & 2 // Seen wildcard before, block backtracking.
-              ? `((?:(?!\\${keys.length})[^])+)`
+              ? `((?:(?!${wildcardBacktrack})[^])+)`
               : `([^]+)`;
 
+        wildcardBacktrack = "";
         hasSegmentCapture = hasCapture |= prevCaptureType = 2;
       }
 
-      keys.push(token);
       backtrack = "";
       continue;
     }

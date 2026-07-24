@@ -1587,6 +1587,37 @@ export const MATCH_TESTS: MatchTestSet[] = [
           },
         },
       },
+      {
+        input: "/x/x/name.ext/ext/x/x",
+        expected: {
+          path: "/x/x/name.ext/ext/x/x",
+          params: { a: ["x", "x"], b: "name", c: "ext", d: ["ext", "x", "x"] },
+        },
+      },
+      {
+        input: "/x/x/name.ext/name.ext/x/x/",
+        expected: {
+          path: "/x/x/name.ext/name.ext/x/x/",
+          params: {
+            a: ["x", "x", "name.ext"],
+            b: "name",
+            c: "ext",
+            d: ["x", "x", ""],
+          },
+        },
+      },
+      {
+        input: "/x/x/name.ext//name.ext/x/x/",
+        expected: {
+          path: "/x/x/name.ext//name.ext/x/x/",
+          params: {
+            a: ["x", "x", "name.ext", ""],
+            b: "name",
+            c: "ext",
+            d: ["x", "x", ""],
+          },
+        },
+      },
     ],
   },
   {
