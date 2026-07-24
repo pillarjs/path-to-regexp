@@ -522,8 +522,8 @@ function toRegExpSource(
 ): string {
   let result = "";
   let backtrack = "";
-  let wildcardBacktrack = "";
   let prevCaptureType: 0 | 1 | 2 = 0;
+  let hasCapture = 0;
   let hasSegmentCapture = 0;
   let index = 0;
 
@@ -554,7 +554,6 @@ function toRegExpSource(
     if (token.type === "text") {
       result += escape(token.value);
       backtrack += token.value;
-      if (prevCaptureType === 2) wildcardBacktrack += token.value;
       if (token.value.includes(delimiter)) hasSegmentCapture = 0;
       continue;
     }
@@ -577,17 +576,16 @@ function toRegExpSource(
                 ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
                 : `(${negate(delimiter, "")}+)`;
 
-        hasSegmentCapture |= prevCaptureType = 1;
+        hasSegmentCapture = hasCapture |= prevCaptureType = 1;
       } else {
         result +=
-          hasSegmentCapture & 2 // Seen wildcard in segment.
+          hasSegmentCapture & 2 || prevCaptureType === 2
             ? `(${negate(backtrack, "")}+)`
-            : wildcardBacktrack // No capture in segment, seen wildcard in path.
-              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+            : hasCapture & 2 // Seen wildcard before, block backtracking.
+              ? `((?:(?!\\${keys.length})[^])+)`
               : `([^]+)`;
 
-        wildcardBacktrack = "";
-        hasSegmentCapture |= prevCaptureType = 2;
+        hasSegmentCapture = hasCapture |= prevCaptureType = 2;
       }
 
       keys.push(token);

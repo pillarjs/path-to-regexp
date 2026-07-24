@@ -1559,6 +1559,75 @@ export const MATCH_TESTS: MatchTestSet[] = [
     ],
   },
   {
+    path: "/*a/:b.:c/*d",
+    tests: [
+      {
+        input: "/x/name.ext/p/q/r",
+        expected: {
+          path: "/x/name.ext/p/q/r",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/name.ext/p",
+        expected: {
+          path: "/x/name.ext/p",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+      {
+        input: "/x/y/z/name.ext/name2.ext2/p/q/r",
+        expected: {
+          path: "/x/y/z/name.ext/name2.ext2/p/q/r",
+          params: {
+            a: ["x", "y", "z", "name.ext"],
+            b: "name2",
+            c: "ext2",
+            d: ["p", "q", "r"],
+          },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/_/:b.:c/*d",
+    tests: [
+      {
+        input: "/x/_/name.ext/p/q/r",
+        expected: {
+          path: "/x/_/name.ext/p/q/r",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/_/name.ext/p",
+        expected: {
+          path: "/x/_/name.ext/p",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/:b.:c/*d/",
+    tests: [
+      {
+        input: "/x/name.ext/p/q/r/",
+        expected: {
+          path: "/x/name.ext/p/q/r/",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/name.ext/p/",
+        expected: {
+          path: "/x/name.ext/p/",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+    ],
+  },
+  {
     path: "{*path}",
     tests: [
       {
@@ -2424,6 +2493,25 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/x/foo/y-/bar/w",
           params: { a: ["foo"], b: ["bar"] },
+        },
+      },
+    ],
+  },
+  {
+    path: ["/x/*a/:b.:c/*d/z", "/x/*a/:b.:c/*d/w"],
+    tests: [
+      {
+        input: "/x/foo/name.ext/bar/z",
+        expected: {
+          path: "/x/foo/name.ext/bar/z",
+          params: { a: ["foo"], b: "name", c: "ext", d: ["bar"] },
+        },
+      },
+      {
+        input: "/x/foo/name.ext/bar/w",
+        expected: {
+          path: "/x/foo/name.ext/bar/w",
+          params: { a: ["foo"], b: "name", c: "ext", d: ["bar"] },
         },
       },
     ],
