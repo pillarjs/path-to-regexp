@@ -523,30 +523,30 @@ function toRegExpSource(
   let result = "";
   let backtrack = "";
   let prevCaptureType: 0 | 1 | 2 = 0;
-  let hasCapture = 0;
   let hasSegmentCapture = 0;
+  let hasWildcardAhead = false;
   let wildcardBacktrack = "";
   let index = 0;
 
-  function hasInSegment(index: number, type: Token["type"]) {
+  function seekWildcard(index: number, stopOnSegment = false) {
     while (index < tokens.length) {
       const token = tokens[index++];
-      if (token.type === type) return true;
-      if (token.type === "text") {
+      if (token.type === "wildcard") return true;
+      if (stopOnSegment && token.type === "text") {
         if (token.value.includes(delimiter)) break;
       }
     }
     return false;
   }
 
-  function peekText(index: number) {
+  function textRemaining(index: number) {
     let result = "";
     while (index < tokens.length) {
       const token = tokens[index++];
-      if (token.type !== "text") break;
+      if (token.type !== "text") return result;
+      if (token.value.includes(delimiter)) break;
       result += token.value;
     }
-    return result;
   }
 
   while (index < tokens.length) {
@@ -572,27 +572,35 @@ function toRegExpSource(
       keys.push(token);
 
       if (token.type === "param") {
-        result +=
-          hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(delimiter, backtrack)}+)`
-            : hasInSegment(index, "wildcard") // See wildcard later in segment.
-              ? `(${negate(delimiter, peekText(index))}+)`
-              : hasSegmentCapture & 1 // Seen parameter in segment.
-                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
-                : `(${negate(delimiter, "")}+)`;
+        if (hasSegmentCapture & 2) {
+          const value = negate(delimiter, backtrack);
+          result += `(${value}+?|${value}*${escape(backtrack)})`;
+        } else {
+          const text = textRemaining(index);
+
+          if (text) {
+            result += `(?=(${negate(delimiter, "")}+?)${escape(text)})\\${keys.length}`;
+          } else {
+            result += `(${negate(delimiter, "")}+)`;
+          }
+        }
 
         wildcardBacktrack += `\\${keys.length}`;
-        hasSegmentCapture = hasCapture |= prevCaptureType = 1;
+        hasSegmentCapture |= prevCaptureType = 1;
       } else {
-        result +=
-          hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(backtrack, "")}+)`
-            : hasCapture & 2 // Seen wildcard before, block backtracking.
-              ? `((?:(?!${wildcardBacktrack})[^])+)`
-              : `([^]+)`;
+        // If we had a wildcard, close lookahead and reset.
+        if (hasWildcardAhead) result += `)${wildcardBacktrack}`;
 
-        wildcardBacktrack = "";
-        hasSegmentCapture = hasCapture |= prevCaptureType = 2;
+        hasWildcardAhead = seekWildcard(index);
+
+        // If another wildcard, open lookahead to prevent backtracking.
+        if (hasWildcardAhead) result += `(?=`;
+
+        // Greedy match for last wildcard only.
+        result += `([^]+${hasWildcardAhead ? "?" : ""})`;
+
+        wildcardBacktrack = `\\${keys.length}`; // Restart wildcard backtrack.
+        hasSegmentCapture |= prevCaptureType = 2;
       }
 
       backtrack = "";
