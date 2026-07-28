@@ -528,13 +528,10 @@ function toRegExpSource(
   let wildcardBacktrack = "";
   let index = 0;
 
-  function seekWildcard(index: number, stopOnSegment = false) {
+  function seekWildcard(index: number) {
     while (index < tokens.length) {
       const token = tokens[index++];
       if (token.type === "wildcard") return true;
-      if (stopOnSegment && token.type === "text") {
-        if (token.value.includes(delimiter)) break;
-      }
     }
     return false;
   }
