@@ -576,13 +576,13 @@ function toRegExpSource(
           const text = textRemaining(index);
 
           if (text) {
-            result += `(?=(${negate(delimiter, "")}+?)${escape(text)})\\${keys.length}`;
+            result += `(?=(${negate(delimiter, "")}+?)${escape(text)})(?:\\${keys.length})`;
           } else {
             result += `(${negate(delimiter, "")}+)`;
           }
         }
 
-        wildcardBacktrack += `\\${keys.length}`;
+        wildcardBacktrack += `(?:\\${keys.length})`;
         hasSegmentCapture |= prevCaptureType = 1;
       } else {
         // If we had a wildcard, close lookahead and reset.
@@ -596,7 +596,7 @@ function toRegExpSource(
         // Greedy match for last wildcard only.
         result += `([^]+${hasWildcardAhead ? "?" : ""})`;
 
-        wildcardBacktrack = `\\${keys.length}`; // Restart wildcard backtrack.
+        wildcardBacktrack = `(?:\\${keys.length})`; // Restart wildcard backtrack.
         hasSegmentCapture |= prevCaptureType = 2;
       }
 

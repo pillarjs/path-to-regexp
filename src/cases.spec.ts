@@ -2598,6 +2598,21 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "1*a\\1*b",
+    options: {
+      delimiter: "1",
+    },
+    tests: [
+      {
+        input: "1x1y",
+        expected: {
+          path: "1x1y",
+          params: { a: ["x"], b: ["y"] },
+        },
+      },
+    ],
+  },
 
   /**
    * Multi character delimiters.
