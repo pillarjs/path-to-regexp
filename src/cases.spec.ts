@@ -222,6 +222,13 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
     expected: "\\\\:test",
   },
   {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "a\nb" },
+    ]),
+    expected: '/:"a\nb"',
+  },
+  {
     data: {
       tokens: [
         { type: "text", value: "/" },
