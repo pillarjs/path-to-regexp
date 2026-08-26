@@ -676,8 +676,13 @@ function quoteName(name: string): string {
 function stringifyName(name: string, next: Token | undefined): string {
   if (!ID.test(name)) return quoteName(name);
 
-  if (next?.type === "text" && ID_CONTINUE.test(next.value[0])) {
-    return quoteName(name);
+  if (next?.type === "text") {
+    // Destructuring reads the first *code point*, matching `parse`, which
+    // iterates the path with `[...str]`. Indexing with `[0]` would read only the
+    // leading surrogate of an astral character, missing that the parser treats
+    // the whole character as `ID_Continue` and absorbs it into the name.
+    const [first = ""] = next.value;
+    if (ID_CONTINUE.test(first)) return quoteName(name);
   }
 
   return name;
