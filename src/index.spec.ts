@@ -268,11 +268,15 @@ describe("path-to-regexp", () => {
 
   describe.each(MATCH_TESTS)(
     "match $path with $options",
-    ({ path, options, tests }) => {
-      it.each(tests)("should match $input", ({ input, expected }) => {
-        const fn = match(path, options);
-        expect(fn(input)).toEqual(expected);
-      });
+    ({ path, options, tests, testOptions }) => {
+      it.each(tests)(
+        "should match $input",
+        testOptions ?? {},
+        ({ input, expected }) => {
+          const fn = match(path, options);
+          expect(fn(input)).toEqual(expected);
+        },
+      );
     },
   );
 });

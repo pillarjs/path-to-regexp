@@ -1,8 +1,9 @@
+import { TestOptions } from "vitest";
+
 import {
   type MatchOptions,
   type Match,
   type ParseOptions,
-  type Token,
   type CompileOptions,
   type ParamData,
   TokenData,
@@ -37,6 +38,7 @@ export interface MatchTestSet {
     input: string;
     expected: Match<any>;
   }>;
+  testOptions?: TestOptions;
 }
 
 export const PARSER_TESTS: ParserTestSet[] = [
@@ -983,7 +985,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.html.json",
         expected: {
           path: "/route.html.json",
-          params: { test: "route.html", format: "json" },
+          params: { test: "route", format: "html.json" },
         },
       },
     ],
@@ -1006,7 +1008,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/route.json.html",
         expected: {
           path: "/route.json.html",
-          params: { test: "route.json", format: "html" },
+          params: { test: "route", format: "json.html" },
         },
       },
     ],
@@ -1587,7 +1589,107 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/1/2/3/4/5",
         expected: {
           path: "/1/2/3/4/5",
-          params: { foo: ["1", "2", "3"], bar: "4", baz: ["5"] },
+          params: { foo: ["1"], bar: "2", baz: ["3", "4", "5"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/:b.:c/*d",
+    tests: [
+      {
+        input: "/x/name.ext/p/q/r",
+        expected: {
+          path: "/x/name.ext/p/q/r",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/name.ext/p",
+        expected: {
+          path: "/x/name.ext/p",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+      {
+        input: "/x/y/z/name.ext/name2.ext2/p/q/r",
+        expected: {
+          path: "/x/y/z/name.ext/name2.ext2/p/q/r",
+          params: {
+            a: ["x", "y", "z"],
+            b: "name",
+            c: "ext",
+            d: ["name2.ext2", "p", "q", "r"],
+          },
+        },
+      },
+      {
+        input: "/x/x/name.ext/ext/x/x",
+        expected: {
+          path: "/x/x/name.ext/ext/x/x",
+          params: { a: ["x", "x"], b: "name", c: "ext", d: ["ext", "x", "x"] },
+        },
+      },
+      {
+        input: "/x/x/name.ext/name.ext/x/x/",
+        expected: {
+          path: "/x/x/name.ext/name.ext/x/x/",
+          params: {
+            a: ["x", "x"],
+            b: "name",
+            c: "ext",
+            d: ["name.ext", "x", "x", ""],
+          },
+        },
+      },
+      {
+        input: "/x/x/name.ext//name.ext/x/x/",
+        expected: {
+          path: "/x/x/name.ext//name.ext/x/x/",
+          params: {
+            a: ["x", "x"],
+            b: "name",
+            c: "ext",
+            d: ["", "name.ext", "x", "x", ""],
+          },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/_/:b.:c/*d",
+    tests: [
+      {
+        input: "/x/_/name.ext/p/q/r",
+        expected: {
+          path: "/x/_/name.ext/p/q/r",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/_/name.ext/p",
+        expected: {
+          path: "/x/_/name.ext/p",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/:b.:c/*d/",
+    tests: [
+      {
+        input: "/x/name.ext/p/q/r/",
+        expected: {
+          path: "/x/name.ext/p/q/r/",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p", "q", "r"] },
+        },
+      },
+      {
+        input: "/x/name.ext/p/",
+        expected: {
+          path: "/x/name.ext/p/",
+          params: { a: ["x"], b: "name", c: "ext", d: ["p"] },
         },
       },
     ],
@@ -1956,7 +2058,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/a-b-c-d",
         expected: {
           path: "/a-b-c-d",
-          params: { foo: ["a-b"], bar: ["c"], baz: "d" },
+          params: { foo: ["a"], bar: ["b-c"], baz: "d" },
         },
       },
     ],
@@ -1979,7 +2081,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/a-b-c-d",
         expected: {
           path: "/a-b-c-d",
-          params: { foo: ["a-b"], bar: "c", baz: ["d"] },
+          params: { foo: ["a"], bar: "b", baz: ["c-d"] },
         },
       },
     ],
@@ -2013,11 +2115,11 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/a-b-",
-        expected: false,
+        expected: { path: "/a-b-", params: { foo: ["a"], bar: ["b-"] } },
       },
       {
         input: "/a-b-c-d",
-        expected: { path: "/a-b-c-d", params: { foo: ["a-b-c"], bar: ["d"] } },
+        expected: { path: "/a-b-c-d", params: { foo: ["a"], bar: ["b-c-d"] } },
       },
     ],
   },
@@ -2085,7 +2187,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/a/b/c/d/e",
         expected: {
           path: "/a/b/c/d/e",
-          params: { foo: ["a", "b"], bar: "c", baz: ["d"], qux: "e" },
+          params: { foo: ["a"], bar: "b", baz: ["c", "d"], qux: "e" },
         },
       },
     ],
@@ -2174,7 +2276,181 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/a-b-c.d.e@f@g",
         expected: {
           path: "/a-b-c.d.e@f@g",
-          params: { a: "a", b: ["b-c.d"], c: "e@f", d: ["g"] },
+          params: { a: "a", b: ["b-c.d"], c: "e", d: ["f@g"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a-.-*b",
+    tests: [
+      {
+        input: "/-.-.-x",
+        expected: {
+          path: "/-.-.-x",
+          params: { a: "-.", b: ["x"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a-:b",
+    tests: [
+      {
+        input: "/a--",
+        expected: { path: "/a--", params: { a: ["a"], b: "-" } },
+      },
+    ],
+  },
+  {
+    path: "/:a--*b",
+    tests: [
+      {
+        input: "/--x--y",
+        expected: {
+          path: "/--x--y",
+          params: { a: "--x", b: ["y"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a%25*b",
+    tests: [
+      {
+        input: "/%252%25x",
+        expected: {
+          path: "/%252%25x",
+          // Decodes `%25` to `%`.
+          params: { a: "%2", b: ["x"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a{%25*b}",
+    tests: [
+      {
+        input: "/%252%25x",
+        expected: {
+          path: "/%252%25x",
+          // Decodes `%25` to `%`.
+          params: { a: "%2", b: ["x"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a-:b/end",
+    tests: [
+      {
+        input: "/x-abc-/end",
+        expected: {
+          path: "/x-abc-/end",
+          params: { a: "x", b: "abc-" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a.:b/end",
+    tests: [
+      {
+        input: "/x.abc./end",
+        expected: {
+          path: "/x.abc./end",
+          params: { a: ["x"], b: "abc." },
+        },
+      },
+      {
+        input: "/x.-./end",
+        expected: {
+          path: "/x.-./end",
+          params: { a: ["x"], b: "-." },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a%25:b/end",
+    tests: [
+      {
+        input: "/x%25abc%25/end",
+        expected: {
+          path: "/x%25abc%25/end",
+          params: { a: "x", b: "abc%" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:a--:b--:c",
+    tests: [
+      {
+        input: "/x-----y",
+        expected: {
+          path: "/x-----y",
+          params: { a: "x", b: "-", c: "y" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a-:p.*b.:q",
+    tests: [
+      {
+        input: "/a-b.c.d",
+        expected: {
+          path: "/a-b.c.d",
+          params: { a: ["a"], p: "b", b: ["c"], q: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a-:p.*b.:q/end",
+    tests: [
+      {
+        input: "/a-b.c.d/end",
+        expected: {
+          path: "/a-b.c.d/end",
+          params: { a: ["a"], p: "b", b: ["c"], q: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/:b~:c.*d",
+    tests: [
+      {
+        input: "/x/a~..z",
+        expected: {
+          path: "/x/a~..z",
+          params: { a: ["x"], b: "a", c: ".", d: ["z"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a-:p{.*b.:q}",
+    tests: [
+      {
+        input: "/a-b.c.d",
+        expected: {
+          path: "/a-b.c.d",
+          params: { a: ["a"], p: "b", b: ["c"], q: "d" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a.:p--*b",
+    tests: [
+      {
+        input: "/a.b---",
+        expected: {
+          path: "/a.b---",
+          params: { a: ["a"], p: "b", b: ["-"] },
         },
       },
     ],
@@ -2194,7 +2470,14 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "/a--b/c@@d--e@@f",
         expected: {
           path: "/a--b/c@@d--e@@f",
-          params: { a: ["a--b", "c@@d"], b: ["e"], c: "f" },
+          params: { a: ["a"], b: ["b", "c@@d--e"], c: "f" },
+        },
+      },
+      {
+        input: "/a/b@@c--d@@e",
+        expected: {
+          path: "/a/b@@c--d@@e",
+          params: { a: ["a", "b@@c"], b: ["d"], c: "e" },
         },
       },
     ],
@@ -2349,6 +2632,21 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
     ],
   },
+  {
+    path: "1*a\\1*b",
+    options: {
+      delimiter: "1",
+    },
+    tests: [
+      {
+        input: "1x1y",
+        expected: {
+          path: "1x1y",
+          params: { a: ["x"], b: ["y"] },
+        },
+      },
+    ],
+  },
 
   /**
    * Multi character delimiters.
@@ -2403,7 +2701,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
         input: "%25555....222%25",
         expected: {
           path: "%25555....222%25",
-          params: { foo: "555..", bar: "222" },
+          params: { foo: "555", bar: "..222" },
         },
       },
     ],
@@ -2458,6 +2756,25 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/x/foo/y-/bar/w",
           params: { a: ["foo"], b: ["bar"] },
+        },
+      },
+    ],
+  },
+  {
+    path: ["/x/*a/:b.:c/*d/z", "/x/*a/:b.:c/*d/w"],
+    tests: [
+      {
+        input: "/x/foo/name.ext/bar/z",
+        expected: {
+          path: "/x/foo/name.ext/bar/z",
+          params: { a: ["foo"], b: "name", c: "ext", d: ["bar"] },
+        },
+      },
+      {
+        input: "/x/foo/name.ext/bar/w",
+        expected: {
+          path: "/x/foo/name.ext/bar/w",
+          params: { a: ["foo"], b: "name", c: "ext", d: ["bar"] },
         },
       },
     ],
