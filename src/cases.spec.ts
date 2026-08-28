@@ -215,6 +215,32 @@ export const STRINGIFY_TESTS: StringifyTestSet[] = [
     expected: '/:"test"stuff',
   },
   {
+    // `\u{1D6FC}` is `ID_Continue`, so a bare name would absorb it on re-parse.
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+      { type: "text", value: "\u{1D6FC}" },
+    ]),
+    expected: '/:"test"\u{1D6FC}',
+  },
+  {
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "wildcard", name: "test" },
+      { type: "text", value: "\u{1D6FC}" },
+    ]),
+    expected: '/*"test"\u{1D6FC}',
+  },
+  {
+    // `\u{1F600}` is not `ID_Continue`, so the name stays unquoted.
+    data: new TokenData([
+      { type: "text", value: "/" },
+      { type: "param", name: "test" },
+      { type: "text", value: "\u{1F600}" },
+    ]),
+    expected: "/:test\u{1F600}",
+  },
+  {
     data: new TokenData([
       { type: "text", value: "\\" },
       { type: "param", name: "test" },
