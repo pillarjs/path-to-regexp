@@ -468,13 +468,14 @@ export function pathToRegexp(
     }
 
     const data = typeof path === "object" ? path : parse(path, options);
+    const originalPath = data.originalPath;
     flatten(data.tokens, 0, [], (tokens) => {
       if (combinations >= 256) {
-        throw new PathError("Too many path combinations", data.originalPath);
+        throw new PathError("Too many path combinations", originalPath);
       }
 
       if (combinations > 0) source += "|";
-      source += toRegExpSource(tokens, delimiter, keys, data.originalPath);
+      source += toRegExpSource(tokens, delimiter, keys, originalPath, trailing);
       combinations++;
     });
   }
@@ -482,7 +483,6 @@ export function pathToRegexp(
   process(path);
 
   let pattern = `^(?:${source})`;
-  if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
   return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
@@ -523,6 +523,7 @@ function toRegExpSource(
   delimiter: string,
   keys: Keys,
   originalPath: string | undefined,
+  trailing: boolean,
 ): string {
   let result = "";
   let backtrack = "";
@@ -600,6 +601,10 @@ function toRegExpSource(
     }
 
     throw new TypeError(`Unknown token type: ${(token as any).type}`);
+  }
+
+  if (trailing && !backtrack.endsWith(delimiter)) {
+    result += "(?:" + escape(delimiter) + "$)?";
   }
 
   return result;

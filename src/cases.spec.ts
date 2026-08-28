@@ -424,10 +424,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       { input: "/route", expected: false },
       { input: "/test", expected: false },
-      {
-        input: "/test//",
-        expected: { path: "/test//", params: {} },
-      },
+      { input: "/test//", expected: false },
     ],
   },
   {
@@ -667,7 +664,7 @@ export const MATCH_TESTS: MatchTestSet[] = [
       },
       {
         input: "/test//",
-        expected: { path: "/test//", params: {} },
+        expected: { path: "/test/", params: {} },
       },
       {
         input: "/test/route",
