@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": []
-  },
-  "exclude": ["src/**/*.spec.ts", "src/**/*.bench.ts"]
-}
