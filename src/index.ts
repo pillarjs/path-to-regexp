@@ -574,21 +574,23 @@ function toRegExpSource(
       if (token.type === "param") {
         result +=
           hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(delimiter, backtrack)}+)`
+            ? `(${negate(delimiter, backtrack[0] || "")}+)`
             : hasInSegment(index, "wildcard") // See wildcard later in segment.
               ? `(${negate(delimiter, peekText(index))}+)`
               : hasSegmentCapture & 1 // Seen parameter in segment.
-                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
+                ? `(${negate(delimiter, backtrack[0] || backtrack)}+|${escape(backtrack)})`
                 : `(${negate(delimiter, "")}+)`;
 
         hasSegmentCapture |= prevCaptureType = 1;
       } else {
         result +=
           hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(backtrack, "")}+)`
-            : wildcardBacktrack // No capture in segment, seen wildcard in path.
-              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
-              : `([^]+)`;
+            ? `(${negate(backtrack[0] || backtrack, peekText(index)[0] || "")}+)`
+            : wildcardBacktrack === delimiter // Deduplicate when separator equals delimiter.
+              ? `(${negate(delimiter, "")}+)`
+              : wildcardBacktrack // No capture in segment, seen wildcard in path.
+                ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+                : `([^]+)`;
 
         wildcardBacktrack = "";
         hasSegmentCapture |= prevCaptureType = 2;
