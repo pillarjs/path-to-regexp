@@ -637,12 +637,12 @@ function stringifyTokens(tokens: Token[], index: number): string {
     }
 
     if (token.type === "param") {
-      value += ":" + stringifyName(token.name, tokens[index]);
+      value += ":" + stringifyName(token.name, tokens, index);
       continue;
     }
 
     if (token.type === "wildcard") {
-      value += "*" + stringifyName(token.name, tokens[index]);
+      value += "*" + stringifyName(token.name, tokens, index);
       continue;
     }
 
@@ -673,8 +673,11 @@ function quoteName(name: string): string {
 /**
  * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
-function stringifyName(name: string, next: Token | undefined): string {
+function stringifyName(name: string, tokens: Token[], index: number): string {
   if (!ID.test(name)) return quoteName(name);
+
+  let next = tokens[index];
+  while (next?.type === "text" && !next.value) next = tokens[++index];
 
   if (next?.type === "text") {
     // Destructuring reads the first *code point*, matching `parse`, which
