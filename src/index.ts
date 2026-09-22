@@ -676,16 +676,20 @@ function quoteName(name: string): string {
 function stringifyName(name: string, tokens: Token[], index: number): string {
   if (!ID.test(name)) return quoteName(name);
 
-  let next = tokens[index];
-  while (next?.type === "text" && !next.value) next = tokens[++index];
+  while (index < tokens.length) {
+    const token = tokens[index++];
+    if (token.type === "text") {
+      if (!token.value) continue;
 
-  if (next?.type === "text") {
-    // Destructuring reads the first *code point*, matching `parse`, which
-    // iterates the path with `[...str]`. Indexing with `[0]` would read only the
-    // leading surrogate of an astral character, missing that the parser treats
-    // the whole character as `ID_Continue` and absorbs it into the name.
-    const [first = ""] = next.value;
-    if (ID_CONTINUE.test(first)) return quoteName(name);
+      // Destructuring reads the first *code point*, matching `parse`, which
+      // iterates the path with `[...str]`. Indexing with `[0]` would read only the
+      // leading surrogate of an astral character, missing that the parser treats
+      // the whole character as `ID_Continue` and absorbs it into the name.
+      const [first] = token.value;
+      if (ID_CONTINUE.test(first)) return quoteName(name);
+    }
+
+    break;
   }
 
   return name;
