@@ -251,6 +251,31 @@ describe("path-to-regexp", () => {
     },
   );
 
+  describe.each(["param", "wildcard"] as const)(
+    "stringify %s followed by empty text",
+    (type) => {
+      it.each([
+        ["bar", '"foo"bar'],
+        ["\u{1D6FC}", '"foo"\u{1D6FC}'],
+        ["/bar", "foo/bar"],
+        ["", "foo"],
+      ])("should preserve the name before %j", (suffix, expected) => {
+        const data = new TokenData([
+          { type: "text", value: "/" },
+          { type, name: "foo" },
+          { type: "text", value: "" },
+          { type: "text", value: "" },
+          { type: "text", value: suffix },
+        ]);
+        const path = stringify(data);
+        const params = { foo: type === "param" ? "value" : ["value", "more"] };
+
+        expect(path).toBe(`/${type === "param" ? ":" : "*"}${expected}`);
+        expect(compile(path)(params)).toBe(compile(data)(params));
+      });
+    },
+  );
+
   describe.each(COMPILE_TESTS)(
     "compile $path with $options",
     ({ path, options, tests }) => {

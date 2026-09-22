@@ -637,12 +637,12 @@ function stringifyTokens(tokens: Token[], index: number): string {
     }
 
     if (token.type === "param") {
-      value += ":" + stringifyName(token.name, tokens[index]);
+      value += ":" + stringifyName(token.name, tokens, index);
       continue;
     }
 
     if (token.type === "wildcard") {
-      value += "*" + stringifyName(token.name, tokens[index]);
+      value += "*" + stringifyName(token.name, tokens, index);
       continue;
     }
 
@@ -673,16 +673,23 @@ function quoteName(name: string): string {
 /**
  * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
-function stringifyName(name: string, next: Token | undefined): string {
+function stringifyName(name: string, tokens: Token[], index: number): string {
   if (!ID.test(name)) return quoteName(name);
 
-  if (next?.type === "text") {
-    // Destructuring reads the first *code point*, matching `parse`, which
-    // iterates the path with `[...str]`. Indexing with `[0]` would read only the
-    // leading surrogate of an astral character, missing that the parser treats
-    // the whole character as `ID_Continue` and absorbs it into the name.
-    const [first = ""] = next.value;
-    if (ID_CONTINUE.test(first)) return quoteName(name);
+  while (index < tokens.length) {
+    const token = tokens[index++];
+    if (token.type === "text") {
+      if (!token.value) continue;
+
+      // Destructuring reads the first *code point*, matching `parse`, which
+      // iterates the path with `[...str]`. Indexing with `[0]` would read only the
+      // leading surrogate of an astral character, missing that the parser treats
+      // the whole character as `ID_Continue` and absorbs it into the name.
+      const [first] = token.value;
+      if (ID_CONTINUE.test(first)) return quoteName(name);
+    }
+
+    break;
   }
 
   return name;
