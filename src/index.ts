@@ -694,3 +694,13 @@ function stringifyName(name: string, tokens: Token[], index: number): string {
 
   return name;
 }
+
+export default {
+  PathError,
+  TokenData,
+  compile,
+  match,
+  parse,
+  pathToRegexp,
+  stringify,
+};
