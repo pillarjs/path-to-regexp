@@ -587,7 +587,7 @@ function toRegExpSource(
           hasSegmentCapture & 2 // Seen wildcard in segment.
             ? `(${negate(backtrack, "")}+)`
             : wildcardBacktrack // No capture in segment, seen wildcard in path.
-              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
+              ? `(${wildcardBacktrack.length > 1 ? `(?:(?!${escape(wildcardBacktrack)})[^])` : negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
               : `([^]+)`;
 
         wildcardBacktrack = "";
@@ -613,7 +613,12 @@ function negate(a: string, b: string): string {
 
   if (a === b) b = ""; // Cleaner regex strings, no duplication.
   if (b.length > 1) return `(?:(?!${escape(a)}|${escape(b)})[^])`;
-  if (a.length > 1) return `(?:(?!${escape(a)})[^${escape(b)}])`;
+  // For 2-char non-backslash separators use an unrolled alternation
+  // (?:[^s0b]|s0[^s1b]) that recheck can prove safe via automaton analysis.
+  if (a.length > 1)
+    return !a[2]
+      ? `(?:[^${escape(a[0]) + escape(b)}]|${escape(a[0])}[^${escape(a[1]) + escape(b)}])`
+      : `[^${escape(a[0]) + escape(b)}]`;
   return `[^${escape(a + b)}]`;
 }
 
