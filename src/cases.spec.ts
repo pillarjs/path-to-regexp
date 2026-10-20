@@ -934,6 +934,41 @@ export const MATCH_TESTS: MatchTestSet[] = [
    * Format and path params.
    */
   {
+    path: "/:a-:b",
+    tests: [
+      {
+        input: "/one-two-three",
+        expected: {
+          path: "/one-two-three",
+          params: { a: "one", b: "two-three" },
+        },
+      },
+      {
+        input: "/-one-two",
+        expected: {
+          path: "/-one-two",
+          params: { a: "-one", b: "two" },
+        },
+      },
+    ],
+  },
+  {
+    path: "/:file.txt",
+    tests: [
+      {
+        input: "/report.txt",
+        expected: { path: "/report.txt", params: { file: "report" } },
+      },
+      {
+        input: "/report.txt.txt",
+        expected: {
+          path: "/report.txt.txt",
+          params: { file: "report.txt" },
+        },
+      },
+    ],
+  },
+  {
     path: "/:test.:format",
     tests: [
       {
@@ -1556,6 +1591,18 @@ export const MATCH_TESTS: MatchTestSet[] = [
         expected: {
           path: "/1/2/3/4/5",
           params: { foo: ["1"], bar: "2", baz: ["3", "4", "5"] },
+        },
+      },
+    ],
+  },
+  {
+    path: "/*a/:b.:c",
+    tests: [
+      {
+        input: "/x/one.two.three",
+        expected: {
+          path: "/x/one.two.three",
+          params: { a: ["x"], b: "one", c: "two.three" },
         },
       },
     ],

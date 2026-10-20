@@ -521,10 +521,9 @@ function toRegExpSource(
   originalPath: string | undefined,
 ): string {
   let result = "";
-  let backtrack = "";
-  let prevCaptureType: 0 | 1 | 2 = 0;
-  let hasSegmentCapture = 0;
+  let prefix = "";
   let hasWildcardAhead = false;
+  let hasSegmentWildcard = false;
   let wildcardBacktrack = "";
   let index = 0;
 
@@ -553,13 +552,13 @@ function toRegExpSource(
       const value = escape(token.value);
       result += value;
       wildcardBacktrack += value;
-      backtrack += token.value;
-      if (token.value.includes(delimiter)) hasSegmentCapture = 0;
+      prefix += token.value;
+      if (token.value.includes(delimiter)) hasSegmentWildcard = false;
       continue;
     }
 
     if (token.type === "param" || token.type === "wildcard") {
-      if (prevCaptureType && !backtrack) {
+      if (result && !prefix) {
         throw new PathError(
           `Missing text before "${token.name}" ${token.type}`,
           originalPath,
@@ -569,9 +568,9 @@ function toRegExpSource(
       keys.push(token);
 
       if (token.type === "param") {
-        if (hasSegmentCapture & 2) {
-          const value = negate(delimiter, backtrack);
-          result += `(${value}+?|${value}*${escape(backtrack)})`;
+        if (hasSegmentWildcard) {
+          const value = negate(delimiter, prefix);
+          result += `(${value}+?|${value}*${escape(prefix)})`;
         } else {
           const text = textRemaining(index);
 
@@ -583,7 +582,6 @@ function toRegExpSource(
         }
 
         wildcardBacktrack += `(?:\\${keys.length})`;
-        hasSegmentCapture |= prevCaptureType = 1;
       } else {
         // If we had a wildcard, close lookahead and reset.
         if (hasWildcardAhead) result += `)${wildcardBacktrack}`;
@@ -596,11 +594,11 @@ function toRegExpSource(
         // Greedy match for last wildcard only.
         result += `([^]+${hasWildcardAhead ? "?" : ""})`;
 
+        hasSegmentWildcard = true;
         wildcardBacktrack = `(?:\\${keys.length})`; // Restart wildcard backtrack.
-        hasSegmentCapture |= prevCaptureType = 2;
       }
 
-      backtrack = "";
+      prefix = "";
       continue;
     }
 
