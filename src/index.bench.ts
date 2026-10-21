@@ -1,4 +1,4 @@
-import { describe, bench } from "vitest";
+import { test } from "vitest";
 import { compile, match, parse, pathToRegexp } from "./index.js";
 
 const PATHS: string[] = [
@@ -12,19 +12,19 @@ const PATHS: string[] = [
   "/name{/:attr1}{-:attr2}{-:attr3}",
 ];
 
-describe("parse", () => {
-  bench("parsing paths", () => {
+test("parse", async ({ bench }) => {
+  await bench("parsing paths", () => {
     for (const path of PATHS) parse(path);
-  });
+  }).run();
 });
 
-describe("toRegexp", () => {
-  bench("building regexp", () => {
+test("toRegexp", async ({ bench }) => {
+  await bench("building regexp", () => {
     for (const path of PATHS) pathToRegexp(path);
-  });
+  }).run();
 });
 
-describe("match", () => {
+test("match", async ({ bench }) => {
   const PATHS: string[] = [
     "/xyz",
     "/user",
@@ -41,35 +41,35 @@ describe("match", () => {
   const TRICKY_PATTERN_MATCH = match("/:foo|:bar|");
   const ASTERISK_MATCH = match("/*foo");
 
-  bench("static path", () => {
+  await bench("static path", () => {
     for (const path of PATHS) STATIC_PATH_MATCH(path);
-  });
+  }).run();
 
-  bench("simple path", () => {
+  await bench("simple path", () => {
     for (const path of PATHS) SIMPLE_PATH_MATCH(path);
-  });
+  }).run();
 
-  bench("multi segment", () => {
+  await bench("multi segment", () => {
     for (const path of PATHS) MULTI_SEGMENT_MATCH(path);
-  });
+  }).run();
 
-  bench("multi pattern", () => {
+  await bench("multi pattern", () => {
     for (const path of PATHS) MULTI_PATTERN_MATCH(path);
-  });
+  }).run();
 
-  bench("tricky pattern", () => {
+  await bench("tricky pattern", () => {
     for (const path of PATHS) TRICKY_PATTERN_MATCH(path);
-  });
+  }).run();
 
-  bench("asterisk", () => {
+  await bench("asterisk", () => {
     for (const path of PATHS) ASTERISK_MATCH(path);
-  });
+  }).run();
 });
 
-describe("compile", () => {
+test("compile", async ({ bench }) => {
   const PATH_FNS = PATHS.map((path) => compile(path));
 
-  bench("compiling paths", () => {
+  await bench("compiling paths", () => {
     for (const fn of PATH_FNS) {
       fn({
         id: "123",
@@ -78,5 +78,5 @@ describe("compile", () => {
         path: ["path", "to", "file"],
       });
     }
-  });
+  }).run();
 });
