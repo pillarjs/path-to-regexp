@@ -470,7 +470,13 @@ export function pathToRegexp(
       }
 
       if (combinations > 0) source += "|";
-      source += toRegExpSource(tokens, delimiter, keys, data.originalPath, trailing);
+      source += toRegExpSource(
+        tokens,
+        delimiter,
+        keys,
+        data.originalPath,
+        trailing,
+      );
       combinations++;
     });
   }
