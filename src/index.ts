@@ -101,18 +101,13 @@ export interface Wildcard {
  */
 export interface Group {
   type: "group";
-  tokens: Token[];
+  tokens: readonly Token[];
 }
 
 /**
- * A token that corresponds with a regexp capture.
+ * Tokens that corresponds with a regexp capture.
  */
 export type Key = Parameter | Wildcard;
-
-/**
- * A sequence of `path-to-regexp` keys that match capturing groups.
- */
-export type Keys = Array<Key>;
 
 /**
  * A sequence of path match characters.
@@ -122,11 +117,9 @@ export type Token = Text | Parameter | Wildcard | Group;
 /**
  * Tokenized path instance.
  */
-export class TokenData {
-  constructor(
-    public readonly tokens: Token[],
-    public readonly originalPath?: string,
-  ) {}
+export interface TokenData {
+  tokens: readonly Token[];
+  originalPath?: string;
 }
 
 /**
@@ -260,7 +253,10 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     return output;
   }
 
-  return new TokenData(consumeUntil(""), str);
+  return {
+    tokens: consumeUntil(""),
+    originalPath: str,
+  };
 }
 
 /**
@@ -296,7 +292,7 @@ export type PathFunction<P extends ParamData> = (data?: P) => string;
 type TokenEncoder = (data: ParamData, missing: string[]) => string;
 
 function tokensToFunction(
-  tokens: Token[],
+  tokens: readonly Token[],
   delimiter: string,
   encode: Encode | false,
 ): TokenEncoder {
@@ -405,7 +401,7 @@ export type Match<P extends ParamData> = false | MatchResult<P>;
 export type MatchFunction<P extends ParamData> = (path: string) => Match<P>;
 
 /**
- * Supported path types.
+ * Supported path inputs.
  */
 export type Path = string | TokenData;
 
@@ -458,7 +454,7 @@ export function pathToRegexp(
     sensitive = false,
     trailing = true,
   } = options;
-  const keys: Keys = [];
+  const keys: Key[] = [];
   let source = "";
   let combinations = 0;
 
@@ -498,7 +494,7 @@ export function pathToRegexp(
  * Generate a flat list of sequence tokens from the given tokens.
  */
 function flatten(
-  tokens: Token[],
+  tokens: readonly Token[],
   index: number,
   result: Exclude<Token, Group>[],
   callback: (result: Exclude<Token, Group>[]) => void,
@@ -527,7 +523,7 @@ function flatten(
 function toRegExpSource(
   tokens: Exclude<Token, Group>[],
   delimiter: string,
-  keys: Keys,
+  keys: Key[],
   originalPath: string | undefined,
   trailing: boolean,
 ): string {
@@ -634,7 +630,7 @@ function negate(a: string, b: string): string {
 /**
  * Stringify an array of tokens into a path string.
  */
-function stringifyTokens(tokens: Token[], index: number): string {
+function stringifyTokens(tokens: readonly Token[], index: number): string {
   let value = "";
 
   while (index < tokens.length) {
@@ -687,7 +683,11 @@ function quoteName(name: string): string {
 /**
  * Stringify a parameter name, escaping when it cannot be emitted directly.
  */
-function stringifyName(name: string, tokens: Token[], index: number): string {
+function stringifyName(
+  name: string,
+  tokens: readonly Token[],
+  index: number,
+): string {
   if (!ID.test(name)) return quoteName(name);
 
   while (index < tokens.length) {

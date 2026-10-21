@@ -5,7 +5,7 @@ import {
   match,
   stringify,
   pathToRegexp,
-  TokenData,
+  type TokenData,
   PathError,
 } from "./index.js";
 import {
@@ -177,26 +177,24 @@ describe("path-to-regexp", () => {
 
     it("should throw when missing text between params using TokenData", () => {
       expect(() =>
-        pathToRegexp(
-          new TokenData([
+        pathToRegexp({
+          tokens: [
             { type: "param", name: "a" },
             { type: "param", name: "b" },
-          ]),
-        ),
+          ],
+        }),
       ).toThrow(new PathError('Missing text before "b" param', undefined));
     });
 
     it("should throw with `originalPath` when missing text between params using TokenData", () => {
       expect(() =>
-        pathToRegexp(
-          new TokenData(
-            [
-              { type: "param", name: "a" },
-              { type: "param", name: "b" },
-            ],
-            "/[a][b]",
-          ),
-        ),
+        pathToRegexp({
+          tokens: [
+            { type: "param", name: "a" },
+            { type: "param", name: "b" },
+          ],
+          originalPath: "/[a][b]",
+        }),
       ).toThrow(new PathError('Missing text before "b" param', "/[a][b]"));
     });
 
@@ -260,13 +258,15 @@ describe("path-to-regexp", () => {
         ["/bar", "foo/bar"],
         ["", "foo"],
       ])("should preserve the name before %j", (suffix, expected) => {
-        const data = new TokenData([
-          { type: "text", value: "/" },
-          { type, name: "foo" },
-          { type: "text", value: "" },
-          { type: "text", value: "" },
-          { type: "text", value: suffix },
-        ]);
+        const data: TokenData = {
+          tokens: [
+            { type: "text", value: "/" },
+            { type, name: "foo" },
+            { type: "text", value: "" },
+            { type: "text", value: "" },
+            { type: "text", value: suffix },
+          ],
+        };
         const path = stringify(data);
         const params = { foo: type === "param" ? "value" : ["value", "more"] };
 
