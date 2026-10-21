@@ -1,0 +1,30 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  id-token: write # Required for NPM trusted publishing.
+  contents: read
+
+jobs:
+  npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          package-manager-cache: false # Disable automatic npm dependency caching to reduce cache poisoning risk
+
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm stage publish # Runs prepublish script.
