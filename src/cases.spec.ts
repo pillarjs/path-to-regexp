@@ -6,7 +6,7 @@ import {
   type ParseOptions,
   type CompileOptions,
   type ParamData,
-  TokenData,
+  type TokenData,
   Path,
 } from "./index.js";
 
@@ -44,216 +44,240 @@ export interface MatchTestSet {
 export const PARSER_TESTS: ParserTestSet[] = [
   {
     path: "/",
-    expected: new TokenData([{ type: "text", value: "/" }], "/"),
+    expected: { tokens: [{ type: "text", value: "/" }], originalPath: "/" },
   },
   {
     path: "/:test",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "test" },
       ],
-      "/:test",
-    ),
+      originalPath: "/:test",
+    },
   },
   {
     path: "/:a:b",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "a" },
         { type: "param", name: "b" },
       ],
-      "/:a:b",
-    ),
+      originalPath: "/:a:b",
+    },
   },
   {
     path: '/:"0"',
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "0" },
       ],
-      '/:"0"',
-    ),
+      originalPath: '/:"0"',
+    },
   },
   {
     path: "/:_",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "_" },
       ],
-      "/:_",
-    ),
+      originalPath: "/:_",
+    },
   },
   {
     path: "/:café",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "café" },
       ],
-      "/:café",
-    ),
+      originalPath: "/:café",
+    },
   },
   {
     path: '/:"123"',
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "123" },
       ],
-      '/:"123"',
-    ),
+      originalPath: '/:"123"',
+    },
   },
   {
     path: '/:"1\\"\\2\\"3"',
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: '1"2"3' },
       ],
-      '/:"1\\"\\2\\"3"',
-    ),
+      originalPath: '/:"1\\"\\2\\"3"',
+    },
   },
   {
     path: "/*path",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "wildcard", name: "path" },
       ],
-      "/*path",
-    ),
+      originalPath: "/*path",
+    },
   },
   {
     path: '/:"test"stuff',
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "/" },
         { type: "param", name: "test" },
         { type: "text", value: "stuff" },
       ],
-      '/:"test"stuff',
-    ),
+      originalPath: '/:"test"stuff',
+    },
   },
   {
     path: "\\\\:test",
-    expected: new TokenData(
-      [
+    expected: {
+      tokens: [
         { type: "text", value: "\\" },
         { type: "param", name: "test" },
       ],
-      "\\\\:test",
-    ),
+      originalPath: "\\\\:test",
+    },
   },
 ];
 
 export const STRINGIFY_TESTS: StringifyTestSet[] = [
   {
-    data: new TokenData([{ type: "text", value: "/" }]),
+    data: { tokens: [{ type: "text", value: "/" }] },
     expected: "/",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+      ],
+    },
     expected: "/:test",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "café" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "café" },
+      ],
+    },
     expected: "/:café",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "0" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "0" },
+      ],
+    },
     expected: '/:"0"',
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "wildcard", name: "test" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "wildcard", name: "test" },
+      ],
+    },
     expected: "/*test",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "wildcard", name: "0" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "wildcard", name: "0" },
+      ],
+    },
     expected: '/*"0"',
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/users" },
-      {
-        type: "group",
-        tokens: [
-          { type: "text", value: "/" },
-          { type: "param", name: "id" },
-        ],
-      },
-      { type: "text", value: "/delete" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/users" },
+        {
+          type: "group",
+          tokens: [
+            { type: "text", value: "/" },
+            { type: "param", name: "id" },
+          ],
+        },
+        { type: "text", value: "/delete" },
+      ],
+    },
     expected: "/users{/:id}/delete",
   },
   {
-    data: new TokenData([{ type: "text", value: "/:+?*" }]),
+    data: { tokens: [{ type: "text", value: "/:+?*" }] },
     expected: "/\\:\\+\\?\\*",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-      { type: "text", value: "stuff" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+        { type: "text", value: "stuff" },
+      ],
+    },
     expected: '/:"test"stuff',
   },
   {
     // `\u{1D6FC}` is `ID_Continue`, so a bare name would absorb it on re-parse.
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-      { type: "text", value: "\u{1D6FC}" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+        { type: "text", value: "\u{1D6FC}" },
+      ],
+    },
     expected: '/:"test"\u{1D6FC}',
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "wildcard", name: "test" },
-      { type: "text", value: "\u{1D6FC}" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "wildcard", name: "test" },
+        { type: "text", value: "\u{1D6FC}" },
+      ],
+    },
     expected: '/*"test"\u{1D6FC}',
   },
   {
     // `\u{1F600}` is not `ID_Continue`, so the name stays unquoted.
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "test" },
-      { type: "text", value: "\u{1F600}" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "test" },
+        { type: "text", value: "\u{1F600}" },
+      ],
+    },
     expected: "/:test\u{1F600}",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "\\" },
-      { type: "param", name: "test" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "\\" },
+        { type: "param", name: "test" },
+      ],
+    },
     expected: "\\\\:test",
   },
   {
-    data: new TokenData([
-      { type: "text", value: "/" },
-      { type: "param", name: "a\nb" },
-    ]),
+    data: {
+      tokens: [
+        { type: "text", value: "/" },
+        { type: "param", name: "a\nb" },
+      ],
+    },
     expected: '/:"a\nb"',
   },
   {
