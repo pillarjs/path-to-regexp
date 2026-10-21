@@ -101,7 +101,7 @@ export interface Wildcard {
  */
 export interface Group {
   type: "group";
-  tokens: Token[];
+  tokens: readonly Token[];
 }
 
 /**
