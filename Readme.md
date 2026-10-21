@@ -17,13 +17,7 @@ npm install path-to-regexp --save
 ## Usage
 
 ```js
-const {
-  match,
-  pathToRegexp,
-  compile,
-  parse,
-  stringify,
-} = require("path-to-regexp");
+import { match, pathToRegexp, compile, parse, stringify } from "path-to-regexp";
 ```
 
 ### Parameters

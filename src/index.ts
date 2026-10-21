@@ -612,7 +612,7 @@ function toRegExpSource(
     throw new TypeError(`Unknown token type: ${(token as any).type}`);
   }
 
-  if (trailing && !backtrack.endsWith(delimiter)) {
+  if (trailing && !prefix.endsWith(delimiter)) {
     result += "(?:" + escape(delimiter) + "$)?";
   }
 
