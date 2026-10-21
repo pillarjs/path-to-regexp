@@ -474,7 +474,13 @@ export function pathToRegexp(
       }
 
       if (combinations > 0) source += "|";
-      source += toRegExpSource(tokens, delimiter, keys, data.originalPath);
+      source += toRegExpSource(
+        tokens,
+        delimiter,
+        keys,
+        data.originalPath,
+        trailing,
+      );
       combinations++;
     });
   }
@@ -482,7 +488,6 @@ export function pathToRegexp(
   process(path);
 
   let pattern = `^(?:${source})`;
-  if (trailing) pattern += "(?:" + escape(delimiter) + "$)?";
   pattern += end ? "$" : "(?=" + escape(delimiter) + "|$)";
 
   return { regexp: new RegExp(pattern, sensitive ? "" : "i"), keys };
@@ -523,6 +528,7 @@ function toRegExpSource(
   delimiter: string,
   keys: Keys,
   originalPath: string | undefined,
+  trailing: boolean,
 ): string {
   let result = "";
   let backtrack = "";
@@ -600,6 +606,10 @@ function toRegExpSource(
     }
 
     throw new TypeError(`Unknown token type: ${(token as any).type}`);
+  }
+
+  if (trailing && !backtrack.endsWith(delimiter)) {
+    result += "(?:" + escape(delimiter) + "$)?";
   }
 
   return result;
