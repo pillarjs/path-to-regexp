@@ -137,10 +137,11 @@ export class PathError extends TypeError {
     message: string,
     public readonly originalPath: string | undefined,
   ) {
-    let text = message;
-    if (originalPath) text += `: ${originalPath}`;
-    text += `; visit https://git.new/pathToRegexpError for info`;
-    super(text);
+    super(
+      message +
+        (originalPath ? `: ${originalPath}` : "") +
+        "; visit https://git.new/pathToRegexpError for info",
+    );
   }
 }
 
@@ -580,24 +581,20 @@ function toRegExpSource(
             result += `(${negate(delimiter, "")}+)`;
           }
         }
-
-        wildcardBacktrack += `(?:\\${keys.length})`;
       } else {
         // If we had a wildcard, close lookahead and reset.
         if (hasWildcardAhead) result += `)${wildcardBacktrack}`;
 
         hasWildcardAhead = seekWildcard(index);
 
-        // If another wildcard, open lookahead to prevent backtracking.
-        if (hasWildcardAhead) result += `(?=`;
-
-        // Greedy match for last wildcard only.
-        result += `([^]+${hasWildcardAhead ? "?" : ""})`;
+        // Lock earlier wildcards; leave the last one greedy.
+        result += hasWildcardAhead ? "(?=([^]+?)" : "([^]+)";
 
         hasSegmentWildcard = true;
-        wildcardBacktrack = `(?:\\${keys.length})`; // Restart wildcard backtrack.
+        wildcardBacktrack = "";
       }
 
+      wildcardBacktrack += `(?:\\${keys.length})`;
       prefix = "";
       continue;
     }
