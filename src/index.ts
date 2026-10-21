@@ -464,14 +464,13 @@ export function pathToRegexp(
     }
 
     const data = typeof path === "object" ? path : parse(path, options);
-    const originalPath = data.originalPath;
     flatten(data.tokens, 0, [], (tokens) => {
       if (combinations >= 256) {
-        throw new PathError("Too many path combinations", originalPath);
+        throw new PathError("Too many path combinations", data.originalPath);
       }
 
       if (combinations > 0) source += "|";
-      source += toRegExpSource(tokens, delimiter, keys, originalPath, trailing);
+      source += toRegExpSource(tokens, delimiter, keys, data.originalPath, trailing);
       combinations++;
     });
   }
