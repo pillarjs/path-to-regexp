@@ -17,6 +17,7 @@
     "url": "https://opencollective.com/express"
   },
   "license": "MIT",
+  "type": "module",
   "exports": "./dist/index.js",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
