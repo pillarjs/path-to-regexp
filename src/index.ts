@@ -137,10 +137,11 @@ export class PathError extends TypeError {
     message: string,
     public readonly originalPath: string | undefined,
   ) {
-    let text = message;
-    if (originalPath) text += `: ${originalPath}`;
-    text += `; visit https://git.new/pathToRegexpError for info`;
-    super(text);
+    super(
+      message +
+        (originalPath ? `: ${originalPath}` : "") +
+        "; visit https://git.new/pathToRegexpError for info",
+    );
   }
 }
 
@@ -531,77 +532,80 @@ function toRegExpSource(
   trailing: boolean,
 ): string {
   let result = "";
-  let backtrack = "";
+  let prefix = "";
+  let hasWildcardAhead = false;
+  let hasSegmentWildcard = false;
   let wildcardBacktrack = "";
-  let prevCaptureType: 0 | 1 | 2 = 0;
-  let hasSegmentCapture = 0;
   let index = 0;
 
-  function hasInSegment(index: number, type: Token["type"]) {
+  function seekWildcard(index: number) {
     while (index < tokens.length) {
       const token = tokens[index++];
-      if (token.type === type) return true;
-      if (token.type === "text") {
-        if (token.value.includes(delimiter)) break;
-      }
+      if (token.type === "wildcard") return true;
     }
     return false;
   }
 
-  function peekText(index: number) {
+  function textRemaining(index: number) {
     let result = "";
     while (index < tokens.length) {
       const token = tokens[index++];
-      if (token.type !== "text") break;
+      if (token.type !== "text") return result;
+      if (token.value.includes(delimiter)) break;
       result += token.value;
     }
-    return result;
   }
 
   while (index < tokens.length) {
     const token = tokens[index++];
 
     if (token.type === "text") {
-      result += escape(token.value);
-      backtrack += token.value;
-      if (prevCaptureType === 2) wildcardBacktrack += token.value;
-      if (token.value.includes(delimiter)) hasSegmentCapture = 0;
+      const value = escape(token.value);
+      result += value;
+      wildcardBacktrack += value;
+      prefix += token.value;
+      if (token.value.includes(delimiter)) hasSegmentWildcard = false;
       continue;
     }
 
     if (token.type === "param" || token.type === "wildcard") {
-      if (prevCaptureType && !backtrack) {
+      if (result && !prefix) {
         throw new PathError(
           `Missing text before "${token.name}" ${token.type}`,
           originalPath,
         );
       }
 
+      keys.push(token);
+
       if (token.type === "param") {
-        result +=
-          hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(delimiter, backtrack)}+)`
-            : hasInSegment(index, "wildcard") // See wildcard later in segment.
-              ? `(${negate(delimiter, peekText(index))}+)`
-              : hasSegmentCapture & 1 // Seen parameter in segment.
-                ? `(${negate(delimiter, backtrack)}+|${escape(backtrack)})`
-                : `(${negate(delimiter, "")}+)`;
+        if (hasSegmentWildcard) {
+          const value = negate(delimiter, prefix);
+          result += `(${value}+?|${value}*${escape(prefix)})`;
+        } else {
+          const text = textRemaining(index);
 
-        hasSegmentCapture |= prevCaptureType = 1;
+          if (text) {
+            result += `(?=(${negate(delimiter, "")}+?)${escape(text)})(?:\\${keys.length})`;
+          } else {
+            result += `(${negate(delimiter, "")}+)`;
+          }
+        }
       } else {
-        result +=
-          hasSegmentCapture & 2 // Seen wildcard in segment.
-            ? `(${negate(backtrack, "")}+)`
-            : wildcardBacktrack // No capture in segment, seen wildcard in path.
-              ? `(${negate(wildcardBacktrack, "")}+|${negate(delimiter, "")}+)`
-              : `([^]+)`;
+        // If we had a wildcard, close lookahead and reset.
+        if (hasWildcardAhead) result += `)${wildcardBacktrack}`;
 
+        hasWildcardAhead = seekWildcard(index);
+
+        // Lock earlier wildcards; leave the last one greedy.
+        result += hasWildcardAhead ? "(?=([^]+?)" : "([^]+)";
+
+        hasSegmentWildcard = true;
         wildcardBacktrack = "";
-        hasSegmentCapture |= prevCaptureType = 2;
       }
 
-      keys.push(token);
-      backtrack = "";
+      wildcardBacktrack += `(?:\\${keys.length})`;
+      prefix = "";
       continue;
     }
 
