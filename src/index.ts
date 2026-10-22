@@ -160,14 +160,14 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
     }
 
     while (index < chars.length) {
-      const value = chars[index++];
+      const char = chars[index++];
 
-      if (value === end) {
+      if (char === end) {
         writePath();
         return output;
       }
 
-      if (value === "\\") {
+      if (char === "\\") {
         if (index === chars.length) {
           throw new PathError(`Unexpected end after \\ at index ${index}`, str);
         }
@@ -176,8 +176,8 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      if (value === ":" || value === "*") {
-        const type = value === ":" ? "param" : "wildcard";
+      if (char === ":" || char === "*") {
+        const type = char === ":" ? "param" : "wildcard";
         let name = "";
 
         if (ID_START.test(chars[index])) {
@@ -217,7 +217,7 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      if (value === "{") {
+      if (char === "{") {
         writePath();
         output.push({
           type: "group",
@@ -226,20 +226,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
         continue;
       }
 
-      if (
-        value === "}" ||
-        value === "(" ||
-        value === ")" ||
-        value === "[" ||
-        value === "]" ||
-        value === "+" ||
-        value === "?" ||
-        value === "!"
-      ) {
-        throw new PathError(`Unexpected ${value} at index ${index - 1}`, str);
+      if ("}()[]+?!".includes(char)) {
+        throw new PathError(`Unexpected ${char} at index ${index - 1}`, str);
       }
 
-      path += value;
+      path += char;
     }
 
     if (end) {
@@ -335,15 +326,16 @@ function tokenToFunction(
   }
 
   const encodeValue = encode || NOOP_VALUE;
+  const isArrayType = token.type === "wildcard" && encode !== false;
 
-  if (token.type === "wildcard" && encode !== false) {
-    return (data, missing) => {
-      const value = data[token.name];
-      if (value == null) {
-        missing.push(token.name);
-        return "";
-      }
+  return (data, missing) => {
+    const value = data[token.name];
+    if (value == null) {
+      missing.push(token.name);
+      return "";
+    }
 
+    if (isArrayType) {
       if (!Array.isArray(value) || value.length === 0) {
         throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
       }
@@ -364,14 +356,6 @@ function tokenToFunction(
       }
 
       return result;
-    };
-  }
-
-  return (data, missing) => {
-    const value = data[token.name];
-    if (value == null) {
-      missing.push(token.name);
-      return "";
     }
 
     if (typeof value !== "string" || value.length === 0) {
@@ -628,9 +612,11 @@ function negate(a: string, b: string): string {
 }
 
 /**
- * Stringify an array of tokens into a path string.
+ * Stringify token data into a path string.
  */
-function stringifyTokens(tokens: readonly Token[], index: number): string {
+export function stringify(data: TokenData): string {
+  const { tokens } = data;
+  let index = 0;
   let value = "";
 
   while (index < tokens.length) {
@@ -642,7 +628,7 @@ function stringifyTokens(tokens: readonly Token[], index: number): string {
     }
 
     if (token.type === "group") {
-      value += "{" + stringifyTokens(token.tokens, 0) + "}";
+      value += "{" + stringify(token) + "}";
       continue;
     }
 
@@ -660,13 +646,6 @@ function stringifyTokens(tokens: readonly Token[], index: number): string {
   }
 
   return value;
-}
-
-/**
- * Stringify token data into a path string.
- */
-export function stringify(data: TokenData): string {
-  return stringifyTokens(data.tokens, 0);
 }
 
 /**
