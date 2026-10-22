@@ -326,16 +326,15 @@ function tokenToFunction(
   }
 
   const encodeValue = encode || NOOP_VALUE;
-  const isArrayType = token.type === "wildcard" && encode !== false;
 
-  return (data, missing) => {
-    const value = data[token.name];
-    if (value == null) {
-      missing.push(token.name);
-      return "";
-    }
+  if (token.type === "wildcard" && encode !== false) {
+    return (data, missing) => {
+      const value = data[token.name];
+      if (value == null) {
+        missing.push(token.name);
+        return "";
+      }
 
-    if (isArrayType) {
       if (!Array.isArray(value) || value.length === 0) {
         throw new TypeError(`Expected "${token.name}" to be a non-empty array`);
       }
@@ -356,6 +355,14 @@ function tokenToFunction(
       }
 
       return result;
+    };
+  }
+
+  return (data, missing) => {
+    const value = data[token.name];
+    if (value == null) {
+      missing.push(token.name);
+      return "";
     }
 
     if (typeof value !== "string" || value.length === 0) {
