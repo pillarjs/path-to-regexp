@@ -159,6 +159,16 @@ describe("path-to-regexp", () => {
       }).toThrow(new TypeError('Expected "foo/0" to be a string'));
     });
 
+    it("should not read params from the prototype chain", () => {
+      expect(() => {
+        compile("/:constructor")({});
+      }).toThrow(new TypeError("Missing parameters: constructor"));
+
+      expect(() => {
+        compile("/*toString")({});
+      }).toThrow(new TypeError("Missing parameters: toString"));
+    });
+
     it("should throw when a wildcard array yields an empty path", () => {
       const toPath = compile("/*foo");
 

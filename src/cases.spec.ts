@@ -326,6 +326,14 @@ export const COMPILE_TESTS: CompileTestSet[] = [
     ],
   },
   {
+    path: "/a{/:toString}",
+    tests: [
+      { input: undefined, expected: "/a" },
+      { input: {}, expected: "/a" },
+      { input: { toString: "b" }, expected: "/a/b" },
+    ],
+  },
+  {
     path: "/:test",
     tests: [
       { input: undefined, expected: null },

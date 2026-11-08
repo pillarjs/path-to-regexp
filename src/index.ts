@@ -303,6 +303,14 @@ function tokensToFunction(
 }
 
 /**
+ * Read a param from own properties only, so names like `constructor` aren't
+ * resolved through the prototype chain.
+ */
+function getParam(data: ParamData, name: string) {
+  return Object.hasOwn(data, name) ? data[name] : undefined;
+}
+
+/**
  * Convert a single token into a path building function.
  */
 function tokenToFunction(
@@ -329,7 +337,7 @@ function tokenToFunction(
 
   if (token.type === "wildcard" && encode !== false) {
     return (data, missing) => {
-      const value = data[token.name];
+      const value = getParam(data, token.name);
       if (value == null) {
         missing.push(token.name);
         return "";
@@ -359,7 +367,7 @@ function tokenToFunction(
   }
 
   return (data, missing) => {
-    const value = data[token.name];
+    const value = getParam(data, token.name);
     if (value == null) {
       missing.push(token.name);
       return "";
