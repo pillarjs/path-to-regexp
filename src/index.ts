@@ -69,7 +69,7 @@ function escapeText(str: string) {
  * Escape a regular expression string.
  */
 function escape(str: string) {
-  return str.replace(/[.+*?^${}()[\]|/\\]/g, "\\$&");
+  return str.replace(/(?=[.+*?^${}()[\]|/\\])/g, "\\");
 }
 
 /**
