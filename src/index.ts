@@ -62,7 +62,7 @@ export interface CompileOptions {
  * Escape text for stringify to path.
  */
 function escapeText(str: string) {
-  return str.replace(/[{}()\[\]+?!:*\\]/g, "\\$&");
+  return str.replace(/(?=[{}()\[\]+?!:*\\])/g, "\\");
 }
 
 /**
